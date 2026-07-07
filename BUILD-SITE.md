@@ -48,6 +48,11 @@ npx serve site        # or: python3 -m http.server -d site
 - `wiki/index.md` → `site/index.html` (the landing catalog)
 - `wiki/concepts/*.md` → `site/concepts/*.html`, and likewise for
   `entities/`, `syntheses/`, `summaries/`, `presentations/`
+- **Any wiki layout works.** Pages are discovered recursively and grouped by
+  their top-level folder: the canonical sections above keep their labels and
+  order, any other folder becomes its own sidebar group (named after the
+  folder), and loose `*.md` at the wiki root fall under a catch-all "Pages"
+  group. Structured, custom-folder, and flat wikis all build with no config.
 - `wiki/log.md` is included; the Obsidian-plugin files (`dashboard.md`,
   `analytics.md`, `flashcards.md`) are ignored
 - `[[wikilinks]]` (with or without `|alias` and `#anchor`) resolve to relative

@@ -63,15 +63,6 @@ const SECTIONS = [
   { dir: "presentations", label: "Presentations" },
 ];
 
-function listMd(dir) {
-  const abs = join(WIKI, dir);
-  if (!existsSync(abs)) return [];
-  return readdirSync(abs)
-    .filter((f) => f.endsWith(".md"))
-    .sort()
-    .map((f) => join(dir, f));
-}
-
 // Parse YAML-ish frontmatter (only the flat keys we use).
 function parseFrontmatter(raw) {
   const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
@@ -117,10 +108,45 @@ function humanize(slug) {
   return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
-// Register home + sections (order matters for the registry, not for nav).
+// Register home first (order matters for the registry, not for nav).
 const home = register("index.md", "Home");
-for (const s of SECTIONS) for (const f of listMd(s.dir)) register(f, s.label);
+
+// Discover every *.md under wiki/ (recursively) and group it:
+//   - files in a canonical section folder keep that section's label + order
+//   - files in any other folder form a group named after the folder
+//   - loose files at the wiki root go to a catch-all "Pages" group
+// This makes the generator work for structured, custom-folder, and flat wikis
+// alike, with no per-project configuration.
+const CANON = new Map(SECTIONS.map((s) => [s.dir, s.label]));
+function walkMd(absDir) {
+  const out = [];
+  for (const e of readdirSync(absDir, { withFileTypes: true })) {
+    const abs = join(absDir, e.name);
+    if (e.isDirectory()) out.push(...walkMd(abs));
+    else if (e.name.endsWith(".md")) out.push(relative(WIKI, abs).split("\\").join("/"));
+  }
+  return out;
+}
+const extraDirs = new Set();
+for (const rel of walkMd(WIKI).sort()) {
+  if (rel === "index.md" || rel === "log.md") continue;
+  const slash = rel.indexOf("/");
+  const seg = slash === -1 ? null : rel.slice(0, slash);
+  let label;
+  if (!seg) label = "Pages";
+  else if (CANON.has(seg)) label = CANON.get(seg);
+  else { label = humanize(seg); extraDirs.add(seg); }
+  register(rel, label);
+}
 const log = existsSync(join(WIKI, "log.md")) ? register("log.md", "Meta") : null;
+
+// Sidebar groups: canonical sections in order, then any custom folders
+// (alphabetical), then the flat "Pages" catch-all. Empty groups are skipped.
+const SIDEBAR_SECTIONS = [
+  ...SECTIONS,
+  ...[...extraDirs].sort().map((d) => ({ dir: d, label: humanize(d) })),
+  { dir: null, label: "Pages" },
+];
 
 // ---------------------------------------------------------------------------
 // 2. Markdown -> HTML  (small, purpose-built converter)
@@ -335,7 +361,7 @@ const FONTS =
 // Sidebar catalog, links relative to the current page.
 function renderSidebar(page) {
   let items = "";
-  for (const s of SECTIONS) {
+  for (const s of SIDEBAR_SECTIONS) {
     const secPages = pages.filter((p) => p.section === s.label);
     if (!secPages.length) continue;
     items += `<div class="idx-group"><div class="idx-group-label">${s.label}</div><ol class="index-list">`;
