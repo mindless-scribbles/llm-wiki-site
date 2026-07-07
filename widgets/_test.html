@@ -1,0 +1,22 @@
+<!doctype html>
+<!-- Standalone test harness for widgets. Open:  _test.html?slug=<slug> -->
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../site/assets/wiki.css">
+<style>body{background:#070709;margin:0;padding:24px;max-width:760px}</style>
+</head><body>
+<div id="host"></div>
+<script src="./_viz.js"></script>
+<script>
+  const slug = new URLSearchParams(location.search).get('slug');
+  const d = document.createElement('div');
+  d.className = 'viz-block';
+  d.setAttribute('data-viz', slug);
+  document.getElementById('host').appendChild(d);
+  const sc = document.createElement('script');
+  sc.src = './' + slug + '.js';
+  document.body.appendChild(sc);
+</script>
+</body></html>
