@@ -19,6 +19,23 @@ const WIDGETS = join(ROOT, "widgets");
 // Site branding. Every field can be overridden in ./site.config.json so this
 // generator stays domain-agnostic — copy it into any llm-wiki project and only
 // the config changes. `brandLetters` are the two glyphs in the header mark.
+
+// Tinted accents are authored as rgba(var(--color-accent-rgb),alpha), so the
+// accent hex has to reach CSS as a bare "r,g,b" triplet too.
+function hexToRgbTriplet(hex) {
+  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(hex).trim());
+  if (!m) return null;
+  const h =
+    m[1].length === 3
+      ? m[1]
+          .split("")
+          .map((c) => c + c)
+          .join("")
+      : m[1];
+  const n = parseInt(h, 16);
+  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+}
+
 const CONFIG = (() => {
   const defaults = {
     title: "Knowledge Base",
@@ -37,6 +54,15 @@ const CONFIG = (() => {
   const [a = "K", b = "B"] = String(defaults.brandLetters).slice(0, 2).split("");
   defaults.brandA = a;
   defaults.brandB = b;
+
+  const rgb = hexToRgbTriplet(defaults.accent);
+  if (!rgb) {
+    console.warn(
+      `accent "${defaults.accent}" is not a hex color; falling back to #ff3300`,
+    );
+    defaults.accent = "#ff3300";
+  }
+  defaults.accentRgb = rgb ?? "255,51,0";
   return defaults;
 })();
 
@@ -509,6 +535,7 @@ const CSS = `:root{
   --color-bg:#070709;
   --color-text:#f4f4f5;
   --color-accent:${CONFIG.accent};
+  --color-accent-rgb:${CONFIG.accentRgb};
   --color-muted:#52525b;
   --font-display:"Syne",ui-sans-serif,system-ui,sans-serif;
   --font-mono:"Space Mono",ui-monospace,monospace;
@@ -533,11 +560,11 @@ a{color:inherit}
 .brand-letters{display:flex;align-items:baseline;line-height:1}
 .brand-a{font-family:var(--font-serif);font-size:1.9rem;font-weight:600;letter-spacing:-.04em;color:rgba(82,82,91,.85)}
 .brand-b{font-family:var(--font-serif);font-size:2.05rem;font-weight:400;font-style:italic;letter-spacing:-.02em;color:transparent;-webkit-text-stroke:1px rgba(82,82,91,.85)}
-.brand-sub{font-family:var(--font-mono);font-size:.58rem;color:rgba(255,51,0,.6);margin-top:-2px;letter-spacing:.02em}
+.brand-sub{font-family:var(--font-mono);font-size:.58rem;color:rgba(var(--color-accent-rgb),.6);margin-top:-2px;letter-spacing:.02em}
 .nav{display:flex;gap:16px;flex-wrap:wrap;justify-content:flex-end}
 .nav-link{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
   color:rgba(82,82,91,.85);text-decoration:none;transition:color .2s}
-.nav-link:hover{color:rgba(255,51,0,.75)}
+.nav-link:hover{color:rgba(var(--color-accent-rgb),.75)}
 
 /* Shell */
 .entry-shell{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 3.2rem);align-items:start}
@@ -552,7 +579,7 @@ a{color:inherit}
 .field-logs .brand:hover{color:var(--color-accent)}
 .idx-group{margin-bottom:1.4rem}
 .idx-group-label{font-family:var(--font-mono);font-size:.58rem;letter-spacing:.22em;text-transform:uppercase;
-  color:rgba(255,51,0,.55);margin-bottom:.6rem}
+  color:rgba(var(--color-accent-rgb),.55);margin-bottom:.6rem}
 .index-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:.5rem}
 .index-item{font-family:var(--font-mono);font-size:.68rem;letter-spacing:.03em;display:grid;
   grid-template-columns:30px 1fr;align-items:baseline;gap:.6rem;color:var(--color-muted);transition:color .2s}
@@ -566,7 +593,7 @@ a{color:inherit}
 
 /* Hero */
 .hero{padding:4.5rem 2rem 2.5rem;border-bottom:1px solid rgba(244,244,245,.08);
-  background:radial-gradient(120% 140% at 50% -20%,rgba(255,51,0,.08),transparent 60%);text-align:center}
+  background:radial-gradient(120% 140% at 50% -20%,rgba(var(--color-accent-rgb),.08),transparent 60%);text-align:center}
 .hero-kicker{font-family:var(--font-mono);font-size:.62rem;letter-spacing:.28em;text-transform:uppercase;
   color:var(--color-accent);margin-bottom:1.4rem}
 .headline{font-family:var(--font-serif);font-size:clamp(2.1rem,5vw,4rem);line-height:1;font-weight:800;
@@ -594,7 +621,7 @@ a{color:inherit}
 .content-body .h3{font-size:1.05rem;margin:2rem 0 .8rem;color:#e8e8e9}
 .content-body .h4{font-size:.9rem;margin:1.6rem 0 .6rem;text-transform:uppercase;letter-spacing:.12em;color:var(--color-muted)}
 
-.content-body a.wl{color:var(--color-accent);text-decoration:none;border-bottom:1px solid rgba(255,51,0,.35);transition:border-color .2s}
+.content-body a.wl{color:var(--color-accent);text-decoration:none;border-bottom:1px solid rgba(var(--color-accent-rgb),.35);transition:border-color .2s}
 .content-body a.wl:hover{border-bottom-color:var(--color-accent)}
 .content-body a.lnk{color:#e8e8e9;text-decoration:none;border-bottom:1px solid rgba(244,244,245,.25)}
 .content-body a.lnk:hover{border-bottom-color:var(--color-text)}
@@ -621,7 +648,7 @@ a{color:inherit}
 .content-body table.tbl{border-collapse:collapse;width:100%;font-size:.82rem}
 .content-body table.tbl th,.content-body table.tbl td{border:1px solid rgba(244,244,245,.1);padding:.55rem .7rem;text-align:left;vertical-align:top}
 .content-body table.tbl th{font-family:var(--font-mono);text-transform:uppercase;letter-spacing:.06em;font-size:.68rem;
-  color:var(--color-accent);background:rgba(255,51,0,.05)}
+  color:var(--color-accent);background:rgba(var(--color-accent-rgb),.05)}
 .content-body table.tbl tr:nth-child(even) td{background:rgba(244,244,245,.02)}
 
 /* Footer */

@@ -26,13 +26,29 @@
  *     s.ring(x,y,rad,opt) s.arc(cx,cy,rad,a0,a1,opt) s.fillTri(a,b,c,opt)
  */
 (function () {
+  // The accent follows site.config.json. build-site.mjs emits it into :root as
+  // --color-accent / --color-accent-rgb; canvas fillStyle can't resolve var(),
+  // so read the computed values once and keep literals in the palette.
+  const cssVar = (name, fallback) => {
+    try {
+      const v = getComputedStyle(document.documentElement)
+        .getPropertyValue(name)
+        .trim();
+      return v || fallback;
+    } catch (e) {
+      return fallback;
+    }
+  };
+  const ACCENT_RGB = cssVar("--color-accent-rgb", "255,51,0");
+
   const C = {
     bg: "#0d0d10",
     grid: "rgba(244,244,245,0.06)",
     gridBold: "rgba(244,244,245,0.13)",
     ink: "#cccccc",
     dim: "#7a7a82",
-    accent: "#ff3300",
+    accent: cssVar("--color-accent", "#ff3300"),
+    accentSoft: `rgba(${ACCENT_RGB},0.12)`,
     x: "#ff4d3d",
     y: "#3ddc84",
     z: "#3aa0ff",
@@ -205,7 +221,7 @@
       ctx.restore();
     };
     S.fillTri = function (a, b, c, opt) {
-      S.poly([a, b, c], { close: true, fill: (opt && opt.fill) || "rgba(255,51,0,0.12)", color: (opt && opt.color) || null });
+      S.poly([a, b, c], { close: true, fill: (opt && opt.fill) || C.accentSoft, color: (opt && opt.color) || null });
     };
     S.ring = function (x, y, rad, opt) {
       opt = opt || {};
