@@ -199,6 +199,23 @@ function inline(text, page) {
   // 2. Escape everything else.
   text = escapeHtml(text);
 
+  // 2.5 Timecode tokens: @[MM:SS] or @[HH:MM:SS] -> a clickable accent "pill"
+  // that links to the matching heading anchor on the page's transcript AND (on
+  // the site) pops up that transcript chunk inline. Only active on pages that
+  // declare a `transcript:` frontmatter target; `page._tc` carries the resolved
+  // href + timecode->chunk index, and `page._tcUsed` records which chunks to embed.
+  if (page && page._tc) {
+    text = text.replace(/@\[(\d{1,2}:\d{2}(?::\d{2})?)\]/g, (_, tc) => {
+      const has = page._tc.index.has(tc);
+      if (has) page._tcUsed.add(tc);
+      const anchor = "#" + timecodeAnchor(tc);
+      const href = page._tc.href + anchor;
+      const cls = has ? "tc" : "tc tc-missing";
+      const data = has ? ` data-tc="${tc}"` : "";
+      return `<a class="${cls}" href="${escapeHtml(href)}"${data}>${tc}</a>`;
+    });
+  }
+
   // 3. Wikilinks: [[target|alias]] or [[target]]
   text = text.replace(/\[\[([^\]|]+)(?:\|([^\]]+))?\]\]/g, (_, tgtRaw, alias) => {
     let tgt = tgtRaw.trim();
@@ -208,6 +225,25 @@ function inline(text, page) {
       anchor = tgt.slice(hash);
       tgt = tgt.slice(0, hash);
     }
+
+    // Timecode wikilink -> transcript popover pill. Authored as
+    // [[wiki/<transcript>#MM:SS|MM:SS]] so it also resolves as a heading link in
+    // Obsidian; on the site it renders as a pill that pops up the transcript chunk.
+    const tcm = /^#(\d{1,2}:\d{2}(?::\d{2})?)$/.exec(anchor);
+    if (tcm && page._tc) {
+      const tc = tcm[1];
+      const has = page._tc.index.has(tc);
+      if (has) page._tcUsed.add(tc);
+      const href = page._tc.href + "#" + timecodeAnchor(tc);
+      const cls = has ? "tc" : "tc tc-missing";
+      const data = has ? ` data-tc="${tc}"` : "";
+      const label = (alias || tc).trim();
+      return `<a class="${cls}" href="${escapeHtml(href)}"${data}>${escapeHtml(label)}</a>`;
+    }
+
+    // Obsidian disambiguates same-basename files by path; tutorials prefix
+    // transcript targets with "wiki/". Strip it so the wiki-root registry resolves.
+    if (tgt.startsWith("wiki/")) tgt = tgt.slice(5);
     const dest = byTarget.get(tgt);
     const label = (alias || (dest ? dest.title : humanize(basename(tgt)))).trim();
     if (!dest) return `<span class="wl-missing">${label}</span>`;
@@ -370,6 +406,74 @@ function parseList(lines, start, page) {
 }
 
 // ---------------------------------------------------------------------------
+// 2b. Timecode index (for @[MM:SS] popovers on tutorial pages)
+// ---------------------------------------------------------------------------
+
+// Slug of a timecode, matching how mdToHtml() ids a "## [MM:SS]" heading:
+//   "00:30"    -> "00-30"
+//   "01:00:39" -> "01-00-39"
+function timecodeAnchor(tc) {
+  return tc.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+}
+
+// Parse a transcript page (headings shaped "## [MM:SS]") into a
+// Map<timecodeString, chunkHtml>. Cached on the transcript page object.
+function buildTimecodeIndex(tp) {
+  if (tp._tcIndex) return tp._tcIndex;
+  const idx = new Map();
+  const lines = tp.body.replace(/\r\n/g, "\n").split("\n");
+  const isTc = (l) => /^##\s+\[?(\d{1,2}:\d{2}(?::\d{2})?)\]?\s*$/.exec(l);
+  let i = 0;
+  while (i < lines.length) {
+    const m = isTc(lines[i]);
+    if (!m) { i++; continue; }
+    const tc = m[1];
+    i++;
+    const buf = [];
+    // Collect until the next timecode heading (or any other heading).
+    while (i < lines.length && !isTc(lines[i]) && !/^#{1,6}\s/.test(lines[i])) {
+      buf.push(lines[i]);
+      i++;
+    }
+    idx.set(tc, mdToHtml(buf.join("\n").trim(), tp));
+  }
+  tp._tcIndex = idx;
+  return idx;
+}
+
+// Client script (inlined once per page that uses timecodes): click a .tc pill to
+// float a popover containing the referenced transcript chunk from #tc-data.
+const TC_SCRIPT = `(function(){
+  var data=document.getElementById('tc-data'); if(!data) return;
+  var pop=null;
+  function close(){ if(pop){pop.remove();pop=null;} document.removeEventListener('click',onDoc,true); }
+  function onDoc(e){ if(pop && !pop.contains(e.target) && !(e.target.closest&&e.target.closest('a.tc'))) close(); }
+  document.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('a.tc[data-tc]'); if(!a) return;
+    e.preventDefault();
+    var tc=a.getAttribute('data-tc');
+    var esc=(window.CSS&&CSS.escape)?CSS.escape(tc):tc.replace(/[^a-zA-Z0-9_-]/g,'\\\\$&');
+    var src=data.querySelector('[data-tc="'+esc+'"]'); if(!src) return;
+    close();
+    pop=document.createElement('div'); pop.className='tc-pop';
+    pop.innerHTML='<div class="tc-pop-head"><span class="tc-pop-time">'+tc+'</span>'+
+      '<a class="tc-pop-full" href="'+a.getAttribute('href')+'">open full &#8599;</a>'+
+      '<button class="tc-pop-x" aria-label="Close">&times;</button></div>'+
+      '<div class="tc-pop-body">'+src.innerHTML+'</div>';
+    document.body.appendChild(pop);
+    var r=a.getBoundingClientRect();
+    pop.style.top=(window.scrollY+r.bottom+8)+'px';
+    var left=window.scrollX+r.left;
+    var maxLeft=window.scrollX+document.documentElement.clientWidth-pop.offsetWidth-16;
+    if(left>maxLeft) left=Math.max(window.scrollX+12,maxLeft);
+    pop.style.left=left+'px';
+    pop.querySelector('.tc-pop-x').addEventListener('click',close);
+    setTimeout(function(){document.addEventListener('click',onDoc,true);},0);
+  });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape') close(); });
+})();`;
+
+// ---------------------------------------------------------------------------
 // 3. Page template (Field Logs style)
 // ---------------------------------------------------------------------------
 
@@ -474,8 +578,31 @@ function applyDropcap(bodyHtml) {
 
 function renderPage(page) {
   applyDropcap._done = false;
+
+  // Timecode popovers: if this page names a transcript, resolve it and build the
+  // timecode index so inline() can turn @[MM:SS] tokens into popover pills.
+  const tcTarget = page.data.transcript;
+  if (tcTarget && byTarget.has(tcTarget)) {
+    const tp = byTarget.get(tcTarget);
+    page._tc = { href: relHref(page.outRel, tp.outRel), index: buildTimecodeIndex(tp) };
+  } else {
+    page._tc = null;
+  }
+  page._tcUsed = new Set();
+
   let bodyHtml = mdToHtml(page.body, page);
   bodyHtml = applyDropcap(bodyHtml);
+
+  // Hidden data island holding each referenced transcript chunk + its wiring script.
+  let tcData = "";
+  let tcScript = "";
+  if (page._tc && page._tcUsed.size) {
+    const parts = [...page._tcUsed].map(
+      (tc) => `<div data-tc="${tc}">${page._tc.index.get(tc) || ""}</div>`
+    );
+    tcData = `<div id="tc-data" hidden>${parts.join("")}</div>`;
+    tcScript = `<script>${TC_SCRIPT}</script>`;
+  }
 
   const cssHref = relHref(page.outRel, "assets/wiki.css");
   const isHome = page.target === "index";
@@ -514,6 +641,7 @@ function renderPage(page) {
         <section class="content-body">
 ${bodyHtml}
         </section>
+        ${tcData}
       </article>
       <footer class="entry-footer">
         <div>© 2026 MASTERING MATRICES — MATRIX WIKI</div>
@@ -523,6 +651,7 @@ ${bodyHtml}
   </div>
 </div>
 ${vizScripts}
+${tcScript}
 </body>
 </html>`;
 }
@@ -708,6 +837,30 @@ a{color:inherit}
 .viz-note{font-family:var(--font-mono);font-size:.62rem;line-height:1.5;color:var(--color-muted);padding:0 1.2rem 1.1rem;letter-spacing:.02em}
 .viz-note:empty{display:none}
 .viz-error{padding:1.5rem;color:var(--color-muted);font-size:.7rem}
+
+/* ---- Timecode pills + transcript popover ---- */
+.content-body a.tc{display:inline-block;font-family:var(--font-mono);font-size:.74em;line-height:1;
+  color:var(--color-accent);background:rgba(var(--color-accent-rgb),.09);
+  border:1px solid rgba(var(--color-accent-rgb),.32);border-radius:3px;
+  padding:.12em .42em;text-decoration:none;cursor:pointer;white-space:nowrap;vertical-align:baseline;
+  transition:background .15s,border-color .15s}
+.content-body a.tc:hover{background:rgba(var(--color-accent-rgb),.2);border-color:var(--color-accent)}
+.content-body a.tc::before{content:"\\25B8";margin-right:.28em;opacity:.7}
+.content-body a.tc.tc-missing{color:var(--color-muted);border-color:rgba(82,82,91,.5);background:transparent}
+.tc-pop{position:absolute;z-index:60;max-width:min(520px,92vw);background:#0d0d12;
+  border:1px solid rgba(var(--color-accent-rgb),.4);border-top:2px solid var(--color-accent);
+  border-radius:3px;box-shadow:0 14px 44px rgba(0,0,0,.6)}
+.tc-pop-head{display:flex;align-items:center;gap:.8rem;padding:.5rem .7rem;
+  border-bottom:1px solid rgba(244,244,245,.1);font-family:var(--font-mono)}
+.tc-pop-time{color:var(--color-accent);font-size:.72rem;letter-spacing:.1em;font-weight:700}
+.tc-pop-full{margin-left:auto;color:var(--color-accent);font-size:.62rem;text-decoration:none;opacity:.85;letter-spacing:.04em}
+.tc-pop-full:hover{opacity:1;text-decoration:underline}
+.tc-pop-x{background:none;border:none;color:var(--color-muted);font-size:1.15rem;line-height:1;cursor:pointer;padding:0 .15rem}
+.tc-pop-x:hover{color:var(--color-text)}
+.tc-pop-body{padding:.75rem .9rem;max-height:min(50vh,420px);overflow-y:auto;
+  font-family:var(--font-mono);font-size:.8rem;line-height:1.55;color:#cfcfd4}
+.tc-pop-body p{margin:0 0 .7rem}
+.tc-pop-body p:last-child{margin-bottom:0}
 `;
 
 // ---------------------------------------------------------------------------
