@@ -82,10 +82,10 @@ const widgetSlugs = new Set(
 // Sections in sidebar order. `dir` is relative to wiki/. index.md + log.md are
 // handled separately (they live at the wiki root).
 const SECTIONS = [
+  { dir: "summaries", label: "Summaries" },
   { dir: "concepts", label: "Concepts" },
   { dir: "entities", label: "Entities" },
   { dir: "syntheses", label: "Syntheses" },
-  { dir: "summaries", label: "Summaries" },
   { dir: "presentations", label: "Presentations" },
 ];
 
@@ -507,7 +507,7 @@ function renderSidebar(page) {
     items += "</ol></div>";
   }
   const homeHref = relHref(page.outRel, home.outRel);
-  return `<aside class="field-logs">
+  return `<aside class="field-logs" id="master-index">
   <div class="top">
     <a class="brand" href="${homeHref}">MASTER INDEX</a>
     ${items}
@@ -525,10 +525,13 @@ function renderHeader(page) {
     ["Walkthroughs", homeHref + "#presentations-step-by-step-walkthroughs"],
   ];
   return `<header class="site-header">
-  <a href="${homeHref}" class="brand-mark" aria-label="${escapeHtml(CONFIG.title)} — home">
-    <span class="brand-letters"><span class="brand-a">${escapeHtml(CONFIG.brandA)}</span><span class="brand-b">${escapeHtml(CONFIG.brandB)}</span></span>
-    <span class="brand-sub">${escapeHtml(CONFIG.title)}</span>
-  </a>
+  <div class="header-left">
+    <button type="button" class="sidebar-toggle" aria-label="Toggle the index" aria-controls="master-index" aria-expanded="true"><span class="sb-icon" aria-hidden="true"></span></button>
+    <a href="${homeHref}" class="brand-mark" aria-label="${escapeHtml(CONFIG.title)} — home">
+      <span class="brand-letters"><span class="brand-a">${escapeHtml(CONFIG.brandA)}</span><span class="brand-b">${escapeHtml(CONFIG.brandB)}</span></span>
+      <span class="brand-sub">${escapeHtml(CONFIG.title)}</span>
+    </a>
+  </div>
   <nav class="nav">
     ${navItems.map(([l, h]) => `<a href="${h}" class="nav-link">${l}</a>`).join("")}
   </nav>
@@ -575,6 +578,17 @@ function applyDropcap(bodyHtml) {
     return `<p>${sp}<span class="dropcap">${ch}</span>`;
   });
 }
+
+// Sidebar collapse: open by default. Persist the reader's choice in localStorage
+// under "sb" ("0" = collapsed). The head snippet runs before paint to set the
+// class up front (no flash); the body snippet wires the header toggle button.
+const SB_HEAD =
+  `try{if(localStorage.getItem('sb')==='0')document.documentElement.classList.add('sidebar-collapsed')}catch(e){}`;
+const SB_SCRIPT =
+  `(function(){var b=document.querySelector('.sidebar-toggle');if(!b)return;var r=document.documentElement;` +
+  `function sync(){b.setAttribute('aria-expanded',String(!r.classList.contains('sidebar-collapsed')));}sync();` +
+  `b.addEventListener('click',function(){var c=r.classList.toggle('sidebar-collapsed');` +
+  `try{localStorage.setItem('sb',c?'0':'1')}catch(e){}sync();});})();`;
 
 function renderPage(page) {
   applyDropcap._done = false;
@@ -626,6 +640,7 @@ function renderPage(page) {
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="${FONTS}" rel="stylesheet">
 <link rel="stylesheet" href="${cssHref}">
+<script>${SB_HEAD}</script>
 </head>
 <body>
 <div class="noise" aria-hidden="true"></div>
@@ -644,7 +659,7 @@ ${bodyHtml}
         ${tcData}
       </article>
       <footer class="entry-footer">
-        <div>© 2026 MASTERING MATRICES — MATRIX WIKI</div>
+        <div>${escapeHtml(CONFIG.footer)}</div>
         <a class="proceed" href="${relHref(page.outRel, home.outRel)}">RETURN TO MASTER INDEX →</a>
       </footer>
     </main>
@@ -652,6 +667,7 @@ ${bodyHtml}
 </div>
 ${vizScripts}
 ${tcScript}
+<script>${SB_SCRIPT}</script>
 </body>
 </html>`;
 }
@@ -694,6 +710,20 @@ a{color:inherit}
 .nav-link{font-family:var(--font-mono);font-size:.66rem;letter-spacing:.1em;text-transform:uppercase;
   color:rgba(82,82,91,.85);text-decoration:none;transition:color .2s}
 .nav-link:hover{color:rgba(var(--color-accent-rgb),.75)}
+.header-left{display:flex;align-items:center;gap:.9rem;min-width:0}
+.sidebar-toggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:34px;height:34px;
+  padding:0;background:transparent;border:1px solid rgba(244,244,245,.14);border-radius:3px;cursor:pointer;transition:border-color .2s}
+.sidebar-toggle:hover{border-color:rgba(var(--color-accent-rgb),.5)}
+.sidebar-toggle:focus-visible{outline:2px solid var(--color-accent);outline-offset:2px}
+.sb-icon,.sb-icon::before,.sb-icon::after{display:block;width:16px;height:2px;background:rgba(82,82,91,.9);transition:background .2s}
+.sb-icon{position:relative}
+.sb-icon::before,.sb-icon::after{content:"";position:absolute;left:0}
+.sb-icon::before{top:-5px}.sb-icon::after{top:5px}
+.sidebar-toggle:hover .sb-icon,.sidebar-toggle:hover .sb-icon::before,.sidebar-toggle:hover .sb-icon::after{background:rgba(var(--color-accent-rgb),.9)}
+
+/* Sidebar collapsed (reader toggled it shut; open by default) */
+html.sidebar-collapsed .field-logs{display:none}
+html.sidebar-collapsed .entry-shell{grid-template-columns:1fr}
 
 /* Shell */
 .entry-shell{display:grid;grid-template-columns:320px 1fr;min-height:calc(100vh - 3.2rem);align-items:start}
