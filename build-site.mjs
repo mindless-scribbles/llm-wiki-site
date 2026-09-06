@@ -313,8 +313,22 @@ function mdToHtml(body, page) {
     if (/^\s*\|/.test(line) && i + 1 < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
       const rows = [];
       while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
-      const cells = (r) =>
-        r.trim().replace(/^\||\|$/g, "").split("|").map((c) => c.trim());
+      // Split a row on *unescaped* pipes. GFM lets `\|` stand for a literal pipe
+      // inside a cell, which is what makes aliased wikilinks ([[target|alias]])
+      // and timecode pills authorable in tables — a naive split("|") would tear
+      // them in half. Escaped pipes are unescaped as they are consumed.
+      const cells = (r) => {
+        const s = r.trim().replace(/^\|/, "").replace(/(?<!\\)\|\s*$/, "");
+        const parts = [];
+        let cur = "";
+        for (let k = 0; k < s.length; k++) {
+          if (s[k] === "\\" && s[k + 1] === "|") { cur += "|"; k++; continue; }
+          if (s[k] === "|") { parts.push(cur); cur = ""; continue; }
+          cur += s[k];
+        }
+        parts.push(cur);
+        return parts.map((c) => c.trim());
+      };
       const header = cells(rows[0]);
       const bodyRows = rows.slice(2).map(cells);
       let t = '<div class="table-wrap"><table class="tbl"><thead><tr>';
