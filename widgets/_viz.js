@@ -1,4 +1,4 @@
-/* _viz.js — shared interactive-visualization library for the Mastering Matrices wiki.
+/* _viz.js — shared interactive-visualization library for llm-wiki concept pages.
  * Vanilla JS, no dependencies. Loaded once per concept page before the widget file.
  *
  * Widget contract:

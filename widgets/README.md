@@ -1,10 +1,13 @@
 # Interactive concept visualizations
 
 Optional. Any concept page (`wiki/concepts/<slug>.md`) can get a bespoke,
-interactive canvas widget by dropping a `widgets/<slug>.js` file here. The build
-(`node build-site.mjs`) matches it by filename and injects an **INTERACTIVE**
-panel just under the page's metadata row. No widget file → no panel; the page
-still builds.
+interactive canvas widget. The build matches it by filename and injects an
+**INTERACTIVE** panel just under the page's metadata row. No widget file → no
+panel; the page still builds.
+
+Widgets are **per wiki**, so they live in `sites/<wiki-id>/widgets/<slug>.js`, not
+here — a wiki inside an Obsidian vault holds nothing but markdown, and this folder
+holds only the shared library every wiki uses.
 
 ## Files
 
@@ -16,9 +19,11 @@ still builds.
   arc, filled triangle) plus 2D vector helpers (`VIZ.v.add/sub/mul/len/norm/dot/
   rot/lerp`) and `VIZ.clamp`. **Do not edit per-widget** — it is shared. The file
   header documents the full Panel/Scene API.
-- `_test.html` — standalone preview harness. Open `widgets/_test.html?slug=<slug>`
-  in a browser to iterate on one widget without rebuilding the whole site.
-- `<slug>.js` — one self-contained widget per concept (you add these).
+- `_test.html` — standalone preview harness. Build any wiki once, then open
+  `widgets/_test.html?slug=<slug>&out=<path-to-built-site>` in a browser to
+  iterate on one widget without rebuilding.
+- `sites/<wiki-id>/widgets/<slug>.js` — one self-contained widget per concept
+  (you add these).
 
 ## Widget skeleton
 

@@ -1,0 +1,5 @@
+# Built sites. Regenerate any time with `llm-wiki-site build`.
+out/
+node_modules/
+.DS_Store
+Thumbs.db

@@ -1,24 +1,54 @@
 # Static HTML site for the wiki
 
-`build-site.mjs` converts every markdown page under `wiki/` into a self-contained
-static HTML site styled after the **Field Logs** journal aesthetic (dark theme,
-accent color, Playfair Display headlines, Space Mono body, noise + frame texture,
-numbered catalog sidebar). It is domain-agnostic — the same script works for any
-llm-wiki; only `site.config.json` changes.
+`build-site.mjs` converts every markdown page under a wiki's `wiki/` folder into
+a self-contained static HTML site styled after the **Field Logs** journal
+aesthetic (dark theme, accent color, Playfair Display headlines, Space Mono body,
+noise + frame texture, numbered catalog sidebar). It is domain-agnostic — the same
+script works for any llm-wiki.
+
+The wiki being built lives elsewhere: usually inside an Obsidian vault, which
+syncs only `*.md`. Nothing here is ever copied into the vault, and no HTML output
+lands there.
 
 ## Build
 
 ```bash
-node build-site.mjs
+llm-wiki-site build ~/Obsidian/Vault/trading-wiki --out ~/sites/trading-wiki
+llm-wiki-site build --site trading-wiki          # after `register`
 ```
 
-Output goes to `site/` (git-ignored — it is regenerated, never hand-edited).
 Requires Node 18+. No dependencies, no network needed to build (web fonts load
 from Google Fonts at view time).
 
-## Branding — `site.config.json`
+The output directory is wiped and rebuilt each run, so it is never hand-edited.
+As a safety rail the build refuses to wipe a directory that is non-empty and does
+not carry a `.llm-wiki-site.json` marker from a previous build.
 
-Optional. If present at the project root, it overrides these defaults:
+## Branding
+
+Resolved from three places, highest precedence first:
+
+1. CLI flags — `--title`, `--brandLetters`, `--footer`, `--accent`
+2. `sites/<id>/site.json` in this repo
+3. the wiki itself:
+   - `<wiki-root>/site.config.json`, or
+   - a `site:` block in `wiki/index.md` frontmatter
+
+Use the frontmatter form for any wiki that lives in a synced Obsidian vault — it
+is markdown, so it is the only one that actually travels with the wiki:
+
+```yaml
+---
+title: "Knowledge Base Index"
+site:
+  title: "Trading Field Logs"
+  brandLetters: "TF"
+  footer: "SYS.TRADING_WIKI / 2026"
+  accent: "#33ccff"
+---
+```
+
+The equivalent `site.config.json`:
 
 ```json
 {
@@ -36,38 +66,59 @@ Optional. If present at the project root, it overrides these defaults:
 
 ## View
 
-Open `site/index.html` directly in a browser (`file://` works — links are relative
-and the stylesheet is shared at `site/assets/wiki.css`). Or serve the folder:
+Open `<out>/index.html` directly in a browser (`file://` works — links are relative
+and the stylesheet is shared at `<out>/assets/wiki.css`). Or serve the folder:
 
 ```bash
-npx serve site        # or: python3 -m http.server -d site
+npx serve <out>       # or: python3 -m http.server -d <out>
 ```
 
 ## How it maps
 
-- `wiki/index.md` → `site/index.html` (the landing catalog)
-- `wiki/concepts/*.md` → `site/concepts/*.html`, and likewise for
+- `wiki/index.md` → `<out>/index.html` (the landing catalog)
+- `wiki/concepts/*.md` → `<out>/concepts/*.html`, and likewise for
   `entities/`, `syntheses/`, `summaries/`, `presentations/`
 - **Any wiki layout works.** Pages are discovered recursively and grouped by
   their top-level folder: the canonical sections above keep their labels and
   order, any other folder becomes its own sidebar group (named after the
   folder), and loose `*.md` at the wiki root fall under a catch-all "Pages"
   group. Structured, custom-folder, and flat wikis all build with no config.
-- `wiki/log.md` is included; the Obsidian-plugin files (`dashboard.md`,
-  `analytics.md`, `flashcards.md`) are ignored
+- `wiki/log.md` is included, as is every other `*.md` — including the
+  Obsidian-plugin pages (`dashboard.md`, `analytics.md`, `flashcards.md`), which
+  land in the catch-all "Pages" group
 - `[[wikilinks]]` (with or without `|alias` and `#anchor`) resolve to relative
   HTML links
 - Frontmatter drives the hero kicker (type + confidence) and the meta row (type,
   tags, updated, source count)
 - Tables, code fences, blockquotes, and nested lists are all supported
 
-Re-run the build whenever the wiki changes. The `site/` folder is fully
+Re-run the build whenever the wiki changes. The output folder is fully
 regenerated each run, so it is safe to delete.
+
+## Provenance
+
+Every build writes `<out>/.llm-wiki-site.json` and a footer line naming the wiki
+it came from:
+
+```json
+{
+  "wikiId": "trading-wiki",
+  "source": "/home/you/Obsidian/Vault/trading-wiki",
+  "sourceGitRemote": "git@github.com:you/trading-wiki.git",
+  "builtAt": "2026-09-06T19:11:31.523Z",
+  "builder": { "repo": "llm-wiki-site", "commit": "73d7d52" },
+  "pages": 42
+}
+```
+
+A site folder therefore always names its source wiki, and the marker is what lets
+a rebuild safely wipe the directory.
 
 ## Interactive concept visualizations (optional)
 
 Any concept page can get a bespoke interactive canvas widget by dropping a
-`widgets/<slug>.js` file whose name matches the concept filename. The build
-injects an **INTERACTIVE** panel automatically. See `widgets/README.md` for the
+`sites/<wiki-id>/widgets/<slug>.js` file whose name matches the concept filename.
+The build injects an **INTERACTIVE** panel automatically, pairing it with the
+shared `widgets/_viz.js` library from this repo. See `widgets/README.md` for the
 shared `VIZ` API and the widget skeleton. No widget file → no panel (the page
 still builds).

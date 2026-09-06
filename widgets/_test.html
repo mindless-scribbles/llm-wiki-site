@@ -1,22 +1,44 @@
 <!doctype html>
-<!-- Standalone test harness for widgets. Open:  _test.html?slug=<slug> -->
+<!-- Standalone test harness for widgets.
+     Widgets live per-wiki, and the stylesheet only exists once a site is built,
+     so both paths are query params:
+
+       _test.html?slug=<slug>&site=<wiki-id>&out=<path-to-built-site>
+
+     `site` defaults to reading the widget straight from ../sites/<site>/widgets/.
+     `out` defaults to ../out/<site>, which is where `llm-wiki-site build` puts
+     things unless you pointed --out elsewhere. -->
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&family=Playfair+Display:wght@400;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../site/assets/wiki.css">
-<style>body{background:#070709;margin:0;padding:24px;max-width:760px}</style>
+<style>body{background:#070709;margin:0;padding:24px;max-width:760px;color:#e8e8ea;
+font-family:'Space Mono',monospace}</style>
 </head><body>
 <div id="host"></div>
 <script src="./_viz.js"></script>
 <script>
-  const slug = new URLSearchParams(location.search).get('slug');
-  const d = document.createElement('div');
-  d.className = 'viz-block';
-  d.setAttribute('data-viz', slug);
-  document.getElementById('host').appendChild(d);
-  const sc = document.createElement('script');
-  sc.src = './' + slug + '.js';
-  document.body.appendChild(sc);
+  const q = new URLSearchParams(location.search);
+  const slug = q.get('slug');
+  const site = q.get('site');
+  const out = q.get('out') || (site ? '../out/' + site : null);
+
+  if (!slug) {
+    document.body.textContent = 'Add ?slug=<slug> (and &site=<wiki-id>) to the URL.';
+  } else {
+    if (out) {
+      const css = document.createElement('link');
+      css.rel = 'stylesheet';
+      css.href = out.replace(/\/$/, '') + '/assets/wiki.css';
+      document.head.appendChild(css);
+    }
+    const d = document.createElement('div');
+    d.className = 'viz-block';
+    d.setAttribute('data-viz', slug);
+    document.getElementById('host').appendChild(d);
+    const sc = document.createElement('script');
+    sc.src = site ? '../sites/' + site + '/widgets/' + slug + '.js' : './' + slug + '.js';
+    document.body.appendChild(sc);
+  }
 </script>
 </body></html>

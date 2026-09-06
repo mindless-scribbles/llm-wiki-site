@@ -1,0 +1,10 @@
+{
+  "name": "llm-wiki-site",
+  "version": "1.0.0",
+  "description": "Static site generator for llm-wiki markdown vaults. Zero dependencies.",
+  "type": "module",
+  "bin": { "llm-wiki-site": "./bin/cli.mjs" },
+  "engines": { "node": ">=18" },
+  "license": "MIT",
+  "files": ["bin", "build-site.mjs", "config.mjs", "widgets"]
+}

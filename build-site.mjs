@@ -1,79 +1,104 @@
-#!/usr/bin/env node
-// build-site.mjs — Convert an llm-wiki (markdown under ./wiki/) into a
+// build-site.mjs — Convert an llm-wiki (markdown under <wiki>/wiki/) into a
 // self-contained static HTML site styled after the "Field Logs" journal pages
 // (dark, mono, accent-driven, serif headlines). Domain-agnostic: branding comes
-// from ./site.config.json (title, brandLetters, footer, accent).
+// from config.mjs, which reads it out of the wiki itself.
 //
-// Usage:  node build-site.mjs
-// Output: ./site/  (open site/index.html in a browser, or serve the folder)
+// The wiki being built lives somewhere else entirely — typically inside an
+// Obsidian vault that only ever holds markdown. Nothing here resolves paths
+// relative to this script; every path arrives through build().
+//
+// Usage:  see bin/cli.mjs  (llm-wiki-site build <wiki-path> --out <dir>)
 
 import { readFileSync, writeFileSync, readdirSync, mkdirSync, rmSync, existsSync, statSync } from "node:fs";
-import { join, dirname, relative, basename } from "node:path";
+import { join, dirname, relative, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { execFileSync } from "node:child_process";
+import { resolveConfig } from "./config.mjs";
 
-const ROOT = dirname(fileURLToPath(import.meta.url));
-const WIKI = join(ROOT, "wiki");
-const OUT = join(ROOT, "site");
-const WIDGETS = join(ROOT, "widgets");
+const MARKER = ".llm-wiki-site.json";
 
-// Site branding. Every field can be overridden in ./site.config.json so this
-// generator stays domain-agnostic — copy it into any llm-wiki project and only
-// the config changes. `brandLetters` are the two glyphs in the header mark.
-
-// Tinted accents are authored as rgba(var(--color-accent-rgb),alpha), so the
-// accent hex has to reach CSS as a bare "r,g,b" triplet too.
-function hexToRgbTriplet(hex) {
-  const m = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(String(hex).trim());
-  if (!m) return null;
-  const h =
-    m[1].length === 3
-      ? m[1]
-          .split("")
-          .map((c) => c + c)
-          .join("")
-      : m[1];
-  const n = parseInt(h, 16);
-  return `${(n >> 16) & 255},${(n >> 8) & 255},${n & 255}`;
+// An --out directory is user-supplied and gets wiped, so only ever wipe one we
+// know is ours: empty, or carrying the provenance marker from a previous build.
+function assertSafeOut(outDir) {
+  if (!existsSync(outDir)) return;
+  if (!statSync(outDir).isDirectory()) throw new Error(`--out ${outDir} exists and is not a directory`);
+  const entries = readdirSync(outDir);
+  if (entries.length === 0 || entries.includes(MARKER)) return;
+  throw new Error(
+    `refusing to wipe ${outDir}: not empty and has no ${MARKER}.\n` +
+    `If this really is a previous site build, delete it by hand first.`,
+  );
 }
 
-const CONFIG = (() => {
-  const defaults = {
-    title: "Knowledge Base",
-    brandLetters: "KB",
-    footer: "SYS.WIKI / 2026",
-    accent: "#ff3300",
+function gitOut(dir, args) {
+  try {
+    return execFileSync("git", ["-C", dir, ...args], {
+      encoding: "utf8", stdio: ["ignore", "pipe", "ignore"],
+    }).trim() || null;
+  } catch { return null; }
+}
+
+function gitRemote(dir) {
+  return gitOut(dir, ["remote", "get-url", "origin"]);
+}
+
+const BUILDER_DIR = dirname(fileURLToPath(import.meta.url));
+
+function builderCommit() {
+  return gitOut(BUILDER_DIR, ["rev-parse", "--short", "HEAD"]);
+}
+
+/**
+ * Render a wiki to a static site.
+ *
+ * @param {object}  o
+ * @param {string}  o.wikiRoot    Folder containing wiki/ (and maybe site.config.json).
+ * @param {string} [o.wikiDir]    The markdown root. Defaults to <wikiRoot>/wiki.
+ * @param {string}  o.outDir      Where the HTML goes. Wiped and rebuilt.
+ * @param {string} [o.widgetsDir] Folder of per-wiki <slug>.js concept widgets.
+ * @param {string} [o.vizLib]     The shared _viz.js library. Defaults to the copy
+ *                                shipped alongside this generator.
+ * @param {string} [o.wikiId]     Name recorded in the provenance marker.
+ * @param {object} [o.overrides]  Branding overrides (CLI flags / site.json).
+ */
+export function build(o) {
+  const WIKI_ROOT = resolve(o.wikiRoot);
+  const WIKI = resolve(o.wikiDir ?? join(WIKI_ROOT, "wiki"));
+  const OUT = resolve(o.outDir);
+  const WIDGETS = o.widgetsDir ? resolve(o.widgetsDir) : null;
+  // Per-wiki widgets and the shared library are separate: a wiki registers its own
+  // widgets/ folder, but _viz.js always comes from this repo.
+  const VIZ_LIB = resolve(o.vizLib ?? join(BUILDER_DIR, "widgets", "_viz.js"));
+  const WIKI_ID = o.wikiId ?? basename(WIKI_ROOT);
+
+  if (!existsSync(WIKI)) throw new Error(`no markdown found at ${WIKI}`);
+  assertSafeOut(OUT);
+
+  const CONFIG = resolveConfig(WIKI_ROOT, WIKI, o.overrides ?? {});
+
+  // Where this site came from. Written to the output as a marker file and shown
+  // in the page footer, so a site folder is never orphaned from its wiki.
+  const PROVENANCE = {
+    wikiId: WIKI_ID,
+    source: WIKI_ROOT,
+    sourceGitRemote: gitRemote(WIKI_ROOT),
+    builtAt: new Date().toISOString(),
+    builder: { repo: "llm-wiki-site", commit: builderCommit() },
   };
-  const cfgPath = join(ROOT, "site.config.json");
-  if (existsSync(cfgPath)) {
-    try {
-      Object.assign(defaults, JSON.parse(readFileSync(cfgPath, "utf8")));
-    } catch (e) {
-      console.warn(`site.config.json ignored (${e.message})`);
-    }
-  }
-  const [a = "K", b = "B"] = String(defaults.brandLetters).slice(0, 2).split("");
-  defaults.brandA = a;
-  defaults.brandB = b;
 
-  const rgb = hexToRgbTriplet(defaults.accent);
-  if (!rgb) {
-    console.warn(
-      `accent "${defaults.accent}" is not a hex color; falling back to #ff3300`,
-    );
-    defaults.accent = "#ff3300";
-  }
-  defaults.accentRgb = rgb ?? "255,51,0";
-  return defaults;
-})();
+  // Interactive widgets: <widgets>/<slug>.js (excluding the shared _viz.js library).
+  const widgetSlugs = new Set(
+    WIDGETS && existsSync(WIDGETS)
+      ? readdirSync(WIDGETS)
+          .filter((f) => f.endsWith(".js") && f !== "_viz.js")
+          .map((f) => f.replace(/\.js$/, ""))
+      : []
+  );
 
-// Interactive widgets: widgets/<slug>.js (excluding the shared _viz.js library).
-const widgetSlugs = new Set(
-  existsSync(WIDGETS)
-    ? readdirSync(WIDGETS)
-        .filter((f) => f.endsWith(".js") && f !== "_viz.js")
-        .map((f) => f.replace(/\.js$/, ""))
-    : []
-);
+  // NOTE: the body below is deliberately left at its original (unindented) level
+  // rather than re-indented into this function. It keeps `git blame` intact and,
+  // more importantly, keeps the CSS/HTML template literals byte-identical to what
+  // the pre-split generator emitted.
 
 // ---------------------------------------------------------------------------
 // 1. Discover source pages
@@ -675,6 +700,7 @@ ${bodyHtml}
       <footer class="entry-footer">
         <div>${escapeHtml(CONFIG.footer)}</div>
         <a class="proceed" href="${relHref(page.outRel, home.outRel)}">RETURN TO MASTER INDEX →</a>
+        <div class="entry-source">source: ${escapeHtml(PROVENANCE.source)} · built ${PROVENANCE.builtAt.slice(0, 10)}</div>
       </footer>
     </main>
   </div>
@@ -825,6 +851,8 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:1fr}
 .content-body table.tbl tr:nth-child(even) td{background:rgba(244,244,245,.02)}
 
 /* Footer */
+.entry-source{margin-top:1.6rem;font-family:var(--font-mono);font-size:.55rem;
+letter-spacing:.12em;color:var(--color-muted);opacity:.7;word-break:break-all}
 .entry-footer{padding:5rem 2rem 4rem;max-width:760px;margin:0 auto;text-align:center;
   border-top:1px solid rgba(244,244,245,.08);font-family:var(--font-mono);font-size:.64rem;
   letter-spacing:.2em;color:var(--color-muted);text-transform:uppercase}
@@ -916,13 +944,14 @@ mkdirSync(OUT, { recursive: true });
 mkdirSync(join(OUT, "assets"), { recursive: true });
 writeFileSync(join(OUT, "assets", "wiki.css"), CSS);
 
-// Copy the viz library + any concept widgets into assets/.
-if (existsSync(WIDGETS)) {
+// Copy the shared viz library + any concept widgets into assets/.
+if (widgetSlugs.size) {
+  if (existsSync(VIZ_LIB)) writeFileSync(join(OUT, "assets", "_viz.js"), readFileSync(VIZ_LIB));
+  else console.warn(`viz library not found at ${VIZ_LIB}; widgets will not run`);
   mkdirSync(join(OUT, "assets", "widgets"), { recursive: true });
   for (const f of readdirSync(WIDGETS)) {
-    if (!f.endsWith(".js")) continue;
-    const dest = f === "_viz.js" ? join(OUT, "assets", f) : join(OUT, "assets", "widgets", f);
-    writeFileSync(dest, readFileSync(join(WIDGETS, f)));
+    if (!f.endsWith(".js") || f === "_viz.js") continue;
+    writeFileSync(join(OUT, "assets", "widgets", f), readFileSync(join(WIDGETS, f)));
   }
 }
 
@@ -932,5 +961,10 @@ for (const page of pages) {
   writeFileSync(dest, renderPage(page));
 }
 
-console.log(`Built ${pages.length} pages -> ${relative(ROOT, OUT)}/`);
-console.log(`Open: ${relative(ROOT, join(OUT, "index.html"))}`);
+writeFileSync(
+  join(OUT, MARKER),
+  JSON.stringify({ ...PROVENANCE, pages: pages.length }, null, 2) + "\n",
+);
+
+return { outDir: OUT, pages: pages.length, provenance: PROVENANCE, config: CONFIG };
+}
