@@ -1,4 +1,4 @@
 {
-  "source": "/mnt/c/Users/Owner/Documents/Obsidian Vault/wiki_projects/PuppeteerLounge",
-  "out": "/home/ddecastro/sites/puppeteer-lounge"
+  "source": "wiki_projects/PuppeteerLounge",
+  "out": "~/sites/puppeteer-lounge"
 }

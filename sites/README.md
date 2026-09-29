@@ -6,8 +6,8 @@ One folder per wiki: `sites/<wiki-id>/`.
 
   ```json
   {
-    "source": "/home/you/Obsidian/Vault/trading-wiki",
-    "out": "/home/you/sites/trading-wiki",
+    "source": "wikis/trading-wiki",
+    "out": "~/sites/trading-wiki",
     "title": "Trading Field Logs",
     "brandLetters": "TF",
     "footer": "SYS.TRADING_WIKI / 2026",
@@ -28,5 +28,7 @@ Register a wiki with:
 llm-wiki-site register trading-wiki ~/Obsidian/Vault/trading-wiki --out ~/sites/trading-wiki
 ```
 
-`site.json` records absolute paths, so these files are machine-specific. If you
-share this repo across machines, expect to re-run `register` on each.
+`source` is relative to the machine's vault root (`llm-wiki-site vault <path>`,
+stored in the git-ignored `local.json`, or `LLM_WIKI_VAULT`), and `out` sits under
+`~`, so these files work on every machine that sets its vault root. `register`
+writes them that way automatically once the vault root is set.

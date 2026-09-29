@@ -3,3 +3,6 @@ out/
 node_modules/
 .DS_Store
 Thumbs.db
+
+# Per-machine settings (vault root). Set with `llm-wiki-site vault <path>`.
+local.json

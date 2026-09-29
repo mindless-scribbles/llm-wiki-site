@@ -32,8 +32,24 @@ llm-wiki-site build ~/Obsidian/Vault/trading-wiki --out ~/sites/trading-wiki
 # or register it once, then just build
 llm-wiki-site register trading-wiki ~/Obsidian/Vault/trading-wiki --out ~/sites/trading-wiki
 llm-wiki-site build --site trading-wiki
+llm-wiki-site build --all          # every registered wiki
 llm-wiki-site list
 ```
+
+### Several machines
+
+Registrations are committed, so they travel with this repo. To keep them portable,
+`site.json` stores the wiki's path **relative to a vault root** and the output under
+`~`. Each machine names its vault root once (saved to the git-ignored `local.json`,
+or set `LLM_WIKI_VAULT`):
+
+```bash
+llm-wiki-site vault ~/Obsidian/Vault   # once per machine
+llm-wiki-site build --all              # sites land in ~/sites/<id>
+```
+
+Branding travels too, as long as it lives in the `site:` block of each wiki's
+`wiki/index.md` (Obsidian Sync carries `*.md` but not `site.config.json`).
 
 `<wiki-path>` may point at the wiki root (the folder containing `wiki/`) or at the
 `wiki/` folder itself.
@@ -46,7 +62,7 @@ Use the frontmatter form for synced vaults; it is the only one that is markdown.
 
 | Path | What |
 | --- | --- |
-| `bin/cli.mjs` | CLI: `build`, `register`, `list` |
+| `bin/cli.mjs` | CLI: `build` (`--site`, `--all`), `register`, `list`, `vault` |
 | `build-site.mjs` | the generator — `build({ wikiRoot, outDir, … })` |
 | `config.mjs` | branding resolution across the three sources |
 | `widgets/_viz.js` | shared canvas library for concept visualizations |
