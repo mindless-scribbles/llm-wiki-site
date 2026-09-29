@@ -5,6 +5,10 @@ interactive canvas widget. The build matches it by filename and injects an
 **INTERACTIVE** panel just under the page's metadata row. No widget file → no
 panel; the page still builds.
 
+Any page (not just concepts) can also mount a widget inline: a line of its own
+reading `@viz[<slug>]` drops the panel at that spot in the body. Unknown slugs
+render a small notice instead of failing the build.
+
 Widgets are **per wiki**, so they live in `sites/<wiki-id>/widgets/<slug>.js`, not
 here — a wiki inside an Obsidian vault holds nothing but markdown, and this folder
 holds only the shared library every wiki uses.

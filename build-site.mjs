@@ -232,11 +232,11 @@ function inline(text, page) {
   if (page && page._tc) {
     text = text.replace(/@\[(\d{1,2}:\d{2}(?::\d{2})?)\]/g, (_, tc) => {
       const has = page._tc.index.has(tc);
-      if (has) page._tcUsed.add(tc);
+      const key = has ? noteTimecodeUse(page, page._tcDefault, tc) : null;
       const anchor = "#" + timecodeAnchor(tc);
       const href = page._tc.href + anchor;
       const cls = has ? "tc" : "tc tc-missing";
-      const data = has ? ` data-tc="${tc}"` : "";
+      const data = has ? ` data-tc="${tc}" data-tck="${key}"` : "";
       return `<a class="${cls}" href="${escapeHtml(href)}"${data}>${tc}</a>`;
     });
   }
@@ -255,15 +255,23 @@ function inline(text, page) {
     // [[wiki/<transcript>#MM:SS|MM:SS]] so it also resolves as a heading link in
     // Obsidian; on the site it renders as a pill that pops up the transcript chunk.
     const tcm = /^#(\d{1,2}:\d{2}(?::\d{2})?)$/.exec(anchor);
-    if (tcm && page._tc) {
-      const tc = tcm[1];
-      const has = page._tc.index.has(tc);
-      if (has) page._tcUsed.add(tc);
-      const href = page._tc.href + "#" + timecodeAnchor(tc);
-      const cls = has ? "tc" : "tc tc-missing";
-      const data = has ? ` data-tc="${tc}"` : "";
-      const label = (alias || tc).trim();
-      return `<a class="${cls}" href="${escapeHtml(href)}"${data}>${escapeHtml(label)}</a>`;
+    if (tcm && page && page._tcSrc) {
+      // The link's own target decides which transcript is indexed, so one page
+      // can carry timecodes from several videos. Falls back to the page's
+      // `transcript:` frontmatter when the target names no known transcript.
+      const named = tgt.startsWith("wiki/") ? tgt.slice(5) : tgt;
+      let srcTarget = tcSource(page, named) ? named : page._tcDefault;
+      const src = srcTarget ? tcSource(page, srcTarget) : null;
+      if (src) {
+        const tc = tcm[1];
+        const has = src.index.has(tc);
+        const key = has ? noteTimecodeUse(page, srcTarget, tc) : null;
+        const href = src.href + "#" + timecodeAnchor(tc);
+        const cls = has ? "tc" : "tc tc-missing";
+        const data = has ? ` data-tc="${tc}" data-tck="${key}"` : "";
+        const label = (alias || tc).trim();
+        return `<a class="${cls}" href="${escapeHtml(href)}"${data}>${escapeHtml(label)}</a>`;
+      }
     }
 
     // Obsidian disambiguates same-basename files by path; tutorials prefix
@@ -320,6 +328,23 @@ function mdToHtml(body, page) {
     // Horizontal rule
     if (/^---+\s*$/.test(line) || /^\*\*\*+\s*$/.test(line)) {
       out.push('<hr class="rule">');
+      i++;
+      continue;
+    }
+
+    // Inline widget marker: a line of its own shaped "@viz[slug]" mounts an
+    // interactive visualization right here in the body (not just at the top of
+    // concept pages). Records the slug on page._vizUsed so renderPage() knows to
+    // load _viz.js + the widget script. Unknown slugs render a small notice.
+    const vm = line.match(/^\s*@viz\[([a-z0-9][a-z0-9-]*)\]\s*$/);
+    if (vm && page) {
+      const slug = vm[1];
+      if (widgetSlugs.has(slug)) {
+        (page._vizUsed || (page._vizUsed = new Set())).add(slug);
+        out.push(`<div class="viz-block" data-viz="${slug}"></div>`);
+      } else {
+        out.push(`<div class="viz-error">Widget "${escapeHtml(slug)}" not found.</div>`);
+      }
       i++;
       continue;
     }
@@ -402,6 +427,15 @@ function mdToHtml(body, page) {
       buf.push(lines[i]);
       i++;
     }
+    // Guarantee forward progress. If the line matched a block-starter above but no
+    // branch consumed it — e.g. a table row orphaned from its header by a stray blank
+    // line — buf is empty and `i` never advances, spinning until `out.push` throws
+    // "RangeError: Invalid array length". Emit the line as a paragraph and move on.
+    if (buf.length === 0) {
+      out.push(`<p>${inline(lines[i], page)}</p>`);
+      i++;
+      continue;
+    }
     out.push(`<p>${inline(buf.join(" ").trim(), page)}</p>`);
   }
 
@@ -455,6 +489,30 @@ function timecodeAnchor(tc) {
   return tc.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
 }
 
+// Resolve (and cache on the page) a transcript target's href + timecode index.
+// Returns null when the target is unknown or carries no timecoded headings.
+function tcSource(page, target) {
+  if (!target || !page._tcSrc) return null;
+  if (page._tcSrc.has(target)) return page._tcSrc.get(target);
+  let src = null;
+  if (byTarget.has(target)) {
+    const tp = byTarget.get(target);
+    const index = buildTimecodeIndex(tp);
+    if (index.size) src = { href: relHref(page.outRel, tp.outRel), index };
+  }
+  page._tcSrc.set(target, src);
+  return src;
+}
+
+// Record that this page cites <target>#<tc>, and return the DOM key the pill and
+// its data-island chunk share. Keys are namespaced by transcript so two videos
+// can contribute the same timecode to one page without colliding.
+function noteTimecodeUse(page, target, tc) {
+  const key = String(target).replace(/[^a-zA-Z0-9]+/g, "-") + "~" + tc;
+  if (!page._tcUsed.has(key)) page._tcUsed.set(key, { target, tc });
+  return key;
+}
+
 // Parse a transcript page (headings shaped "## [MM:SS]") into a
 // Map<timecodeString, chunkHtml>. Cached on the transcript page object.
 function buildTimecodeIndex(tp) {
@@ -488,11 +546,11 @@ const TC_SCRIPT = `(function(){
   function close(){ if(pop){pop.remove();pop=null;} document.removeEventListener('click',onDoc,true); }
   function onDoc(e){ if(pop && !pop.contains(e.target) && !(e.target.closest&&e.target.closest('a.tc'))) close(); }
   document.addEventListener('click',function(e){
-    var a=e.target.closest&&e.target.closest('a.tc[data-tc]'); if(!a) return;
+    var a=e.target.closest&&e.target.closest('a.tc[data-tck]'); if(!a) return;
     e.preventDefault();
-    var tc=a.getAttribute('data-tc');
-    var esc=(window.CSS&&CSS.escape)?CSS.escape(tc):tc.replace(/[^a-zA-Z0-9_-]/g,'\\\\$&');
-    var src=data.querySelector('[data-tc="'+esc+'"]'); if(!src) return;
+    var tc=a.getAttribute('data-tc'), k=a.getAttribute('data-tck');
+    var esc=(window.CSS&&CSS.escape)?CSS.escape(k):k.replace(/[^a-zA-Z0-9_-]/g,'\\\\$&');
+    var src=data.querySelector('[data-tck="'+esc+'"]'); if(!src) return;
     close();
     pop=document.createElement('div'); pop.className='tc-pop';
     pop.innerHTML='<div class="tc-pop-head"><span class="tc-pop-time">'+tc+'</span>'+
@@ -624,24 +682,23 @@ const SB_SCRIPT =
 function renderPage(page) {
   // Timecode popovers: if this page names a transcript, resolve it and build the
   // timecode index so inline() can turn @[MM:SS] tokens into popover pills.
+  page._tcSrc = new Map();
+  page._tcUsed = new Map();
+  page._vizUsed = new Set();
   const tcTarget = page.data.transcript;
-  if (tcTarget && byTarget.has(tcTarget)) {
-    const tp = byTarget.get(tcTarget);
-    page._tc = { href: relHref(page.outRel, tp.outRel), index: buildTimecodeIndex(tp) };
-  } else {
-    page._tc = null;
-  }
-  page._tcUsed = new Set();
+  page._tcDefault = tcTarget && tcSource(page, tcTarget) ? tcTarget : null;
+  page._tc = page._tcDefault ? tcSource(page, page._tcDefault) : null;
 
   const bodyHtml = mdToHtml(page.body, page);
 
   // Hidden data island holding each referenced transcript chunk + its wiring script.
   let tcData = "";
   let tcScript = "";
-  if (page._tc && page._tcUsed.size) {
-    const parts = [...page._tcUsed].map(
-      (tc) => `<div data-tc="${tc}">${page._tc.index.get(tc) || ""}</div>`
-    );
+  if (page._tcUsed.size) {
+    const parts = [...page._tcUsed].map(([key, { target, tc }]) => {
+      const src = tcSource(page, target);
+      return `<div data-tck="${escapeHtml(key)}">${(src && src.index.get(tc)) || ""}</div>`;
+    });
     tcData = `<div id="tc-data" hidden>${parts.join("")}</div>`;
     tcScript = `<script>${TC_SCRIPT}</script>`;
   }
@@ -649,12 +706,23 @@ function renderPage(page) {
   const cssHref = relHref(page.outRel, "assets/wiki.css");
   const isHome = page.target === "index";
 
-  // Interactive visualization (concept pages that have a widget file).
+  // Interactive visualizations. Two ways a page gets one:
+  //   1. a concept page whose slug matches a widget file -> panel under the meta row;
+  //   2. any page with an inline "@viz[slug]" marker -> panel at that spot in the body
+  //      (recorded in page._vizUsed during mdToHtml above).
+  // Either way we load _viz.js once plus one script per distinct widget used.
   const slug = basename(page.target);
-  const hasViz = page.data.type === "concept" && widgetSlugs.has(slug);
-  const vizBlock = hasViz ? `<div class="viz-block" data-viz="${slug}"></div>` : "";
-  const vizScripts = hasViz
-    ? `<script src="${relHref(page.outRel, "assets/_viz.js")}"></script>\n<script src="${relHref(page.outRel, "assets/widgets/" + slug + ".js")}"></script>`
+  const conceptViz = page.data.type === "concept" && widgetSlugs.has(slug);
+  const vizBlock = conceptViz ? `<div class="viz-block" data-viz="${slug}"></div>` : "";
+  const usedSlugs = new Set(page._vizUsed);
+  if (conceptViz) usedSlugs.add(slug);
+  const vizScripts = usedSlugs.size
+    ? [
+        `<script src="${relHref(page.outRel, "assets/_viz.js")}"></script>`,
+        ...[...usedSlugs].map(
+          (sl) => `<script src="${relHref(page.outRel, "assets/widgets/" + sl + ".js")}"></script>`
+        ),
+      ].join("\n")
     : "";
 
   return `<!doctype html>
