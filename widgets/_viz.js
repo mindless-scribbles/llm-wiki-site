@@ -42,19 +42,19 @@
   const ACCENT_RGB = cssVar("--color-accent-rgb", "255,51,0");
 
   const C = {
-    bg: "#0d0d10",
+    bg: "#111114",
     grid: "rgba(244,244,245,0.06)",
     gridBold: "rgba(244,244,245,0.13)",
-    ink: "#cccccc",
-    dim: "#7a7a82",
+    ink: "#f4f4f5",
+    dim: "#71717a",
     accent: cssVar("--color-accent", "#ff3300"),
     accentSoft: `rgba(${ACCENT_RGB},0.12)`,
     x: "#ff4d3d",
     y: "#3ddc84",
     z: "#3aa0ff",
-    a1: "#fbbf24",
-    a2: "#a78bfa",
-    a3: "#22d3ee",
+    a1: "#f4f4f5",
+    a2: "#a1a1aa",
+    a3: "#71717a",
     ghost: "rgba(244,244,245,0.28)",
   };
   const FONT = '"Space Mono", ui-monospace, monospace';

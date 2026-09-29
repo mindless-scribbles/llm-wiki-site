@@ -11,7 +11,7 @@ One folder per wiki: `sites/<wiki-id>/`.
     "title": "Trading Field Logs",
     "brandLetters": "TF",
     "footer": "SYS.TRADING_WIKI / 2026",
-    "accent": "#33ccff"
+    "accent": "#ff3300"
   }
   ```
 

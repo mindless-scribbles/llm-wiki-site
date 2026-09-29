@@ -1,10 +1,12 @@
 # Static HTML site for the wiki
 
 `build-site.mjs` converts every markdown page under a wiki's `wiki/` folder into
-a self-contained static HTML site styled after the **Field Logs** journal
-aesthetic (dark theme, accent color, Playfair Display headlines, Space Mono body,
-noise + frame texture, numbered catalog sidebar). It is domain-agnostic — the same
-script works for any llm-wiki.
+a self-contained static HTML site styled with the **DDC Reel** design system
+([artifact](https://claude.ai/artifact/QBTm2jQ8DC1f9bjhwiuDvw); skill at `~/.claude/skills/ddc-reel/`): dark and monochrome,
+Syne headings, Space Mono labels, Hanken Grotesk reading text, one orange accent
+per page (the hero kicker), and a numbered catalog sidebar. It is domain-agnostic:
+the same script works for any llm-wiki. When DDC Reel changes, update the `CSS`
+block in `build-site.mjs` (it mirrors `ddc-reel.css`) and rebuild every registered site.
 
 The wiki being built lives elsewhere: usually inside an Obsidian vault, which
 syncs only `*.md`. Nothing here is ever copied into the vault, and no HTML output
@@ -60,9 +62,9 @@ The equivalent `site.config.json`:
 ```
 
 - `title` — site name (header brand, `<title>`, meta description)
-- `brandLetters` — the two glyphs in the header mark
+- `brandLetters` — the short brand shown in the header on phone widths (the full `title` shows elsewhere)
 - `footer` — the mono status line at the bottom of the sidebar
-- `accent` — the single accent color used throughout
+- `accent` — the single accent color (DDC Reel `#ff3300`); used once per page, on the hero kicker
 
 ## View
 
