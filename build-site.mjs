@@ -95,6 +95,26 @@ export function build(o) {
       : []
   );
 
+  // Explainer videos: <media>/<slug>.mp4 (+ optional <slug>.jpg poster), mounted
+  // in a page body by a line of its own reading "@video[slug] optional caption".
+  // Per-wiki like widgets: the vault holds only markdown, the mp4s live beside
+  // the site record.
+  const MEDIA = o.mediaDir ? resolve(o.mediaDir) : null;
+  const mediaSlugs = new Set(
+    MEDIA && existsSync(MEDIA)
+      ? readdirSync(MEDIA)
+          .filter((f) => f.endsWith(".mp4"))
+          .map((f) => f.replace(/\.mp4$/, ""))
+      : []
+  );
+  const mediaPosters = new Set(
+    MEDIA && existsSync(MEDIA)
+      ? readdirSync(MEDIA)
+          .filter((f) => f.endsWith(".jpg"))
+          .map((f) => f.replace(/\.jpg$/, ""))
+      : []
+  );
+
   // NOTE: the body below is deliberately left at its original (unindented) level
   // rather than re-indented into this function. It keeps `git blame` intact and,
   // more importantly, keeps the CSS/HTML template literals byte-identical to what
@@ -193,10 +213,18 @@ const log = existsSync(join(WIKI, "log.md")) ? register("log.md", "Meta") : null
 
 // Sidebar groups: canonical sections in order, then any custom folders
 // (alphabetical), then the flat "Pages" catch-all. Empty groups are skipped.
-const SIDEBAR_SECTIONS = [
+const DEFAULT_SIDEBAR_SECTIONS = [
   ...SECTIONS,
   ...[...extraDirs].sort().map((d) => ({ dir: d, label: humanize(d) })),
   { dir: null, label: "Pages" },
+];
+// A wiki may fix its own order with `"sections": ["workshop", "theory", ...]` in
+// site.config.json (or the index.md `site:` block): named folders first, in that
+// order, then everything else in the default order.
+const ORDERED = Array.isArray(CONFIG.sections) ? CONFIG.sections.map(String) : [];
+const SIDEBAR_SECTIONS = [
+  ...ORDERED.map((d) => DEFAULT_SIDEBAR_SECTIONS.find((s) => s.dir === d)).filter(Boolean),
+  ...DEFAULT_SIDEBAR_SECTIONS.filter((s) => !ORDERED.includes(s.dir)),
 ];
 
 // ---------------------------------------------------------------------------
@@ -344,6 +372,31 @@ function mdToHtml(body, page) {
         out.push(`<div class="viz-block" data-viz="${slug}"></div>`);
       } else {
         out.push(`<div class="viz-error">Widget "${escapeHtml(slug)}" not found.</div>`);
+      }
+      i++;
+      continue;
+    }
+
+    // Inline video marker: "@video[slug] optional caption" on a line of its own
+    // mounts an explainer video from the per-wiki media folder. Unknown slugs
+    // render a small notice instead of failing the build.
+    const vd = line.match(/^\s*@video\[([a-z0-9][a-z0-9-]*)\](?:\s+(.*))?$/);
+    if (vd && page) {
+      const slug = vd[1];
+      const cap = (vd[2] || "").trim();
+      if (mediaSlugs.has(slug)) {
+        const src = relHref(page.outRel, "assets/media/" + slug + ".mp4");
+        const poster = mediaPosters.has(slug)
+          ? ` poster="${relHref(page.outRel, "assets/media/" + slug + ".jpg")}"`
+          : "";
+        out.push(
+          `<figure class="video-block"><div class="viz"><div class="viz-label">Explainer</div>` +
+            `<video class="video" controls preload="metadata" playsinline src="${src}"${poster}></video></div>` +
+            (cap ? `<figcaption class="video-caption">${inline(cap, page)}</figcaption>` : "") +
+            `</figure>`
+        );
+      } else {
+        out.push(`<div class="viz-error">Video "${escapeHtml(slug)}" not found.</div>`);
       }
       i++;
       continue;
@@ -616,12 +669,19 @@ function renderSidebar(page) {
 
 function renderHeader(page) {
   const homeHref = relHref(page.outRel, home.outRel);
-  const navItems = [
-    ["Home", homeHref],
-    ["Concepts", homeHref + "#concepts"],
-    ["Entities", homeHref + "#entities"],
-    ["Walkthroughs", homeHref + "#presentations-step-by-step-walkthroughs"],
-  ];
+  // Header links: the wiki's first three ordered sections that have pages
+  // (anchored to the matching heading on the index page), else the template's.
+  const ordered = SIDEBAR_SECTIONS.filter(
+    (s) => s.dir && ORDERED.includes(s.dir) && pages.some((p) => p.section === s.label)
+  ).slice(0, 3);
+  const navItems = ordered.length
+    ? [["Home", homeHref], ...ordered.map((s) => [s.label, homeHref + "#" + s.dir])]
+    : [
+        ["Home", homeHref],
+        ["Concepts", homeHref + "#concepts"],
+        ["Entities", homeHref + "#entities"],
+        ["Walkthroughs", homeHref + "#presentations-step-by-step-walkthroughs"],
+      ];
   return `<header class="site-header">
   <div class="header-left">
     <button type="button" class="sidebar-toggle" aria-label="Toggle the index" aria-controls="master-index" aria-expanded="true"><span class="sb-icon" aria-hidden="true"></span></button>
@@ -956,6 +1016,9 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 
 /* ---- Interactive visualizations ---- */
 .viz-block{margin:0 0 48px}
+.video-block{margin:0 0 48px}
+.video-block .video{display:block;width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--radius-md)}
+.video-caption{font-family:var(--font-mono);font-size:13px;line-height:20px;color:var(--color-secondary);padding:12px 8px 0}
 .viz{border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-lg);overflow:hidden;padding:8px}
 .viz-label{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);padding:8px 8px 4px}
 .viz-stage{position:relative;width:100%;padding:4px 0}
@@ -1028,6 +1091,15 @@ if (widgetSlugs.size) {
   for (const f of readdirSync(WIDGETS)) {
     if (!f.endsWith(".js") || f === "_viz.js") continue;
     writeFileSync(join(OUT, "assets", "widgets", f), readFileSync(join(WIDGETS, f)));
+  }
+}
+
+// Copy explainer videos (+ posters) into assets/media/.
+if (mediaSlugs.size) {
+  mkdirSync(join(OUT, "assets", "media"), { recursive: true });
+  for (const f of readdirSync(MEDIA)) {
+    if (!f.endsWith(".mp4") && !f.endsWith(".jpg")) continue;
+    writeFileSync(join(OUT, "assets", "media", f), readFileSync(join(MEDIA, f)));
   }
 }
 

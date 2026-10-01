@@ -32,6 +32,7 @@ Options
   --site <id>       use sites/<id>/site.json for source, out, widgets and branding
   --out <dir>       output directory (default: <repo>/out/<wiki-id>)
   --widgets <dir>   concept widgets (default: sites/<id>/widgets, else <repo>/widgets)
+  --media <dir>     explainer videos for @video[slug] lines (default: sites/<id>/media)
   --title, --brandLetters, --footer, --accent
                     branding overrides, highest precedence of all
 
@@ -202,11 +203,15 @@ function cmdBuild(positional, opts) {
       : join(REPO, "widgets")),
   );
 
+  // Explainer videos (mp4 + jpg poster) mounted by "@video[slug]" lines.
+  const mediaDir = resolve(opts.media ?? record.media ?? join(SITES, id, "media"));
+
   const result = build({
     wikiRoot,
     wikiDir,
     outDir,
     widgetsDir,
+    mediaDir,
     wikiId: id,
     overrides: { ...pickBranding(record), ...pickBranding(opts) },
   });
