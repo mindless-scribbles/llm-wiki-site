@@ -1,0 +1,24 @@
+{
+  "id": "20261004-081550-87ac",
+  "status": "resolved",
+  "created": "2026-10-04T15:15:50.070Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "main > div:nth-of-type(1) > nav:nth-of-type(1)",
+    "line": null,
+    "heading": "Forward LimbSolve One Side, Match the Other",
+    "headingId": null,
+    "excerpt": "1 Backward IK: IK onto an FK pose 75M 2 Forward Limb: the switch and the FK branch 60M 3 The IK branch 90M 4 Wire it in and flip 60M 5 The roll that falls through 75M 6 H ONE PHASE",
+    "tag": "nav",
+    "phase": null
+  },
+  "text": "This whole section isnt very legible and it took me a few clicks to realize that it's flipping between a scrolling format of all phases to just one phase at  at time.",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "Phase bar rebuilt: each phase shows PHASE N · MIN and a two-line title in body type; the view is an explicit ONE PHASE / ALL PHASES switch with the active side filled, plus TOTAL 5 H 30 M.",
+  "resolvedAt": "2026-10-04T15:51:35.660Z"
+}

@@ -1,0 +1,24 @@
+{
+  "id": "20261004-084226-bee0",
+  "status": "resolved",
+  "created": "2026-10-04T15:42:26.276Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "#phase-1 > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(1)",
+    "line": 24,
+    "heading": "Backward IK: IK onto an FK pose",
+    "headingId": "phase-1-backward-ik-ik-onto-an-fk-pose-75-min",
+    "excerpt": "ASK THE ROOM Why not copy the wrist's transform onto the IK control? REVEAL THE DECISION",
+    "tag": "div",
+    "phase": "1"
+  },
+  "text": "i don't know why this question is important relative this phase?",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "No longer a question: now the fact 'Project, don't copy.' with the reason.",
+  "resolvedAt": "2026-10-04T15:51:35.920Z"
+}

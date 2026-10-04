@@ -1,0 +1,24 @@
+{
+  "id": "20261004-084530-16f5",
+  "status": "resolved",
+  "created": "2026-10-04T15:45:30.868Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "#phase-1",
+    "line": null,
+    "heading": "Forward LimbSolve One Side, Match the Other",
+    "headingId": null,
+    "excerpt": "PHASE 1 / 5 · 75 MIN Backward IK: IK onto an FK pose Library function Backward IK. Inputs Bones, IK Control, PV Control, Secondary Axis, PV Offset. A Sequence: A the IK control, B the pole, C to Return. A: At −1 of Bones = the end bone. Pro",
+    "tag": "section",
+    "phase": "1"
+  },
+  "text": "i get nothing of value in these two questions. they can be merely stated as fact and not be questions.",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "Both Asks are now stated facts. Rule added to CLAUDE.md: Ask only for a call the room could get wrong, where the wrong answer is tempting and costs something visible.",
+  "resolvedAt": "2026-10-04T15:51:36.006Z"
+}

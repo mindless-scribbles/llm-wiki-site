@@ -58,6 +58,97 @@ Branding resolves highest-precedence-first from CLI flags → `sites/<id>/site.j
 → `<wiki-root>/site.config.json` → a `site:` block in `wiki/index.md` frontmatter.
 Use the frontmatter form for synced vaults; it is the only one that is markdown.
 
+## Notes and review
+
+`serve` runs one local hub for every registered wiki, with a notes overlay on every
+page. Start it once per session and leave it running.
+
+```bash
+llm-wiki-site serve                      # hub at http://127.0.0.1:4173/
+llm-wiki-site serve --site moted-modules # same hub; builds that wiki, prints its URL
+llm-wiki-site notes                      # open content notes per wiki, open design notes
+llm-wiki-site notes --site moted-modules [--all]   # content notes for one wiki
+llm-wiki-site notes --design [--all]               # the shared design queue
+llm-wiki-site notes resolve <note-id> -m "what changed"   # finds the note in any queue
+llm-wiki-site notes reopen <note-id>
+```
+
+- `/` lists every wiki (from `sites/*/site.json`) with its open content notes and last
+  build time, and the open design-note count. `/<id>/` serves that wiki's out dir. A
+  wiki that is not built yet is built on its first request. All builds run one at a
+  time. Nothing is built at startup. From inside a registered wiki's folder, `serve`
+  also prints that wiki's URL.
+- `--port` (default 4173) and `--host` (default 127.0.0.1, which a Windows browser
+  reaches on WSL2 as `localhost`) override the address. If the port is busy, `serve`
+  says so and exits with an error. `--no-review` turns the overlay off. Range
+  requests work, so video seeking works.
+- The overlay is injected into each html response at request time. `build` never
+  writes it, so `~/sites/<id>` stays clean: that folder is the copy to share. The
+  vault is not watched. Use the overlay's REBUILD button (that wiki only) to pick up
+  edits. REBUILD re-imports `build-site.mjs`, so builder changes apply too.
+- In the page: `REVIEW` (or key `n`) turns annotate mode on. Click a block, pick
+  `CONTENT` or `DESIGN`, type a note, paste or drop an image, then `SAVE`
+  (Ctrl/Cmd+Enter). `PAGE NOTE` adds a note with no element. `NOTES` opens the side
+  panel, where you can resolve or reopen. Numbered markers sit on annotated blocks;
+  design notes carry a `DESIGN` tag. `Esc` cancels.
+- Two kinds of note, kept apart:
+  - **Content** (default): what one page says. Fixed in that wiki's markdown. Stored in
+    `sites/<id>/review/notes/<note-id>.json`, images in `sites/<id>/review/img/`.
+  - **Design**: how every page of a kind is laid out. Fixed in the builder, so it
+    affects every wiki. One shared queue in `design-notes/notes/<note-id>.json`,
+    images in `design-notes/img/`. Each records `site` and `page`.
+  Notes without a `kind` read as content. Both live in this repo, never in an out dir
+  or the vault. Commit them like any other file.
+- Each note records the kind, site, page, the source markdown path (`wiki/<page>.md`),
+  the source line when the page carries `data-line`, the nearest heading, and an
+  excerpt.
+- Endpoints, review on only: `GET/POST /__review/<id>/notes`,
+  `POST /__review/<id>/notes/<note-id>`, `POST /__review/<id>/rebuild`,
+  `GET /__review/<id>/img/<file>`, and the overlay assets at `/__review/overlay.js|css`.
+
+## Landing page
+
+`index.md` stays the master catalog in Obsidian. On the site, `index.html` opens as a
+landing page instead of a list of links:
+
+- a hero: the site title, the first paragraph as the lede, and a `START HERE ›` button;
+- a **Start here** path, made from the links in a `**Start here:**` paragraph, in order;
+- a grid of cards for every catalog table of 12 rows or fewer where each row links a
+  page. A card shows the linked page's first visual (a video poster, an `@image`, or
+  its first Mermaid diagram), else the number from a short cell such as `Day`;
+- bigger tables stay tables, further down.
+
+## Lessons (`type: lesson`)
+
+A page with `type: lesson` renders as a workshop lesson instead of an article. The
+markdown stays plain, so Obsidian shows it unchanged; the builder reads these markers:
+
+| Markdown | On the site |
+|---|---|
+| `## Phase N — Title (75 min)` | a phase; the minutes size its bar on the phase rail |
+| `**Why:**` at the top of a phase | the phase's lead: what it teaches and what breaks without it |
+| `**Ask:**` then `**Decision:**` | a question card; the decision hides behind a reveal |
+| `**Predict:**` | a prediction box (kept per reader in localStorage) |
+| `**Read:**` | the read-off; hidden behind "check your prediction" when the phase had a Predict |
+| a line starting `⚠️` | a trap callout |
+| `> quote` | the line to remember |
+| a Mermaid fence, `@video`, `@image`, `@viz` | the phase's visual, beside the steps (click to enlarge) |
+| `**Goal:**`, `**Result:**`, `**Open beside this page:**` or `**Open in <app>:**` (one line split by ` · `, or a lead line and a list) before the first phase | the brief |
+| `## Related` / `## Sources` | the tail, rendered as normal |
+
+A short paragraph ending in `:` just before a visual becomes its title, and one sentence
+just after it becomes its caption. Readers see one phase at a time (arrow keys or the
+rail) or all phases, and can mark phases done. In review mode, a phase with no visual
+shows an empty "NO VISUAL YET" slot.
+
+## Stills (`@image`)
+
+`@image[slug] optional caption` on a line of its own mounts `sites/<id>/media/<slug>.png`
+(or `.webp`, `.jpg`, `.gif`), like `@video`. A screenshot from a review note is promoted
+by copying it into the media folder under a slug, never into the vault. An `@image` whose
+file does not exist yet renders as a "screenshot needed" slot in review mode only, so a page
+can ask for a capture where the reviewer will paste it.
+
 ## Mermaid diagrams (optional)
 
 A ```` ```mermaid ```` fence renders as an inline SVG diagram when `mmdc`
@@ -112,7 +203,10 @@ respects word boundaries. Rows whose cells start with `[` (template placeholders
 
 | Path | What |
 | --- | --- |
-| `bin/cli.mjs` | CLI: `build` (`--site`, `--all`), `register`, `list`, `vault` |
+| `bin/cli.mjs` | CLI: `build` (`--site`, `--all`), `serve`, `notes`, `lint`, `register`, `list`, `vault` |
+| `serve.mjs` | hub server, review notes storage and the `notes` summaries |
+| `review/overlay.{js,css}` | the review overlay, injected only by `serve` |
+| `sites/<id>/review/` | review notes (`notes/*.json`) and pasted images (`img/`) |
 | `build-site.mjs` | the generator — `build({ wikiRoot, outDir, … })` |
 | `config.mjs` | branding resolution across the three sources |
 | `mermaid.mjs` | optional `mmdc` batch rendering and cache for mermaid fences |

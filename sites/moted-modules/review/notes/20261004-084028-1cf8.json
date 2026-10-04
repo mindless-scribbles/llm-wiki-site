@@ -1,0 +1,24 @@
+{
+  "id": "20261004-084028-1cf8",
+  "status": "resolved",
+  "created": "2026-10-04T15:40:28.984Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "#phase-1",
+    "line": null,
+    "heading": "Forward LimbSolve One Side, Match the Other",
+    "headingId": null,
+    "excerpt": "PHASE 1 / 5 · 75 MIN Backward IK: IK onto an FK pose Library function Backward IK. Inputs Bones, IK Control, PV Control, Secondary Axis, PV Offset. A Sequence: A the IK control, B the pole, C to Return. A: At −1 of Bones = the end bone. Pro",
+    "tag": "section",
+    "phase": "1"
+  },
+  "text": "What are you actually teaching?   it says 75 mins, with three instructions?    Why is that 75 mins?   the first instruction A is like 5 minutes to do and doesnt tell me what it's doing.  There should probably be a snapshot of that chain from Unreal  and instead of giving instructions of what to connect, a screenshot and the reference can already do that.  it should explain what A sequence is doing.   These are tutorials of why, the how should be explained with a visual that can be seen here and that they would see in unreal if they had the reference up.   Right now this \"tutorial\" only teaches me what to connect, not why im doing this in the first place.      Or me as a teacher using this as a sylabus should know, why is this phase important.",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "Phase 1 rewritten: opens with WHY THIS PHASE (a true switch flips without a jump; what breaks without Backward IK). Diagram of the function's two boxes; a paragraph on what the Sequence does and why each node is there; wiring steps cut from 3 dense lines to 3 short build steps. Screenshot slot day3-backward-ik-graph waits for your Unreal capture. Budget cut 75 -> 45 min (my estimate; please confirm).",
+  "resolvedAt": "2026-10-04T15:51:35.877Z"
+}

@@ -12,6 +12,7 @@ import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { build } from "../build-site.mjs";
 import { lintWiki, KINDS } from "../lint.mjs";
+import { serve, formatContentNotes, formatDesignNotes, setNoteStatus, openCounts } from "../serve.mjs";
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const SITES = join(REPO, "sites");
@@ -28,6 +29,14 @@ const USAGE = `llm-wiki-site — render an llm-wiki into a static site
   llm-wiki-site lint <wiki-path> [--detail] [--pages <substring>] [--strict]
   llm-wiki-site lint --site <wiki-id>       same, resolved from sites/<id>/site.json
   llm-wiki-site lint --all                  lint every registered wiki
+  llm-wiki-site serve [--port 4173] [--host 127.0.0.1] [--no-review]
+                                            hub for every registered wiki at /, each at /<id>/
+  llm-wiki-site serve --site <id>           same hub; builds that wiki first, prints its URL
+  llm-wiki-site notes                       summary: open content notes per wiki, open design notes
+  llm-wiki-site notes --site <id> [--all]   content notes for one wiki (all with --all)
+  llm-wiki-site notes --design [--all]      the shared design queue, with site and page
+  llm-wiki-site notes resolve <note-id> -m "what changed"
+  llm-wiki-site notes reopen <note-id>      (finds the note in any queue; --site is optional)
   llm-wiki-site list                        show registered wikis
   llm-wiki-site register <wiki-id> <wiki-path> [--out DIR]
   llm-wiki-site vault [<path>]              show or set this machine's vault root
@@ -37,6 +46,11 @@ Options
   --out <dir>       output directory (default: <repo>/out/<wiki-id>)
   --widgets <dir>   concept widgets (default: sites/<id>/widgets, else <repo>/widgets)
   --media <dir>     explainer videos for @video[slug] lines (default: sites/<id>/media)
+  --no-review       serve: do not inject the review overlay (it is on by default)
+  --design          notes: the design queue instead of one wiki's content notes
+  --port, --host    serve: listen address (default 127.0.0.1:4173)
+  -m, --message     notes resolve: what changed
+  --all             notes: include resolved notes
   --detail          lint: print every issue as L<line> <kind> (<n>): <text>
   --pages <text>    lint: only pages whose path contains <text>
   --strict          lint: exit 1 if any issue is found (default: report only, exit 0)
@@ -59,7 +73,12 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === "-h" || a === "--help") { opts.help = true; continue; }
     if (a === "--all") { opts.all = true; continue; }
-    if (a === "--detail" || a === "--strict") { opts[a.slice(2)] = true; continue; }
+    if (a === "--detail" || a === "--strict" || a === "--review" || a === "--no-build" || a === "--no-review" || a === "--design") { opts[a.slice(2)] = true; continue; }
+    if (a === "-m") {
+      if (argv[i + 1] === undefined) fail("-m needs a value");
+      opts.m = argv[++i];
+      continue;
+    }
     if (a.startsWith("--")) {
       const [k, inlineV] = a.slice(2).split(/=(.*)/s);
       const v = inlineV ?? argv[++i];
@@ -187,7 +206,8 @@ function cmdRegister(positional, opts) {
   if (isAbsolute(rec.source)) console.log("  (absolute source: set a vault root first to make this registration portable)");
 }
 
-function cmdBuild(positional, opts) {
+// Resolves source, out, widgets and media for a build; shared by build and serve.
+function resolveBuild(positional, opts) {
   let id = opts.site;
   let record = {};
   let sourcePath = positional[0];
@@ -214,7 +234,7 @@ function cmdBuild(positional, opts) {
   // Explainer videos (mp4 + jpg poster) mounted by "@video[slug]" lines.
   const mediaDir = resolve(opts.media ?? record.media ?? join(SITES, id, "media"));
 
-  const result = build({
+  return {
     wikiRoot,
     wikiDir,
     outDir,
@@ -222,12 +242,78 @@ function cmdBuild(positional, opts) {
     mediaDir,
     wikiId: id,
     overrides: { ...pickBranding(record), ...pickBranding(opts) },
-  });
+  };
+}
 
+function cmdBuild(positional, opts) {
+  const b = resolveBuild(positional, opts);
+  const result = build(b);
   console.log(`Built ${result.pages} pages`);
-  console.log(`  from ${wikiDir}`);
+  console.log(`  from ${b.wikiDir}`);
   console.log(`  to   ${result.outDir}`);
   console.log(`Open: ${join(result.outDir, "index.html")}`);
+}
+
+// Which registered wiki is the current directory inside, if any.
+function siteForCwd() {
+  const cwd = process.cwd();
+  for (const s of listSites()) {
+    try {
+      const { wikiRoot } = normalizeWikiPath(resolveSource(s.source, s.id));
+      const r = relative(wikiRoot, cwd);
+      if (r === "" || (!r.startsWith("..") && !isAbsolute(r))) return s.id;
+    } catch { /* source not resolvable on this machine */ }
+  }
+  return null;
+}
+
+async function cmdServe(opts) {
+  if (opts.site) readSite(opts.site); // fail early on an unknown id
+  const port = opts.port === undefined ? 4173 : Number(opts.port);
+  if (!Number.isInteger(port) || port < 0 || port > 65535) fail(`bad --port ${opts.port}`);
+  const host = opts.host ?? "127.0.0.1";
+  const here = opts.site ?? siteForCwd();
+  await serve({
+    repo: REPO,
+    siteApi: {
+      ids: () => listSites().map((s) => s.id),
+      resolve: (id) => resolveBuild([], { site: id }),
+      // Re-import the generator on every rebuild, so a change to build-site.mjs
+      // shows up on the next REBUILD without restarting the server.
+      runBuild: async (id) => (await import(new URL(`../build-site.mjs?t=${Date.now()}`, import.meta.url))).build(resolveBuild([], { site: id })),
+    },
+    review: !opts["no-review"],
+    host,
+    port,
+    prebuild: opts.site,
+    onListening: (base) => { if (here) console.log(`Open this wiki: ${base}${here}/`); },
+  });
+}
+
+function cmdNotes(positional, opts) {
+  const ids = listSites().map((s) => s.id);
+  const [sub, noteId] = positional;
+  if (sub === "resolve" || sub === "reopen") {
+    if (!noteId) fail(`usage: llm-wiki-site notes ${sub} <note-id>${sub === "resolve" ? ' -m "what changed"' : ""}`);
+    const n = setNoteStatus(REPO, opts.site ? [opts.site] : ids, noteId, sub === "resolve" ? "resolved" : "open", opts.m ?? opts.message);
+    console.log(`${n.id} ${n.status} (${n.kind}${n.site ? `, ${n.site}` : ""})`);
+  } else if (sub !== undefined) {
+    fail(`unknown notes subcommand "${sub}"`);
+  } else if (opts.design) {
+    console.log(formatDesignNotes(REPO, !!opts.all));
+  } else if (opts.site) {
+    readSite(opts.site);
+    console.log(formatContentNotes(REPO, opts.site, !!opts.all));
+  } else {
+    const c = openCounts(REPO, ids);
+    const withNotes = ids.filter((id) => c.content[id]);
+    console.log("Open content notes");
+    if (withNotes.length) for (const id of withNotes) console.log(`  ${id.padEnd(34)} ${c.content[id]}`);
+    else console.log("  none");
+    console.log(`Open design notes: ${c.design}`);
+    console.log("\nllm-wiki-site notes --site <id> [--all]   content notes for one wiki");
+    console.log("llm-wiki-site notes --design [--all]      the shared design queue");
+  }
 }
 
 function cmdBuildAll(opts) {
@@ -294,6 +380,8 @@ try {
     const issues = opts.all ? cmdLintAll(opts) : cmdLint(positional, opts);
     if (opts.strict && issues) process.exit(1);
   }
+  else if (cmd === "serve") await cmdServe(opts);
+  else if (cmd === "notes") cmdNotes(positional, opts);
   else if (cmd === "vault") cmdVault(positional);
   else if (cmd === "list") cmdList();
   else if (cmd === "register") cmdRegister(positional, opts);

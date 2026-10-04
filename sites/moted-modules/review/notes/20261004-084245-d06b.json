@@ -1,0 +1,24 @@
+{
+  "id": "20261004-084245-d06b",
+  "status": "resolved",
+  "created": "2026-10-04T15:42:45.404Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "#phase-1 > div:nth-of-type(1) > div:nth-of-type(1) > div:nth-of-type(2)",
+    "line": 27,
+    "heading": "Backward IK: IK onto an FK pose",
+    "headingId": "phase-1-backward-ik-ik-onto-an-fk-pose-75-min",
+    "excerpt": "ASK THE ROOM Write a separate pole formula for matching? REVEAL THE DECISION",
+    "tag": "div",
+    "phase": "1"
+  },
+  "text": "why ask this question?",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "No longer a question: now the fact 'One pole formula, both ways.' with the reason.",
+  "resolvedAt": "2026-10-04T15:51:35.962Z"
+}

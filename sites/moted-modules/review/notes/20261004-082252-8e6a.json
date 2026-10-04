@@ -1,0 +1,24 @@
+{
+  "id": "20261004-082252-8e6a",
+  "status": "resolved",
+  "created": "2026-10-04T15:22:52.767Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "main > div:nth-of-type(1) > section:nth-of-type(1) > div:nth-of-type(2)",
+    "line": 16,
+    "heading": "Forward LimbSolve One Side, Match the Other",
+    "headingId": null,
+    "excerpt": "OPEN BESIDE THIS PAGE Reference/WS_Ref_Limb (today's answer key: Backward IK, and the Forward Limb boxes Control Visibility, Solve FK, Match IK, Solve IK, Pole Vector Line and Match FK. The two roll boxes are Day 4, Auto Key Events is Day 5",
+    "tag": "div",
+    "phase": null
+  },
+  "text": "This Section assumes too much.  Specifically say Open these files in the MotedModules project in Unreal.",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "Now 'Open in Unreal: open these assets in the MotedModules project', followed by a list of assets.",
+  "resolvedAt": "2026-10-04T15:51:35.791Z"
+}

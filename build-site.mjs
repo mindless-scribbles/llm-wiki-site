@@ -108,6 +108,19 @@ export function build(o) {
           .map((f) => f.replace(/\.mp4$/, ""))
       : []
   );
+  // Stills: <media>/<slug>.(png|webp|jpg|gif), mounted by "@image[slug] caption".
+  // A screenshot from the review loop is promoted here, never into the vault.
+  const IMAGE_EXT = ["png", "webp", "jpg", "gif"];
+  const mediaImages = new Map();
+  if (MEDIA && existsSync(MEDIA)) {
+    const files = new Set(readdirSync(MEDIA));
+    for (const f of files) {
+      const m = f.match(/^(.+)\.(png|webp|jpg|gif)$/);
+      if (!m || mediaImages.has(m[1])) continue;
+      const ext = IMAGE_EXT.find((e) => files.has(`${m[1]}.${e}`));
+      mediaImages.set(m[1], `${m[1]}.${ext}`);
+    }
+  }
   const mediaPosters = new Set(
     MEDIA && existsSync(MEDIA)
       ? readdirSync(MEDIA)
@@ -170,7 +183,9 @@ function register(srcRel, sectionLabel) {
   const target = srcRel.replace(/\.md$/, ""); // e.g. concepts/basis-vectors ; index ; log
   const outRel = target + ".html";
   const title = data.title || humanize(basename(target));
-  const page = { srcRel, target, outRel, title, data, body, section: sectionLabel };
+  // Lines the frontmatter used, so body line i is source line lineBase + i + 1.
+  const lineBase = raw.slice(0, raw.length - body.length).split("\n").length - 1;
+  const page = { srcRel, target, outRel, title, data, body, lineBase, section: sectionLabel };
   pages.push(page);
   byTarget.set(target, page);
   return page;
@@ -200,7 +215,9 @@ function walkMd(absDir) {
   return out;
 }
 const extraDirs = new Set();
-for (const rel of walkMd(WIKI).sort()) {
+// Natural order, so day-10 follows day-9 rather than day-1.
+const natural = (a, b) => a.localeCompare(b, "en", { numeric: true });
+for (const rel of walkMd(WIKI).sort(natural)) {
   if (rel === "index.md" || rel === "log.md") continue;
   const slash = rel.indexOf("/");
   const seg = slash === -1 ? null : rel.slice(0, slash);
@@ -333,10 +350,31 @@ function inline(text, page) {
   return text;
 }
 
-function mdToHtml(body, page) {
+// Split a table row on *unescaped* pipes. GFM lets `\|` stand for a literal pipe
+// inside a cell, which is what makes aliased wikilinks ([[target|alias]]) and
+// timecode pills authorable in tables: a naive split("|") would tear them in
+// half. Escaped pipes are unescaped as they are consumed.
+function splitRow(r) {
+  const s = r.trim().replace(/^\|/, "").replace(/(?<!\\)\|\s*$/, "");
+  const parts = [];
+  let cur = "";
+  for (let k = 0; k < s.length; k++) {
+    if (s[k] === "\\" && s[k + 1] === "|") { cur += "|"; k++; continue; }
+    if (s[k] === "|") { parts.push(cur); cur = ""; continue; }
+    cur += s[k];
+  }
+  parts.push(cur);
+  return parts.map((c) => c.trim());
+}
+
+// `base`, when given, stamps each block with data-line="<source line>" so a review
+// note can point at the markdown line it is about. Body line i is source line
+// base + i + 1.
+function mdToHtml(body, page, base = null) {
   const lines = body.replace(/\r\n/g, "\n").split("\n");
   const out = [];
   let i = 0;
+  const dl = (k) => (base == null ? "" : ` data-line="${base + k + 1}"`);
 
   while (i < lines.length) {
     let line = lines[i];
@@ -347,17 +385,18 @@ function mdToHtml(body, page) {
     // Code fence
     if (/^```/.test(line)) {
       const buf = [];
+      const at = dl(i);
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
       i++; // closing fence
       if (/^```\s*mermaid\s*$/.test(line) && DIAGRAMS.has(buf.join("\n"))) {
         out.push(
-          `<figure class="diagram-block"><div class="viz"><div class="viz-label">Diagram</div>` +
+          `<figure class="diagram-block"${at}><div class="viz"><div class="viz-label">Diagram</div>` +
           `${DIAGRAMS.get(buf.join("\n"))}</div></figure>`,
         );
         continue;
       }
-      out.push(`<pre class="code"><code>${escapeHtml(buf.join("\n"))}</code></pre>`);
+      out.push(`<pre class="code"${at}><code>${escapeHtml(buf.join("\n"))}</code></pre>`);
       continue;
     }
 
@@ -377,7 +416,7 @@ function mdToHtml(body, page) {
       const slug = vm[1];
       if (widgetSlugs.has(slug)) {
         (page._vizUsed || (page._vizUsed = new Set())).add(slug);
-        out.push(`<div class="viz-block" data-viz="${slug}"></div>`);
+        out.push(`<div class="viz-block" data-viz="${slug}"${dl(i)}></div>`);
       } else {
         out.push(`<div class="viz-error">Widget "${escapeHtml(slug)}" not found.</div>`);
       }
@@ -398,7 +437,7 @@ function mdToHtml(body, page) {
           ? ` poster="${relHref(page.outRel, "assets/media/" + slug + ".jpg")}"`
           : "";
         out.push(
-          `<figure class="video-block"><div class="viz"><div class="viz-label">Explainer</div>` +
+          `<figure class="video-block"${dl(i)}><div class="viz"><div class="viz-label">Explainer</div>` +
             `<video class="video" controls preload="metadata" playsinline src="${src}"${poster}></video></div>` +
             (cap ? `<figcaption class="video-caption">${inline(cap, page)}</figcaption>` : "") +
             `</figure>`
@@ -410,12 +449,36 @@ function mdToHtml(body, page) {
       continue;
     }
 
+    // Inline still: "@image[slug] optional caption", same rules as @video.
+    const im = line.match(/^\s*@image\[([a-z0-9][a-z0-9-]*)\](?:\s+(.*))?$/);
+    if (im && page) {
+      const file = mediaImages.get(im[1]);
+      const cap = (im[2] || "").trim();
+      if (file) {
+        const src = relHref(page.outRel, "assets/media/" + file);
+        out.push(
+          `<figure class="image-block"${dl(i)}><div class="viz">` +
+            `<img class="still" src="${src}" alt="${escapeHtml(cap || im[1])}" loading="lazy"></div>` +
+            (cap ? `<figcaption class="video-caption">${inline(cap, page)}</figcaption>` : "") +
+            `</figure>`
+        );
+      } else {
+        // Not shot yet: a slot only review mode shows, so the request is visible
+        // where the screenshot will be pasted, and the public site stays clean.
+        out.push(`<figure class="image-wanted"${dl(i)}><div class="image-wanted-box">` +
+          `<span class="image-wanted-label">Screenshot needed · ${escapeHtml(im[1])}</span>` +
+          (cap ? `<span class="image-wanted-cap">${inline(cap, page)}</span>` : "") + `</div></figure>`);
+      }
+      i++;
+      continue;
+    }
+
     // Heading
     const h = line.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
       const lvl = h[1].length;
       const id = h[2].toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
-      out.push(`<h${lvl} id="${id}" class="h${lvl}">${inline(h[2], page)}</h${lvl}>`);
+      out.push(`<h${lvl} id="${id}" class="h${lvl}"${dl(i)}>${inline(h[2], page)}</h${lvl}>`);
       i++;
       continue;
     }
@@ -423,26 +486,11 @@ function mdToHtml(body, page) {
     // Table (header row + separator + body)
     if (/^\s*\|/.test(line) && i + 1 < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
       const rows = [];
+      const at = dl(i);
       while (i < lines.length && /^\s*\|/.test(lines[i])) rows.push(lines[i++]);
-      // Split a row on *unescaped* pipes. GFM lets `\|` stand for a literal pipe
-      // inside a cell, which is what makes aliased wikilinks ([[target|alias]])
-      // and timecode pills authorable in tables — a naive split("|") would tear
-      // them in half. Escaped pipes are unescaped as they are consumed.
-      const cells = (r) => {
-        const s = r.trim().replace(/^\|/, "").replace(/(?<!\\)\|\s*$/, "");
-        const parts = [];
-        let cur = "";
-        for (let k = 0; k < s.length; k++) {
-          if (s[k] === "\\" && s[k + 1] === "|") { cur += "|"; k++; continue; }
-          if (s[k] === "|") { parts.push(cur); cur = ""; continue; }
-          cur += s[k];
-        }
-        parts.push(cur);
-        return parts.map((c) => c.trim());
-      };
-      const header = cells(rows[0]);
-      const bodyRows = rows.slice(2).map(cells);
-      let t = '<div class="table-wrap"><table class="tbl"><thead><tr>';
+      const header = splitRow(rows[0]);
+      const bodyRows = rows.slice(2).map(splitRow);
+      let t = `<div class="table-wrap"${at}><table class="tbl"><thead><tr>`;
       t += header.map((c) => `<th>${inline(c, page)}</th>`).join("");
       t += "</tr></thead><tbody>";
       for (const r of bodyRows) {
@@ -456,6 +504,7 @@ function mdToHtml(body, page) {
     // Blockquote (group consecutive > lines; blank line ends it)
     if (/^\s*>/.test(line)) {
       const buf = [];
+      const at = dl(i);
       while (i < lines.length && /^\s*>/.test(lines[i])) {
         buf.push(lines[i].replace(/^\s*>\s?/, ""));
         i++;
@@ -463,7 +512,7 @@ function mdToHtml(body, page) {
       // Split into paragraphs on blank inner lines.
       const paras = buf.join("\n").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
       out.push(
-        `<blockquote class="quote">${paras
+        `<blockquote class="quote"${at}>${paras
           .map((p) => `<p>${inline(p.replace(/\n/g, " "), page)}</p>`)
           .join("")}</blockquote>`
       );
@@ -472,7 +521,7 @@ function mdToHtml(body, page) {
 
     // Lists (unordered / ordered), one level of nesting via indent
     if (/^\s*([-*]|\d+\.)\s+/.test(line)) {
-      const html = parseList(lines, i, page);
+      const html = parseList(lines, i, page, base);
       out.push(html.html);
       i = html.next;
       continue;
@@ -480,6 +529,7 @@ function mdToHtml(body, page) {
 
     // Paragraph: gather until blank / block starter
     const buf = [];
+    const at = dl(i);
     while (
       i < lines.length &&
       !/^\s*$/.test(lines[i]) &&
@@ -493,18 +543,18 @@ function mdToHtml(body, page) {
     // line — buf is empty and `i` never advances, spinning until `out.push` throws
     // "RangeError: Invalid array length". Emit the line as a paragraph and move on.
     if (buf.length === 0) {
-      out.push(`<p>${inline(lines[i], page)}</p>`);
+      out.push(`<p${at}>${inline(lines[i], page)}</p>`);
       i++;
       continue;
     }
-    out.push(`<p>${inline(buf.join(" ").trim(), page)}</p>`);
+    out.push(`<p${at}>${inline(buf.join(" ").trim(), page)}</p>`);
   }
 
   return out.join("\n");
 }
 
 // Recursive-ish list parser supporting one nested level by indentation.
-function parseList(lines, start, page) {
+function parseList(lines, start, page, base = null) {
   const baseIndent = lines[start].match(/^(\s*)/)[1].length;
   const ordered = /^\s*\d+\.\s+/.test(lines[start]);
   let i = start;
@@ -532,12 +582,12 @@ function parseList(lines, start, page) {
     if (indent < baseIndent) break;
     if (indent > baseIndent) {
       // nested list — attach to previous <li>
-      const nested = parseList(lines, i, page);
+      const nested = parseList(lines, i, page, base);
       html = html.replace(/<\/li>$/, nested.html + "</li>");
       i = nested.next;
       continue;
     }
-    html += `<li>${inline(m[3], page)}</li>`;
+    html += `<li${base == null ? "" : ` data-line="${base + i + 1}"`}>${inline(m[3], page)}</li>`;
     i++;
   }
   html += ordered ? "</ol>" : "</ul>";
@@ -646,6 +696,7 @@ const TYPE_LABELS = {
   summary: "SUMMARY",
   synthesis: "SYNTHESIS",
   presentation: "WALKTHROUGH",
+  lesson: "LESSON",
 };
 
 // DDC Reel type: Syne (display), Space Mono (labels), Hanken Grotesk (reading text).
@@ -709,12 +760,12 @@ function renderHeader(page) {
 </header>`;
 }
 
-function renderHero(page) {
+function renderHero(page, override) {
   const t = page.data.type;
-  const kicker = TYPE_LABELS[t] || (page.target === "index" ? "MASTER INDEX" : "PAGE");
-  const conf = page.data.confidence ? ` · CONFIDENCE ${String(page.data.confidence).toUpperCase()}` : "";
+  const kicker = override?.kicker || TYPE_LABELS[t] || (page.target === "index" ? "MASTER INDEX" : "PAGE");
+  const conf = page.data.confidence && !override ? ` · CONFIDENCE ${String(page.data.confidence).toUpperCase()}` : "";
   // Split "Title: Subtitle" so the part after the colon reads as a subtitle line.
-  const raw = page.title;
+  const raw = override?.title || page.title;
   const colon = raw.indexOf(":");
   let headline;
   if (colon !== -1 && colon < raw.length - 1) {
@@ -741,6 +792,477 @@ function renderMeta(page) {
   return `<div class="article-meta">${bits.join("")}</div>`;
 }
 
+// ---------------------------------------------------------------------------
+// 3b. Lesson layout (pages with `type: lesson`)
+// ---------------------------------------------------------------------------
+
+// A lesson is the same markdown as any page, read for its teaching structure:
+//   "## Phase N — Title (75 min)"  -> a phase, with its time budget on the rail
+//   **Why:**                       -> the phase's lead: what it teaches, what breaks without it
+//   **Ask:** + **Decision:**      -> a question card; the decision hides behind a reveal
+//   **Predict:** / **Read:**      -> a prediction box; the read-off hides until checked
+//   ⚠️ line                        -> a trap callout
+//   > quote                        -> the line to remember
+//   mermaid / @video / @image / @viz -> the phase's visual, beside the steps
+//   **Goal:** / **Result:** / **Open beside this page:** or **Open in Unreal:** (a list may
+//   follow on the next lines) before the first phase -> the brief
+//   @image[slug] with no file yet  -> a "screenshot needed" slot, shown in review mode only
+// Obsidian sees plain markdown; only the site reads the markers.
+
+const MARKER_RE = /^(\*\*(Ask|Decision|Predict|Read|Why|Goal|Result|Open beside this page|Open in [A-Za-z ]+):\*\*|⚠️)/;
+const TAIL_RE = /^(related|sources|see also)\b/i;
+
+const headingId = (text) => text.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
+
+// Split body lines into "## " sections (outside code fences).
+function splitSections(lines) {
+  const secs = [{ head: null, headLine: null, start: 0, lines: [] }];
+  let fence = false;
+  lines.forEach((l, i) => {
+    if (/^```/.test(l)) fence = !fence;
+    if (!fence && /^##\s+/.test(l)) {
+      secs.push({ head: l.replace(/^##\s+/, "").trim(), headLine: i, start: i + 1, lines: [] });
+      return;
+    }
+    secs[secs.length - 1].lines.push(l);
+  });
+  return secs;
+}
+
+// Split a section into blocks: blank-line separated chunks (fences kept whole),
+// then split again before every marker line, so "**Ask:**" and "**Decision:**"
+// on consecutive lines become two blocks.
+function lessonBlocks(sec) {
+  const chunks = [];
+  let buf = null;
+  let fence = false;
+  sec.lines.forEach((l, k) => {
+    const i = sec.start + k;
+    if (/^```/.test(l)) fence = !fence;
+    else if (!fence && /^\s*$/.test(l)) { if (buf) chunks.push(buf); buf = null; return; }
+    if (!buf) buf = { start: i, lines: [] };
+    buf.lines.push(l);
+  });
+  if (buf) chunks.push(buf);
+
+  const blocks = [];
+  for (const c of chunks) {
+    const first = c.lines[0];
+    if (/^```|^\s*([-*]|\d+\.)\s|^\s*\||^\s*>/.test(first)) { blocks.push(c); continue; }
+    let cur = null;
+    c.lines.forEach((l, k) => {
+      if (!cur || MARKER_RE.test(l)) { cur = { start: c.start + k, lines: [] }; blocks.push(cur); }
+      cur.lines.push(l);
+    });
+  }
+  for (const b of blocks) {
+    const f = b.lines[0];
+    const mk = f.match(/^\*\*([A-Za-z ]+):\*\*\s*/);
+    b.label = mk ? mk[1] : "";
+    b.text = b.lines.join("\n");
+    if (/^```\s*mermaid\s*$/.test(f) || /^\s*@(video|image|viz)\[/.test(f)) b.kind = "visual";
+    else if (/^\s*>/.test(f)) b.kind = "remember";
+    else if (/^⚠️/.test(f)) { b.kind = "trap"; b.text = b.text.replace(/^⚠️️?\s*/, "").replace(/^[a-z]/, (c) => c.toUpperCase()); }
+    else if (mk && MARKER_RE.test(f)) {
+      b.kind = mk[1].toLowerCase();
+      // "**Ask:** read the switch" reads as a sentence once the label is gone.
+      b.text = b.text.slice(mk[0].length).replace(/^[a-z]/, (c) => c.toUpperCase());
+    }
+    else if (/^\s*\d+\.\s/.test(f)) b.kind = "steps";
+    else b.kind = "md";
+  }
+  return blocks;
+}
+
+// A short plain paragraph next to a visual reads as its title (ends with ":")
+// or caption (one sentence after it).
+const isTitleFor = (b) => b && b.kind === "md" && b.lines.length === 1 && b.text.length < 160 && /:\s*$/.test(b.text);
+const isCaptionFor = (b) => b && b.kind === "md" && b.lines.length === 1 && b.text.length < 200 && !/:\s*$/.test(b.text) && !/^\*\*/.test(b.text);
+
+function renderLesson(page) {
+  const lines = page.body.replace(/\r\n/g, "\n").split("\n");
+  const base = page.lineBase;
+  const md = (b) => mdToHtml(b.text, page, base + b.start);
+  const at = (k) => ` data-line="${base + k + 1}"`;
+  const label = (t) => `<div class="lesson-label">${t}</div>`;
+  const secs = splitSections(lines);
+
+  // ---- brief: everything before the first "## ", minus the H1 (the hero has it)
+  const intro = { ...secs[0], lines: secs[0].lines.map((l) => (/^#\s/.test(l) ? "" : l)) };
+  let briefCards = "";
+  let openList = "";
+  let briefMd = "";
+  for (const b of lessonBlocks(intro)) {
+    if (b.kind === "goal" || b.kind === "result") {
+      briefCards += `<div class="lesson-brief-card"${at(b.start)}>${label(b.kind)}<p>${inline(b.text, page)}</p></div>`;
+    } else if (b.kind === "open beside this page" || b.kind.startsWith("open in ")) {
+      // Either "a · b · c" on one line, or a lead line followed by a list.
+      const body = /\n\s*[-*]\s/.test(b.text)
+        ? `<div class="lesson-open-md">${md(b)}</div>`
+        : `<ul class="lesson-open-list">${b.text.replace(/\.\s*$/, "").split(/\s+·\s+/).map((t) => `<li>${inline(t, page)}</li>`).join("")}</ul>`;
+      openList = `<div class="lesson-open"${at(b.start)}>${label(b.label)}${body}</div>`;
+    } else briefMd += md(b);
+  }
+
+  // ---- phases and tail
+  const phases = [];
+  let tail = "";
+  for (const sec of secs.slice(1)) {
+    if (TAIL_RE.test(sec.head)) {
+      tail += `<h2 id="${headingId(sec.head)}" class="h2"${at(sec.headLine)}>${inline(sec.head, page)}</h2>` +
+        mdToHtml(sec.lines.join("\n"), page, base + sec.start);
+      continue;
+    }
+    const pm = sec.head.match(/^Phase\s+(\d+)\s*[—–:-]\s*(.*)$/i);
+    let title = pm ? pm[2] : sec.head;
+    const bud = title.match(/\s*\((\d+)\s*min\)\s*$/i);
+    if (bud) title = title.slice(0, bud.index);
+    phases.push({ sec, title, minutes: bud ? +bud[1] : null, id: headingId(sec.head) });
+  }
+  const n = phases.length;
+  const total = phases.reduce((t, p) => t + (p.minutes || 0), 0);
+  const fmtMin = (m) => (m >= 60 ? `${Math.floor(m / 60)} H${m % 60 ? ` ${String(m % 60).padStart(2, "0")} M` : ""}` : `${m} MIN`);
+
+  const phaseHtml = phases.map((p, idx) => {
+    const num = idx + 1;
+    const blocks = lessonBlocks(p.sec);
+    const visuals = [];
+    const used = new Set();
+    // Lift each visual (with its title/caption paragraphs) out of the flow.
+    blocks.forEach((b, k) => {
+      if (b.kind !== "visual") return;
+      const prev = blocks[k - 1], next = blocks[k + 1];
+      const t = !used.has(k - 1) && isTitleFor(prev) ? prev : null;
+      const c = isCaptionFor(next) ? next : null;
+      if (t) used.add(k - 1);
+      if (c) used.add(k + 1);
+      used.add(k);
+      visuals.push(
+        `<figure class="lesson-figure" tabindex="0" title="Click to enlarge">` +
+          (t ? `<div class="lesson-figure-title"${at(t.start)}>${inline(t.text.replace(/:\s*$/, ""), page)}</div>` : "") +
+          md(b) +
+          (c ? `<figcaption class="lesson-figure-caption"${at(c.start)}>${inline(c.text, page)}</figcaption>` : "") +
+          `</figure>`
+      );
+    });
+
+    let flow = "";
+    let predicted = false;
+    let predictN = 0;
+    for (let k = 0; k < blocks.length; k++) {
+      if (used.has(k)) continue;
+      const b = blocks[k];
+      if (b.kind === "ask") {
+        const d = blocks[k + 1] && blocks[k + 1].kind === "decision" ? blocks[++k] : null;
+        flow += `<div class="lesson-ask"${at(b.start)}>${label("Ask the room")}<p class="lesson-q">${inline(b.text, page)}</p>` +
+          (d ? `<details class="lesson-reveal"${at(d.start)}><summary>Reveal the decision</summary><div class="lesson-reveal-body">${md({ ...d, text: d.text })}</div></details>` : "") +
+          `</div>`;
+      } else if (b.kind === "why") {
+        flow += `<div class="lesson-why"${at(b.start)}>${label("Why this phase")}${md(b)}</div>`;
+      } else if (b.kind === "decision") {
+        flow += `<div class="lesson-ask"${at(b.start)}>${label("Decision")}${md(b)}</div>`;
+      } else if (b.kind === "predict") {
+        predicted = true;
+        const key = `p${num}-${++predictN}`;
+        flow += `<div class="lesson-predict"${at(b.start)}>${label("Predict")}<p class="lesson-q">${inline(b.text, page)}</p>` +
+          `<textarea class="lesson-predict-input" data-key="${key}" rows="2" placeholder="Write your call before you run it"></textarea></div>`;
+      } else if (b.kind === "read") {
+        flow += predicted
+          ? `<details class="lesson-read"${at(b.start)}><summary>Check your prediction</summary><div class="lesson-reveal-body">${label("Read-off")}${md(b)}</div></details>`
+          : `<div class="lesson-read is-open"${at(b.start)}>${label("Read-off")}${md(b)}</div>`;
+      } else if (b.kind === "trap") {
+        flow += `<div class="lesson-trap"${at(b.start)}>${label("Trap")}${md(b)}</div>`;
+      } else if (b.kind === "remember") {
+        flow += `<div class="lesson-remember"${at(b.start)}>${label("Remember")}${md({ ...b, text: b.text.replace(/^\s*>\s?/gm, "") })}</div>`;
+      } else if (b.kind === "steps") {
+        flow += md(b).replace(/<ol class="list ol"(?: start="(\d+)")?/g, (_, st) => `<ol class="list ol lesson-steps"${st ? ` start="${st}"` : ""} style="--start:${(st ? +st : 1) - 1}"`);
+      } else {
+        flow += md(b);
+      }
+    }
+
+    const visual = visuals.length
+      ? visuals.join("")
+      : `<div class="lesson-visual-empty">No visual yet · phase ${num}</div>`;
+    const nextP = phases[idx + 1];
+    const prevP = phases[idx - 1];
+    return `<section class="lesson-phase" id="phase-${num}" data-phase="${num}">
+  <header class="lesson-phase-head"${at(p.sec.headLine)}>
+    <div class="lesson-phase-kicker">Phase ${num} / ${n}${p.minutes ? ` · ${p.minutes} min` : ""}</div>
+    <h2 class="lesson-phase-title" id="${p.id}">${inline(p.title, page)}</h2>
+  </header>
+  <div class="lesson-phase-grid ${visuals.some((v) => !v.includes('class="image-wanted"')) ? "has-visual" : "no-visual"}">
+    <div class="lesson-flow">${flow}</div>
+    <aside class="lesson-visual">${visual}</aside>
+  </div>
+  <footer class="lesson-phase-foot">
+    <button type="button" class="lesson-done" data-done="${num}" aria-pressed="false">Mark phase done</button>
+    <div class="lesson-pager">
+      ${prevP ? `<a class="lesson-prev" href="#phase-${num - 1}" data-phase-link="${num - 1}">‹ Phase ${num - 1}</a>` : ""}
+      ${nextP ? `<a class="ddc-btn" href="#phase-${num + 1}" data-phase-link="${num + 1}"><span class="ddc-btn__fill" aria-hidden="true"></span>Next · ${escapeHtml(nextP.title.replace(/`/g, ""))} ›</a>` : ""}
+    </div>
+  </footer>
+</section>`;
+  }).join("\n");
+
+  const rail = n
+    ? `<nav class="lesson-rail" aria-label="Phases">
+  <div class="lesson-rail-track">${phases.map((p, idx) =>
+      `<a class="lesson-rail-item" href="#phase-${idx + 1}" data-phase-link="${idx + 1}" style="flex:${p.minutes || 60} 1 0">` +
+      `<span class="lesson-rail-bar" aria-hidden="true"></span>` +
+      `<span class="lesson-rail-k">Phase ${idx + 1}${p.minutes ? ` · ${p.minutes} min` : ""}</span>` +
+      `<span class="lesson-rail-t">${inline(p.title, page).replace(/<[^>]+>/g, "")}</span></a>`).join("")}</div>
+  <div class="lesson-rail-tools">${total ? `<span class="lesson-rail-total">Total ${fmtMin(total)}</span>` : ""}` +
+      `<div class="lesson-view" role="group" aria-label="View"><button type="button" class="lesson-view-btn" data-view="one" aria-pressed="true">One phase</button>` +
+      `<button type="button" class="lesson-view-btn" data-view="all" aria-pressed="false">All phases</button></div></div>
+</nav>`
+    : "";
+
+  const brief = briefCards || openList || briefMd
+    ? `<section class="lesson-brief">${briefCards ? `<div class="lesson-brief-grid">${briefCards}</div>` : ""}${openList}${briefMd ? `<div class="lesson-brief-md content-body">${briefMd}</div>` : ""}</section>`
+    : "";
+
+  const t = splitTitle(page.title);
+  return {
+    kicker: [t.eyebrow, "Lesson", n ? `${n} phases` : "", total ? fmtMin(total) : ""].filter(Boolean).join(" · "),
+    title: t.eyebrow ? t.main + (t.sub ? `: ${t.sub}` : "") : page.title,
+    html: `<div class="lesson" data-lesson>
+${brief}
+${rail}
+<div class="lesson-phases content-body">
+${phaseHtml}
+</div>
+${tail ? `<section class="lesson-tail content-body">${tail}</section>` : ""}
+</div>`,
+  };
+}
+
+// Client script for lesson pages: one phase at a time (or all), the rail, done
+// marks and prediction text, kept per page in localStorage. Without JS every
+// phase shows and every reveal still works (they are <details>).
+const LESSON_SCRIPT = `(function(){
+  var root=document.querySelector('[data-lesson]'); if(!root) return;
+  var html=document.documentElement, key='lesson:'+location.pathname, st={};
+  try{st=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
+  st.done=st.done||{}; st.p=st.p||{};
+  function save(){try{localStorage.setItem(key,JSON.stringify(st))}catch(e){}}
+  var phases=[].slice.call(root.querySelectorAll('.lesson-phase'));
+  if(!phases.length) return;
+  var rail=root.querySelector('.lesson-rail'), viewBtns=[].slice.call(root.querySelectorAll('.lesson-view-btn'));
+  var paged=st.mode!=='all', cur=1;
+  function phaseOf(hash){
+    if(!hash) return 0; var m=/^#phase-(\\d+)$/.exec(hash); if(m) return +m[1];
+    var el=document.getElementById(decodeURIComponent(hash.slice(1)));
+    var p=el&&el.closest&&el.closest('.lesson-phase'); return p?+p.dataset.phase:0;
+  }
+  function mark(){
+    [].forEach.call(root.querySelectorAll('.lesson-rail-item'),function(a){
+      var k=+a.dataset.phaseLink; a.classList.toggle('is-current',k===cur);
+      a.classList.toggle('is-done',!!st.done[k]);
+      if(k===cur) a.setAttribute('aria-current','step'); else a.removeAttribute('aria-current');
+    });
+    [].forEach.call(root.querySelectorAll('.lesson-done'),function(b){
+      var d=!!st.done[b.dataset.done]; b.setAttribute('aria-pressed',String(d));
+      b.textContent=d?'Phase done':'Mark phase done';
+    });
+  }
+  function show(n,scroll){
+    cur=Math.min(Math.max(1,n),phases.length);
+    phases.forEach(function(p){p.classList.toggle('is-current',+p.dataset.phase===cur)});
+    st.cur=cur; save(); mark();
+    if(scroll&&rail){var y=rail.getBoundingClientRect().top+window.scrollY-parseInt(getComputedStyle(html).getPropertyValue('--header-h')||72);
+      if(window.scrollY>y) window.scrollTo(0,y);}
+  }
+  function setMode(p){
+    paged=p; html.classList.toggle('lesson-paged',p);
+    viewBtns.forEach(function(b){b.setAttribute('aria-pressed',String((b.dataset.view==='one')===p));});
+    st.mode=p?'paged':'all'; save();
+  }
+  root.addEventListener('click',function(e){
+    if(html.classList.contains('llm-review-annotating')) return;
+    var a=e.target.closest&&e.target.closest('[data-phase-link]');
+    if(a){ var n=+a.dataset.phaseLink;
+      if(paged){e.preventDefault(); show(n,true); history.replaceState(null,'','#phase-'+n);}
+      else { cur=n; mark(); }
+      return; }
+    var d=e.target.closest&&e.target.closest('.lesson-done');
+    if(d){ var k=d.dataset.done; st.done[k]=!st.done[k]; save(); mark(); }
+  });
+  // Click a visual to see it full screen; click again or Esc to close.
+  root.addEventListener('click',function(e){
+    if(html.classList.contains('llm-review-annotating')) return;
+    var f=e.target.closest&&e.target.closest('.lesson-figure');
+    if(!f||e.target.closest('video,a,button,.viz-controls')) return;
+    var z=f.classList.toggle('is-zoomed'); html.classList.toggle('lesson-zoomed',z);
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){var z=root.querySelector('.lesson-figure.is-zoomed'); if(z){z.classList.remove('is-zoomed');html.classList.remove('lesson-zoomed');}}
+    if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('lesson-figure')){e.target.click();}
+  });
+  viewBtns.forEach(function(b){ b.addEventListener('click',function(){
+    var p=b.dataset.view==='one'; if(p===paged) return;
+    setMode(p); if(paged) show(cur,true);
+    else { var el=document.getElementById('phase-'+cur); if(el) el.scrollIntoView(); }
+  }); });
+  [].forEach.call(root.querySelectorAll('.lesson-predict-input'),function(t){
+    t.value=st.p[t.dataset.key]||'';
+    t.addEventListener('input',function(){st.p[t.dataset.key]=t.value;save();});
+  });
+  document.addEventListener('keydown',function(e){
+    if(!paged||html.classList.contains('lesson-zoomed')||e.altKey||e.ctrlKey||e.metaKey) return;
+    var t=e.target; if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+    if(e.key==='ArrowRight'&&cur<phases.length){show(cur+1,true);history.replaceState(null,'','#phase-'+cur);}
+    if(e.key==='ArrowLeft'&&cur>1){show(cur-1,true);history.replaceState(null,'','#phase-'+cur);}
+  });
+  window.addEventListener('hashchange',function(){var n=phaseOf(location.hash); if(n) show(n,false);});
+  if('IntersectionObserver' in window){
+    var io=new IntersectionObserver(function(es){ if(paged) return;
+      es.forEach(function(en){ if(en.isIntersecting){cur=+en.target.dataset.phase; mark();} });
+    },{rootMargin:'-40% 0px -55% 0px'});
+    phases.forEach(function(p){io.observe(p)});
+  }
+  setMode(paged);
+  show(phaseOf(location.hash)||st.cur||1,false);
+  var h=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));
+  if(h&&!/^#phase-/.test(location.hash)) h.scrollIntoView();
+})();`;
+
+// ---------------------------------------------------------------------------
+// 3c. Landing page (index.md)
+// ---------------------------------------------------------------------------
+
+// index.md stays the master catalog in Obsidian. On the site it opens as a
+// landing page: a hero with the first paragraph as its lede, the "Start here"
+// links as a path, and every small catalog table (12 rows or fewer, each row
+// a link) as a grid of cards. Bigger tables stay tables, lower down.
+
+// A page's first visual, for its card: a video poster, else its first diagram.
+function cardMedia(dest, page) {
+  const v = dest.body.match(/^\s*@video\[([a-z0-9][a-z0-9-]*)\]/m);
+  if (v && mediaPosters.has(v[1])) {
+    return `<img class="home-card-img" src="${relHref(page.outRel, "assets/media/" + v[1] + ".jpg")}" alt="" loading="lazy">`;
+  }
+  const im = dest.body.match(/^\s*@image\[([a-z0-9][a-z0-9-]*)\]/m);
+  if (im && mediaImages.has(im[1])) {
+    return `<img class="home-card-img" src="${relHref(page.outRel, "assets/media/" + mediaImages.get(im[1]))}" alt="" loading="lazy">`;
+  }
+  const fence = findMermaidFences(dest.body).find((f) => DIAGRAMS.has(f));
+  return fence ? `<div class="home-card-svg" aria-hidden="true">${DIAGRAMS.get(fence)}</div>` : "";
+}
+
+function splitTitle(t) {
+  let eyebrow = "", rest = t;
+  const dash = t.indexOf(" — ");
+  if (dash !== -1 && dash < 24) { eyebrow = t.slice(0, dash); rest = t.slice(dash + 3); }
+  const colon = rest.indexOf(":");
+  return colon !== -1 && colon < rest.length - 1
+    ? { eyebrow, main: rest.slice(0, colon), sub: rest.slice(colon + 1).trim() }
+    : { eyebrow, main: rest, sub: "" };
+}
+
+function renderCards(rows, header, page) {
+  const cards = rows.map((cells) => {
+    const li = cells.findIndex((c) => /\[\[/.test(c));
+    const m = cells[li].match(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|([^\]]+))?\]\]/);
+    let tgt = m[1].trim();
+    if (tgt.startsWith("wiki/")) tgt = tgt.slice(5);
+    const dest = byTarget.get(tgt);
+    if (!dest) return null;
+    const t = splitTitle(dest.title);
+    const others = cells.map((c, k) => ({ c, h: header[k] || "", k })).filter((x) => x.k !== li && x.c);
+    const short = others.find((x) => x.c.length <= 12 && !/\[\[/.test(x.c));
+    const eyebrow = t.eyebrow || (short ? `${short.h} ${short.c}`.trim() : "");
+    const type = TYPE_LABELS[dest.data.type] || (dest.data.type ? String(dest.data.type).toUpperCase() : "");
+    const tags = others.find((x) => /^tags?$/i.test(x.h));
+    const texts = others.filter((x) => x !== short && x !== tags && x.c.length > 12);
+    const text = texts.length ? texts[texts.length - 1].c : "";
+    const num = (eyebrow.match(/\d+/) || [""])[0];
+    return {
+      media: cardMedia(dest, page), num,
+      html: (media) =>
+        `<a class="home-card" href="${relHref(page.outRel, dest.outRel)}">` +
+        (media !== null ? `<div class="home-card-media">${media || (num ? `<span class="home-card-num">${num.padStart(2, "0")}</span>` : "")}</div>` : "") +
+        `<div class="home-card-body">` +
+        `<div class="home-card-eyebrow">${escapeHtml([eyebrow, type].filter(Boolean).join(" · "))}</div>` +
+        `<div class="home-card-title">${escapeHtml(t.main)}</div>` +
+        (t.sub ? `<div class="home-card-sub">${escapeHtml(t.sub)}</div>` : "") +
+        (text ? `<p class="home-card-text">${inline(text, page).replace(/<a [^>]*>|<\/a>/g, "")}</p>` : "") +
+        (tags ? `<div class="home-card-tags">${tags.c.split(/,\s*/).slice(0, 4).map((x) => `<span>${escapeHtml(x)}</span>`).join("")}</div>` : "") +
+        `</div></a>`,
+    };
+  }).filter(Boolean);
+  // Show a media band only when some card in the grid has a real visual.
+  const anyMedia = cards.some((c) => c.media);
+  return `<div class="home-cards${anyMedia ? " has-media" : ""}">${cards.map((c) => c.html(anyMedia ? c.media : null)).join("")}</div>`;
+}
+
+function renderHome(page) {
+  const lines = page.body.replace(/\r\n/g, "\n").split("\n");
+  const base = page.lineBase;
+  const secs = splitSections(lines);
+  const at = (k) => ` data-line="${base + k + 1}"`;
+
+  // Intro: H1, lede (first plain paragraph), the "Start here" path, anything else.
+  let lede = "", path = [], introMd = "";
+  for (const b of lessonBlocks({ ...secs[0], lines: secs[0].lines.map((l) => (/^#\s/.test(l) ? "" : l)) })) {
+    const plain = b.text.replace(/^\s*>\s?/gm, "");
+    if (/\*\*Start here:?\*\*/i.test(plain) && !path.length) {
+      for (const m of plain.matchAll(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]+)?\]\]/g)) {
+        const tgt = m[1].trim().replace(/^wiki\//, "");
+        if (byTarget.has(tgt) && !path.includes(tgt)) path.push(tgt);
+      }
+    } else if (!lede && b.kind === "md" && !/^\s*[|>]/.test(b.lines[0])) {
+      lede = `<p class="home-lede"${at(b.start)}>${inline(b.text.replace(/\n/g, " "), page)}</p>`;
+    } else introMd += mdToHtml(b.text, page, base + b.start);
+  }
+  const first = path.length ? byTarget.get(path[0]) : null;
+  const hero = `<header class="home-hero">
+  <div class="hero-kicker">Knowledge base · ${pages.length} pages</div>
+  <h1 class="home-title">${escapeHtml(CONFIG.title)}</h1>
+  ${lede}
+  ${first ? `<a class="ddc-btn home-start" href="${relHref(page.outRel, first.outRel)}"><span class="ddc-btn__fill" aria-hidden="true"></span>Start here ›</a>` : ""}
+</header>`;
+  const pathHtml = path.length > 1
+    ? `<section class="home-section"><div class="home-section-head"><h2 class="home-h2" id="start-here">Start here</h2><span class="home-meta">${path.length} steps</span></div>` +
+      `<ol class="home-path">${path.map((tgt, k) => {
+        const d = byTarget.get(tgt);
+        const t = splitTitle(d.title);
+        const type = TYPE_LABELS[d.data.type] || (d.data.type ? String(d.data.type).toUpperCase() : "PAGE");
+        return `<li><a href="${relHref(page.outRel, d.outRel)}"><span class="home-path-n">${String(k + 1).padStart(2, "0")}</span>` +
+          `<span class="home-path-k">${escapeHtml(type)}</span><span class="home-path-t">${escapeHtml(t.main)}</span></a></li>`;
+      }).join("")}</ol></section>`
+    : "";
+
+  const sections = secs.slice(1).map((sec) => {
+    const id = headingId(sec.head);
+    // Find the section's table, if any, and decide whether it becomes cards.
+    const ti = sec.lines.findIndex((l, k) => /^\s*\|/.test(l) && /^\s*\|?\s*:?-{2,}/.test(sec.lines[k + 1] || ""));
+    let tEnd = ti;
+    if (ti !== -1) while (tEnd < sec.lines.length && /^\s*\|/.test(sec.lines[tEnd])) tEnd++;
+    const rows = ti === -1 ? [] : sec.lines.slice(ti + 2, tEnd).map(splitRow);
+    const cardable = rows.length > 0 && rows.length <= 12 && rows.every((r) => r.some((c) => /\[\[/.test(c)));
+    const count = rows.length ? `${rows.length} ${rows.length === 1 ? "page" : "pages"}` : "";
+    const head = `<div class="home-section-head"${at(sec.headLine)}><h2 class="home-h2" id="${id}">${inline(sec.head, page)}</h2>${count ? `<span class="home-meta">${count}</span>` : ""}</div>`;
+    if (!cardable) {
+      return `<section class="home-section home-catalog">${head}<div class="content-body">${mdToHtml(sec.lines.join("\n"), page, base + sec.start)}</div></section>`;
+    }
+    const before = sec.lines.slice(0, ti).join("\n");
+    const after = sec.lines.slice(tEnd).join("\n");
+    return `<section class="home-section">${head}` +
+      (before.trim() ? `<div class="content-body home-intro">${mdToHtml(before, page, base + sec.start)}</div>` : "") +
+      renderCards(rows, splitRow(sec.lines[ti]), page) +
+      (after.trim() ? `<div class="content-body">${mdToHtml(after, page, base + sec.start + tEnd)}</div>` : "") +
+      `</section>`;
+  }).join("\n");
+
+  return `<div class="home">
+${hero}
+${introMd ? `<div class="content-body home-intro">${introMd}</div>` : ""}
+${pathHtml}
+${sections}
+</div>`;
+}
+
 // Sidebar collapse: open by default. Persist the reader's choice in localStorage
 // under "sb" ("0" = collapsed). The head snippet runs before paint to set the
 // class up front (no flash); the body snippet wires the header toggle button.
@@ -762,7 +1284,10 @@ function renderPage(page) {
   page._tcDefault = tcTarget && tcSource(page, tcTarget) ? tcTarget : null;
   page._tc = page._tcDefault ? tcSource(page, page._tcDefault) : null;
 
-  const bodyHtml = mdToHtml(page.body, page);
+  const isHome = page.target === "index";
+  const isLesson = page.data.type === "lesson";
+  const lesson = isLesson ? renderLesson(page) : null;
+  const bodyHtml = isHome ? renderHome(page) : isLesson ? lesson.html : mdToHtml(page.body, page, page.lineBase);
 
   // Hidden data island holding each referenced transcript chunk + its wiring script.
   let tcData = "";
@@ -777,7 +1302,6 @@ function renderPage(page) {
   }
 
   const cssHref = relHref(page.outRel, "assets/wiki.css");
-  const isHome = page.target === "index";
 
   // Interactive visualizations. Two ways a page gets one:
   //   1. a concept page whose slug matches a widget file -> panel under the meta row;
@@ -816,8 +1340,10 @@ function renderPage(page) {
   ${renderHeader(page)}
   <div class="entry-shell">
     ${renderSidebar(page)}
-    <main class="entry-main${isHome ? " is-home" : ""}">
-      ${renderHero(page)}
+    <main class="entry-main${isHome ? " is-home" : ""}${isLesson ? " is-lesson" : ""}">
+      ${isHome ? bodyHtml : isLesson ? `${renderHero(page, lesson)}
+      ${bodyHtml}
+      ${tcData}` : `${renderHero(page)}
       <article class="article-container">
         ${renderMeta(page)}
         ${vizBlock}
@@ -825,7 +1351,7 @@ function renderPage(page) {
 ${bodyHtml}
         </section>
         ${tcData}
-      </article>
+      </article>`}
       <footer class="entry-footer">
         <div>${escapeHtml(CONFIG.footer)}</div>
         <a class="ddc-btn proceed" href="${relHref(page.outRel, home.outRel)}"><span class="ddc-btn__fill" aria-hidden="true"></span>RETURN TO MASTER INDEX ›</a>
@@ -836,6 +1362,7 @@ ${bodyHtml}
 </div>
 ${vizScripts}
 ${tcScript}
+${isLesson ? `<script>${LESSON_SCRIPT}</script>` : ""}
 <script>${SB_SCRIPT}</script>
 </body>
 </html>`;
@@ -1087,6 +1614,192 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
   font-family:var(--font-body);font-size:15px;line-height:1.6;color:var(--color-text)}
 .tc-pop-body p{margin:0 0 .7em}
 .tc-pop-body p:last-child{margin-bottom:0}
+
+/* ---- Stills (@image) ---- */
+.image-block{margin:0 0 48px}
+.image-block .still{display:block;width:100%;height:auto;border-radius:var(--radius-md)}
+
+/* ---- Lesson layout (type: lesson) ---- */
+.lesson{max-width:1280px;padding:32px var(--page-margin) 0}
+.lesson-label{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);margin:0 0 8px}
+.lesson-brief{display:flex;flex-direction:column;gap:16px;max-width:1040px;margin-bottom:48px}
+.lesson-brief-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
+@media(min-width:768px){.lesson-brief-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.lesson-brief-card,.lesson-open{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px}
+.lesson-brief-card p{margin:0;font-family:var(--font-body);font-size:18px;line-height:1.6}
+.lesson-open-list{list-style:none;margin:0;padding:0;font-family:var(--font-body);font-size:15px;line-height:1.5;color:var(--color-secondary)}
+.lesson-open-list li{padding:8px 0;border-top:1px solid var(--color-border)}
+.lesson-open-list li:first-child{border-top:none;padding-top:0}
+.lesson-open-list code,.lesson-brief code{font-family:var(--font-mono);font-size:.85em;background:var(--color-surface-raised);padding:2px 4px;border-radius:var(--radius-sm);color:var(--color-text)}
+
+/* Phase rail: one bar per phase, its width the phase's time budget */
+.lesson-rail{position:sticky;top:var(--header-h);z-index:15;background:var(--color-bg);border-bottom:1px solid var(--color-border);
+  display:flex;align-items:flex-start;gap:32px;padding:16px 0;margin-bottom:8px}
+.lesson-rail-track{display:flex;gap:8px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
+.lesson-rail-item{display:flex;flex-direction:column;gap:8px;min-width:132px;padding:0 0 4px;text-decoration:none;color:var(--color-secondary);transition:color .2s}
+.lesson-rail-bar{height:4px;border-radius:2px;background:var(--color-border-strong);transition:background .2s}
+.lesson-rail-k{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-nav)}
+.lesson-rail-t{font-family:var(--font-body);font-size:14px;line-height:20px;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lesson-rail-item.is-done .lesson-rail-bar{background:var(--color-secondary)}
+.lesson-rail-item.is-current{color:var(--color-text)}
+.lesson-rail-item.is-current .lesson-rail-k{color:var(--color-text)}
+.lesson-rail-item.is-current .lesson-rail-bar{background:var(--color-text)}
+.lesson-rail-tools{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
+.lesson-rail-total{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-secondary);white-space:nowrap}
+.lesson-view{display:inline-flex;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);overflow:hidden}
+.lesson-view-btn{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.15em;text-transform:uppercase;
+  color:var(--color-secondary);background:transparent;border:none;min-height:40px;padding:8px 14px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
+.lesson-view-btn+.lesson-view-btn{border-left:1px solid var(--color-border-strong)}
+.lesson-view-btn[aria-pressed="true"]{background:var(--color-text);color:var(--color-bg);cursor:default}
+.lesson-done{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--color-text);background:transparent;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);
+  min-height:40px;padding:8px 16px;cursor:pointer;white-space:nowrap;transition:border-color .2s,background .2s,color .2s}
+.lesson-done[aria-pressed="true"]{background:var(--color-text);color:var(--color-bg);border-color:var(--color-text)}
+@media(max-width:767px){.lesson-rail{flex-direction:column;align-items:stretch;gap:12px}.lesson-rail-tools{flex-direction:row;justify-content:space-between;align-items:center}}
+@media(hover:hover){
+  .lesson-rail-item:not(.is-current):hover{color:var(--color-text)}
+  .lesson-view-btn[aria-pressed="false"]:hover{color:var(--color-text)}
+  .lesson-done:hover{border-color:var(--color-text)}
+}
+/* All phases on one page: the pager has nothing to do */
+html:not(.lesson-paged) .lesson-pager{display:none}
+
+/* Why this phase: the lead of every phase */
+.lesson-why{margin:0 0 32px;padding:24px 0;border-top:1px solid var(--color-border-strong);border-bottom:1px solid var(--color-border)}
+.lesson-why p{font-size:19px;line-height:1.6}
+.lesson-why p:last-child{margin-bottom:0}
+.lesson-open-md p{margin:0 0 8px;font-size:16px;line-height:1.5}
+.lesson-open-md ul{margin:0;padding-left:1.2em;font-family:var(--font-body);font-size:15px;line-height:1.6;color:var(--color-secondary)}
+.lesson-open-md li{margin:0 0 4px}
+
+/* A screenshot not taken yet: shown in review mode only */
+.image-wanted{display:none;margin:0 0 24px}
+html.llm-review .image-wanted{display:block}
+.image-wanted-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:200px;padding:24px;text-align:center;
+  border:1px dashed var(--color-border-strong);border-radius:var(--radius-lg)}
+.image-wanted-label{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text)}
+.image-wanted-cap{font-family:var(--font-mono);font-size:13px;line-height:20px;color:var(--color-secondary);max-width:40ch}
+
+/* Phases. Paged mode (set by the script) shows the current one only. */
+html.lesson-paged .lesson-phase:not(.is-current){display:none}
+.lesson-phases.content-body{font-size:17px}
+.lesson-phase{padding-top:40px;scroll-margin-top:calc(var(--header-h) + 80px)}
+.lesson-phase-head{margin-bottom:32px}
+.lesson-phase-kicker{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);margin-bottom:12px}
+.content-body .lesson-phase-title{font-family:var(--font-display);font-weight:600;font-size:clamp(26px,3.2vw,40px);line-height:1.15;margin:0;padding:0;border:none;text-wrap:balance}
+.content-body .lesson-phase-title code{font-size:.85em;background:none;padding:0}
+.lesson-figure{cursor:zoom-in}
+.lesson-figure.is-zoomed{position:fixed;inset:0;z-index:70;margin:0;padding:32px var(--page-margin);background:var(--color-bg);
+  display:flex;flex-direction:column;justify-content:center;overflow:auto;cursor:zoom-out}
+.lesson-figure.is-zoomed .diagram-block svg{width:100%;height:auto;max-width:none!important;max-height:calc(100vh - 160px)}
+.lesson-figure.is-zoomed .viz{max-width:1600px;width:100%;margin:0 auto}
+.lesson-figure.is-zoomed .lesson-figure-title,.lesson-figure.is-zoomed .lesson-figure-caption{max-width:1600px;width:100%;margin-left:auto;margin-right:auto}
+.lesson-phase-grid{display:flex;flex-direction:column;gap:32px}
+.lesson-visual{order:-1;min-width:0}
+.lesson-phase-grid.no-visual .lesson-visual{display:none}
+.lesson-visual-empty{display:none}
+html.llm-review .lesson-phase-grid.no-visual .lesson-visual{display:block}
+html.llm-review .lesson-visual-empty{display:flex;align-items:center;justify-content:center;min-height:200px;border:1px dashed var(--color-border-strong);
+  border-radius:var(--radius-lg);font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-nav)}
+@media(min-width:1280px){
+  .lesson-phase-grid.has-visual,html.llm-review .lesson-phase-grid.no-visual{display:grid;grid-template-columns:minmax(0,680px) minmax(0,1fr);gap:48px;align-items:start}
+  .lesson-visual{order:0;position:sticky;top:calc(var(--header-h) + 96px)}
+}
+.lesson-flow{min-width:0;max-width:720px}
+.lesson-figure{margin:0 0 24px}
+.lesson-figure .diagram-block,.lesson-figure .video-block,.lesson-figure .image-block,.lesson-figure .viz-block{margin:0}
+.lesson-figure-title{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text);margin-bottom:12px}
+.lesson-figure-caption{font-family:var(--font-mono);font-size:13px;line-height:20px;color:var(--color-secondary);padding:12px 8px 0}
+
+/* Steps: the source numbers, kept across splits */
+.content-body ol.lesson-steps{list-style:none;padding:0;margin:0 0 24px;counter-reset:step var(--start,0)}
+.content-body ol.lesson-steps>li{counter-increment:step;position:relative;padding:16px 0 16px 56px;margin:0;border-top:1px solid var(--color-border)}
+.content-body ol.lesson-steps>li::before{content:counter(step,decimal-leading-zero);position:absolute;left:0;top:16px;
+  font-family:var(--font-mono);font-weight:700;font-size:13px;line-height:1.7;letter-spacing:.05em;color:var(--color-secondary)}
+.content-body ol.lesson-steps>li>ul{margin:8px 0 0}
+
+/* Cards in the flow */
+.lesson-ask,.lesson-predict,.lesson-read,.lesson-trap{border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px;margin:0 0 24px;background:var(--color-surface)}
+.lesson-q{font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1.4;margin:0}
+.lesson-q code{font-family:var(--font-mono)}
+.lesson-ask p:last-child,.lesson-read p:last-child,.lesson-trap p:last-child,.lesson-reveal-body p:last-child{margin-bottom:0}
+.lesson-reveal{margin-top:16px}
+.lesson-reveal>summary,.lesson-read>summary{list-style:none;display:inline-flex;align-items:center;min-height:var(--touch-target);padding:0 16px;
+  border:1px solid var(--color-border-strong);border-radius:var(--radius-md);cursor:pointer;
+  font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text);transition:background .2s,color .2s,border-color .2s}
+.lesson-reveal>summary::-webkit-details-marker,.lesson-read>summary::-webkit-details-marker{display:none}
+.lesson-reveal>summary::after,.lesson-read>summary::after{content:" \\203A";margin-left:8px}
+.lesson-reveal[open]>summary,.lesson-read[open]>summary{border-color:var(--color-border);color:var(--color-nav)}
+.lesson-reveal[open]>summary::after,.lesson-read[open]>summary::after{content:""}
+.lesson-reveal-body{margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border)}
+.lesson-read:not(.is-open){background:transparent;border-style:dashed;border-color:var(--color-border-strong)}
+.lesson-read{border-color:var(--color-border-strong)}
+.lesson-predict-input{display:block;width:100%;margin-top:16px;padding:12px 16px;background:var(--color-bg);color:var(--color-text);
+  border:1px solid var(--color-border-strong);border-radius:var(--radius-md);font-family:var(--font-body);font-size:16px;line-height:1.5;resize:vertical}
+.lesson-predict-input::placeholder{color:var(--color-nav)}
+.lesson-trap{background:var(--color-surface-raised);border-color:var(--color-border-strong)}
+.lesson-trap .lesson-label{color:var(--color-text)}
+.lesson-remember{margin:32px 0;padding:24px 0;border-top:1px solid var(--color-border-strong);border-bottom:1px solid var(--color-border-strong)}
+.lesson-remember p{font-family:var(--font-display);font-weight:600;font-size:24px;line-height:1.4;margin:0}
+@media(hover:hover){
+  .lesson-reveal>summary:hover,.lesson-read>summary:hover{background:var(--color-text);color:var(--color-bg);border-color:var(--color-text)}
+}
+@media(prefers-reduced-motion:reduce){.lesson-rail-item,.lesson-rail-bar,.lesson-view-btn,.lesson-done,.lesson-reveal>summary,.lesson-read>summary{transition:none}}
+
+.lesson-phase-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-top:32px;padding:24px 0;border-top:1px solid var(--color-border)}
+.lesson-pager{display:flex;flex-wrap:wrap;align-items:center;gap:24px}
+.lesson-prev{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-nav);text-decoration:none;min-height:var(--touch-target);display:inline-flex;align-items:center}
+@media(hover:hover){.lesson-prev:hover{color:var(--color-text)}}
+.lesson-pager .ddc-btn{max-width:100%;white-space:normal;text-align:left}
+.lesson-tail{max-width:calc(720px + 2 * var(--page-margin));padding-top:48px}
+
+/* ---- Landing page (index.md) ---- */
+.home{max-width:1280px;padding:0 var(--page-margin) 32px}
+.home-hero{padding:64px 0 48px;border-bottom:1px solid var(--color-border)}
+@media(min-width:768px){.home-hero{padding:96px 0 64px}}
+.home-title{font-family:var(--font-display);font-weight:800;text-transform:uppercase;letter-spacing:-.02em;line-height:1;
+  font-size:clamp(40px,6.4vw,96px);margin:0;text-wrap:balance;overflow-wrap:anywhere}
+.home-lede{font-family:var(--font-body);font-size:20px;line-height:1.6;color:var(--color-secondary);max-width:720px;margin:24px 0 32px}
+.home-lede strong{color:var(--color-text);font-weight:600}
+.home-intro{max-width:720px;margin-top:24px}
+.home-section{margin-top:64px}
+@media(min-width:768px){.home-section{margin-top:96px}}
+.home-section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;padding-bottom:16px;margin-bottom:24px;border-bottom:1px solid var(--color-border)}
+.home-h2{font-family:var(--font-display);font-weight:800;text-transform:uppercase;letter-spacing:-.02em;line-height:1;font-size:clamp(24px,3vw,40px);margin:0;scroll-margin-top:calc(var(--header-h) + 16px)}
+.home-meta{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);white-space:nowrap}
+.home-path{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+.home-path a{display:flex;flex-direction:column;gap:8px;height:100%;padding:24px;text-decoration:none;color:var(--color-text);
+  background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);transition:border-color .2s}
+.home-path-n{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.1em;color:var(--color-secondary)}
+.home-path-k{font-family:var(--font-mono);font-weight:700;font-size:11px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-nav)}
+.home-path-t{font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1.3}
+.home-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px}
+@media(min-width:1024px){.home-cards{gap:24px}}
+.home-card{display:flex;flex-direction:column;text-decoration:none;color:var(--color-text);background:var(--color-surface);
+  border:1px solid var(--color-border);border-radius:var(--radius-lg);overflow:hidden;transition:border-color .2s}
+.home-card-media{aspect-ratio:16/9;margin:8px 8px 0;border-radius:var(--radius-md);background:var(--color-bg);overflow:hidden;
+  display:flex;align-items:center;justify-content:center}
+.home-card-img{display:block;width:100%;height:100%;object-fit:cover;filter:grayscale(1);transition:filter .3s}
+.home-card-svg{width:100%;height:100%;padding:12px;display:flex}
+.home-card-svg svg{width:100%!important;height:100%!important;max-width:none!important}
+.home-card-num{font-family:var(--font-display);font-weight:800;font-size:72px;line-height:1;letter-spacing:-.02em;color:var(--color-muted);transition:color .2s}
+.home-card-body{display:flex;flex-direction:column;gap:8px;padding:16px 20px 24px}
+.home-card-eyebrow{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary)}
+.home-card-title{font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1.3}
+.home-card-sub{font-family:var(--font-body);font-size:15px;line-height:1.4;color:var(--color-secondary)}
+.home-card-text{font-family:var(--font-body);font-size:15px;line-height:1.5;color:var(--color-secondary);margin:0}
+.home-card-text code{font-family:var(--font-mono);font-size:.85em}
+.home-card-tags{display:flex;flex-wrap:wrap;gap:4px;margin-top:4px}
+.home-card-tags span{font-family:var(--font-mono);font-size:10px;line-height:16px;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--color-secondary);background:var(--color-surface-raised);border-radius:var(--radius-sm);padding:2px 6px}
+.home-catalog .content-body{max-width:880px}
+@media(hover:hover){
+  .home-card:hover,.home-path a:hover{border-color:var(--color-text)}
+  .home-card:hover .home-card-img{filter:none}
+  .home-card:hover .home-card-num{color:var(--color-text)}
+}
+@media(prefers-reduced-motion:reduce){.home-card,.home-card-img,.home-card-num,.home-path a{transition:none}}
 `;
 
 // ---------------------------------------------------------------------------
@@ -1130,11 +1843,11 @@ if (widgetSlugs.size) {
   }
 }
 
-// Copy explainer videos (+ posters) into assets/media/.
-if (mediaSlugs.size) {
+// Copy explainer videos, posters and stills into assets/media/.
+if (mediaSlugs.size || mediaImages.size) {
   mkdirSync(join(OUT, "assets", "media"), { recursive: true });
   for (const f of readdirSync(MEDIA)) {
-    if (!f.endsWith(".mp4") && !f.endsWith(".jpg")) continue;
+    if (!/\.(mp4|png|webp|jpg|gif)$/.test(f)) continue;
     writeFileSync(join(OUT, "assets", "media", f), readFileSync(join(MEDIA, f)));
   }
 }

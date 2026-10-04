@@ -1,0 +1,24 @@
+{
+  "id": "20261004-081758-dfef",
+  "status": "resolved",
+  "created": "2026-10-04T15:17:58.669Z",
+  "page": "workshop/day-3.html",
+  "source": "wiki/workshop/day-3.md",
+  "anchor": {
+    "selector": "#phase-1 > footer:nth-of-type(1) > div:nth-of-type(1)",
+    "line": null,
+    "heading": "Backward IK: IK onto an FK pose",
+    "headingId": "phase-1-backward-ik-ik-onto-an-fk-pose-75-min",
+    "excerpt": "NEXT · FORWARD LIMB: THE SWITCH AND THE FK BRANCH ›",
+    "tag": "div",
+    "phase": "1"
+  },
+  "text": "when it's scrolling all phases in one page this button doens't need to be here",
+  "images": [],
+  "viewport": {
+    "w": 1920,
+    "h": 945
+  },
+  "resolution": "Prev/Next pager hidden in all-phases mode; it only shows when one phase is on screen.",
+  "resolvedAt": "2026-10-04T15:51:35.707Z"
+}
