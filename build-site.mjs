@@ -508,7 +508,12 @@ function parseList(lines, start, page) {
   const baseIndent = lines[start].match(/^(\s*)/)[1].length;
   const ordered = /^\s*\d+\.\s+/.test(lines[start]);
   let i = start;
-  let html = ordered ? '<ol class="list ol">' : '<ul class="list ul">';
+  // Keep the source's numbering: a list split by prose ("4." after an Ask block)
+  // must not restart at 1, or "repeat step 24" points at nothing.
+  const first = ordered ? parseInt(lines[start].match(/^\s*(\d+)\./)[1], 10) : 1;
+  let html = ordered
+    ? `<ol class="list ol"${first !== 1 ? ` start="${first}"` : ""}>`
+    : '<ul class="list ul">';
 
   while (i < lines.length) {
     const line = lines[i];
