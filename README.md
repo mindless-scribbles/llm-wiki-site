@@ -106,6 +106,29 @@ llm-wiki-site notes reopen <note-id>
   `POST /__review/<id>/notes/<note-id>`, `POST /__review/<id>/rebuild`,
   `GET /__review/<id>/img/<file>`, and the overlay assets at `/__review/overlay.js|css`.
 
+## Page layout
+
+Every page uses three columns:
+
+- **Left: the master index.** One collapsible group per section, with a page
+  count. The current page's group opens by itself; the groups a reader opens are
+  remembered per wiki. The header search box (or `/`) filters the index by page
+  title. The header button collapses the index on wide screens.
+- **Center: the page.** A breadcrumb (`WIKI / SECTION / [NNN]`), the accent
+  kicker, the title, and a **Copy page ▾** split button: copy the page's
+  markdown (to paste into Claude), view it, copy the link, or open the note in
+  Obsidian (shown when the wiki sits inside a vault, the nearest folder holding
+  `.obsidian/`). Then the meta row, the content, and previous / next links in
+  index order.
+- **Right: On this page.** The page's `##` and `###` headings, marking the one
+  being read. Shown on ordinary pages with two or more sections; lessons use
+  their phase rail and the landing page is its own map.
+
+Below 1280px the right column becomes an **On this page** dropdown above the
+content. Below 1024px the index becomes a drawer opened from the header button.
+A body that opens with the page title as its `# H1` drops it (the head already
+shows it); anything the H1 adds after the title becomes the subtitle.
+
 ## Landing page
 
 `index.md` stays the master catalog in Obsidian. On the site, `index.html` opens as a

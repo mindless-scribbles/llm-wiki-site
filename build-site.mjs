@@ -87,6 +87,15 @@ export function build(o) {
     builder: { repo: "llm-wiki-site", commit: builderCommit() },
   };
 
+  // The Obsidian vault the wiki lives in (the nearest folder holding .obsidian/),
+  // for the "Open in Obsidian" page action. Null when the wiki is not in a vault.
+  const OBSIDIAN = (() => {
+    for (let d = WIKI; ; d = dirname(d)) {
+      if (existsSync(join(d, ".obsidian"))) return { name: basename(d), root: d };
+      if (dirname(d) === d) return null;
+    }
+  })();
+
   // Interactive widgets: <widgets>/<slug>.js (excluding the shared _viz.js library).
   const widgetSlugs = new Set(
     WIDGETS && existsSync(WIDGETS)
@@ -185,7 +194,7 @@ function register(srcRel, sectionLabel) {
   const title = data.title || humanize(basename(target));
   // Lines the frontmatter used, so body line i is source line lineBase + i + 1.
   const lineBase = raw.slice(0, raw.length - body.length).split("\n").length - 1;
-  const page = { srcRel, target, outRel, title, data, body, lineBase, section: sectionLabel };
+  const page = { srcRel, target, outRel, title, data, raw, body, lineBase, section: sectionLabel };
   pages.push(page);
   byTarget.set(target, page);
   return page;
@@ -703,49 +712,48 @@ const TYPE_LABELS = {
 const FONTS =
   "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap";
 
-// Sidebar catalog, links relative to the current page.
+// Pages in master-index order (the sidebar's groups, top to bottom), and where a
+// page sits in it: its group and its number within the group.
+let indexOrder = null;
+function indexFlat() {
+  return (indexOrder ??= SIDEBAR_SECTIONS.flatMap((s) => pages.filter((p) => p.section === s.label)));
+}
+function indexPos(page) {
+  const secPages = pages.filter((p) => p.section === page.section);
+  const n = secPages.indexOf(page);
+  if (n === -1 || !SIDEBAR_SECTIONS.some((s) => s.label === page.section)) return null;
+  return { label: page.section, num: String(n + 1).padStart(3, "0") };
+}
+
+// Master index: one collapsible group per section, links relative to the current
+// page. The current page's group starts open; the page script restores any other
+// group the reader opened, and filters the list from the header search box.
 function renderSidebar(page) {
-  let items = "";
+  let groups = "";
   for (const s of SIDEBAR_SECTIONS) {
     const secPages = pages.filter((p) => p.section === s.label);
     if (!secPages.length) continue;
-    items += `<div class="idx-group"><div class="idx-group-label">${s.label}</div><ol class="index-list">`;
+    const open = secPages.includes(page);
+    groups += `<details class="idx-group" data-group="${escapeHtml(s.label)}"${open ? " open" : ""}>` +
+      `<summary class="idx-group-label"><span class="chev" aria-hidden="true"></span><span class="idx-group-name">${s.label}</span><span class="idx-count">${secPages.length}</span></summary><ol class="index-list">`;
     secPages.forEach((p, n) => {
       const num = String(n + 1).padStart(3, "0");
-      const current = p.target === page.target;
-      if (current) {
-        items += `<li class="index-item current" aria-current="page"><span class="num">${num}</span><span class="title">${escapeHtml(p.title)}</span></li>`;
-      } else {
-        items += `<li class="index-item"><a class="index-link" href="${relHref(page.outRel, p.outRel)}"><span class="num">${num}</span><span class="title">${escapeHtml(p.title)}</span></a></li>`;
-      }
+      const current = p === page ? ' aria-current="page"' : "";
+      groups += `<li class="index-item"><a class="index-link" href="${relHref(page.outRel, p.outRel)}"${current}><span class="num">${num}</span><span class="title">${escapeHtml(p.title)}</span></a></li>`;
     });
-    items += "</ol></div>";
+    groups += "</ol></details>";
   }
-  const homeHref = relHref(page.outRel, home.outRel);
-  return `<aside class="field-logs" id="master-index">
-  <div class="top">
-    <a class="brand" href="${homeHref}">MASTER INDEX</a>
-    ${items}
-  </div>
+  const total = indexFlat().length;
+  return `<aside class="field-logs" id="master-index" aria-label="Master index" data-site="${escapeHtml(WIKI_ID)}">
+  <div class="idx-head"><a class="brand" href="${relHref(page.outRel, home.outRel)}">Master index</a><span class="idx-total">[${String(total).padStart(3, "0")}]</span></div>
+  <div class="idx-groups">${groups}</div>
+  <p class="idx-empty" hidden>No page titles match.</p>
   <div class="status-footer">${CONFIG.footer}</div>
 </aside>`;
 }
 
 function renderHeader(page) {
   const homeHref = relHref(page.outRel, home.outRel);
-  // Header links: the wiki's first three ordered sections that have pages
-  // (anchored to the matching heading on the index page), else the template's.
-  const ordered = SIDEBAR_SECTIONS.filter(
-    (s) => s.dir && ORDERED.includes(s.dir) && pages.some((p) => p.section === s.label)
-  ).slice(0, 3);
-  const navItems = ordered.length
-    ? [["Home", homeHref], ...ordered.map((s) => [s.label, homeHref + "#" + s.dir])]
-    : [
-        ["Home", homeHref],
-        ["Concepts", homeHref + "#concepts"],
-        ["Entities", homeHref + "#entities"],
-        ["Walkthroughs", homeHref + "#presentations-step-by-step-walkthroughs"],
-      ];
   return `<header class="site-header">
   <div class="header-left">
     <button type="button" class="sidebar-toggle" aria-label="Toggle the index" aria-controls="master-index" aria-expanded="true"><span class="sb-icon" aria-hidden="true"></span></button>
@@ -754,15 +762,18 @@ function renderHeader(page) {
       <span class="brand-short" aria-hidden="true">${escapeHtml(CONFIG.brandA + CONFIG.brandB)}</span>
     </a>
   </div>
-  <nav class="nav">
-    ${navItems.map(([l, h]) => `<a href="${h}" class="nav-link">${l}</a>`).join("")}
-  </nav>
+  <label class="idx-search">
+    <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+    <input id="idx-q" type="search" placeholder="Filter the index" autocomplete="off" aria-controls="master-index">
+    <kbd aria-hidden="true">/</kbd>
+  </label>
 </header>`;
 }
 
-function renderHero(page, override) {
+// Page head: breadcrumb, the accent kicker, the title, and the page actions.
+function renderHero(page, override, sub = "") {
   const t = page.data.type;
-  const kicker = override?.kicker || TYPE_LABELS[t] || (page.target === "index" ? "MASTER INDEX" : "PAGE");
+  const kicker = override?.kicker || TYPE_LABELS[t] || "PAGE";
   const conf = page.data.confidence && !override ? ` · CONFIDENCE ${String(page.data.confidence).toUpperCase()}` : "";
   // Split "Title: Subtitle" so the part after the colon reads as a subtitle line.
   const raw = override?.title || page.title;
@@ -771,12 +782,66 @@ function renderHero(page, override) {
   if (colon !== -1 && colon < raw.length - 1) {
     headline = `${escapeHtml(raw.slice(0, colon))}<span class="headline-sub">${escapeHtml(raw.slice(colon + 1).trim())}</span>`;
   } else {
-    headline = escapeHtml(raw);
+    headline = escapeHtml(raw) + (sub ? `<span class="headline-sub">${sub}</span>` : "");
   }
+  const pos = indexPos(page);
+  const crumbs = `<nav class="crumbs" aria-label="Breadcrumb"><a href="${relHref(page.outRel, home.outRel)}">${escapeHtml(CONFIG.title)}</a>` +
+    (pos ? `<span class="sep">/</span><span>${escapeHtml(pos.label)}</span><span class="sep">/</span><span class="here">[${pos.num}]</span>` : "") +
+    `</nav>`;
   return `<header class="hero">
+  ${crumbs}
   <div class="hero-kicker">${kicker}${conf}</div>
   <h1 class="headline">${headline}</h1>
+  ${renderActions(page)}
 </header>`;
+}
+
+// "Copy page ▾": copy the page's markdown (to paste into Claude), view it, copy
+// the link, or open the note in Obsidian. The markdown ships in the page as JSON.
+function renderActions(page) {
+  const src = OBSIDIAN ? relative(OBSIDIAN.root, join(WIKI, page.srcRel)).split("\\").join("/") : null;
+  const obsidian = src
+    ? `<a role="menuitem" href="obsidian://open?vault=${encodeURIComponent(OBSIDIAN.name)}&amp;file=${encodeURIComponent(src.replace(/\.md$/, ""))}"><span>Open in Obsidian<span class="menu-sub">${escapeHtml(src)}</span></span><span class="menu-ext" aria-hidden="true">↗</span></a>`
+    : "";
+  return `<div class="page-actions">
+    <div class="split">
+      <button type="button" class="split-main" data-act="copy"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M4 16V5a1 1 0 0 1 1-1h11"/></svg><span class="split-label">Copy page</span></button>
+      <button type="button" class="split-more" aria-label="More page actions" aria-haspopup="menu" aria-expanded="false" aria-controls="page-menu"><span class="chev" aria-hidden="true"></span></button>
+      <div class="page-menu" id="page-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-act="copy"><span>Copy page<span class="menu-sub">The markdown source, ready to paste into Claude</span></span></button>
+        <button type="button" role="menuitem" data-act="view"><span>View as Markdown<span class="menu-sub">The page as the wiki stores it</span></span></button>
+        <hr>
+        <button type="button" role="menuitem" data-act="link"><span>Copy link to this page</span></button>
+        ${obsidian}
+      </div>
+    </div>
+  </div>`;
+}
+
+// The page's h2/h3 headings, for "On this page". Read from the rendered body so
+// the ids are the ones the headings actually carry.
+function tocItems(html) {
+  const out = [];
+  for (const m of html.matchAll(/<h([23]) id="([^"]+)"[^>]*>([\s\S]*?)<\/h\1>/g)) {
+    out.push({ level: +m[1], id: m[2], text: m[3].replace(/<[^>]+>/g, "").trim() });
+  }
+  return out;
+}
+const tocList = (items) =>
+  `<ul class="toc-list">${items.map((i) => `<li><a class="toc-h${i.level}" href="#${i.id}" data-toc="${i.id}">${i.text}</a></li>`).join("")}</ul>`;
+
+// Previous / next page in master-index order, across groups.
+function renderPager(page) {
+  const flat = indexFlat();
+  const i = flat.indexOf(page);
+  if (i === -1) return "";
+  const link = (p, cls, label) => {
+    if (!p) return "";
+    const pos = indexPos(p);
+    return `<a class="pager-link ${cls}" href="${relHref(page.outRel, p.outRel)}"><span class="pager-k">${label}</span>` +
+      `<span class="pager-t">${escapeHtml(p.title)}</span><span class="pager-s">${escapeHtml(pos.label)} / [${pos.num}]</span></a>`;
+  };
+  return `<nav class="pager" aria-label="Previous and next page">${link(flat[i - 1], "prev", "‹ Previous")}${link(flat[i + 1], "next", "Next ›")}</nav>`;
 }
 
 function renderMeta(page) {
@@ -1263,16 +1328,148 @@ ${sections}
 </div>`;
 }
 
-// Sidebar collapse: open by default. Persist the reader's choice in localStorage
-// under "sb" ("0" = collapsed). The head snippet runs before paint to set the
-// class up front (no flash); the body snippet wires the header toggle button.
+// Index collapse: open by default on wide screens. Persist the reader's choice in
+// localStorage under "sb" ("0" = collapsed). The head snippet runs before paint
+// to set the class up front (no flash). Below 1024px the index is a drawer instead.
 const SB_HEAD =
   `try{if(localStorage.getItem('sb')==='0')document.documentElement.classList.add('sidebar-collapsed')}catch(e){}`;
-const SB_SCRIPT =
-  `(function(){var b=document.querySelector('.sidebar-toggle');if(!b)return;var r=document.documentElement;` +
-  `function sync(){b.setAttribute('aria-expanded',String(!r.classList.contains('sidebar-collapsed')));}sync();` +
-  `b.addEventListener('click',function(){var c=r.classList.toggle('sidebar-collapsed');` +
-  `try{localStorage.setItem('sb',c?'0':'1')}catch(e){}sync();});})();`;
+
+// Page script: the index toggle and drawer, remembered index groups, the index
+// filter, the page actions menu, the markdown viewer, and "On this page"
+// tracking the heading being read. Without JS the index groups and the inline
+// "On this page" still open (they are <details>) and the links all work.
+const PAGE_SCRIPT = `(function(){
+  var d=document, r=d.documentElement, mq=window.matchMedia('(max-width:1023px)');
+  function busy(){return r.classList.contains('llm-review-annotating');}
+
+  // Index toggle: a drawer on narrow screens, a collapse on wide ones.
+  var tb=d.querySelector('.sidebar-toggle');
+  function sync(){ if(tb) tb.setAttribute('aria-expanded',String(mq.matches?r.classList.contains('index-open'):!r.classList.contains('sidebar-collapsed'))); }
+  function drawer(o){ r.classList.toggle('index-open',o); sync(); }
+  if(tb) tb.addEventListener('click',function(){
+    if(mq.matches) drawer(!r.classList.contains('index-open'));
+    else { var c=r.classList.toggle('sidebar-collapsed'); try{localStorage.setItem('sb',c?'0':'1')}catch(e){} sync(); }
+  });
+  if(mq.addEventListener) mq.addEventListener('change',function(){ drawer(false); });
+  sync();
+
+  // Index groups: remember which ones the reader opened, per wiki.
+  var idx=d.getElementById('master-index'), q=d.getElementById('idx-q');
+  if(idx){
+    var key='idx-open:'+idx.dataset.site, open={};
+    try{open=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
+    var groups=[].slice.call(idx.querySelectorAll('.idx-group'));
+    groups.forEach(function(g){
+      if(open[g.dataset.group]) g.open=true;
+      // Record the reader's clicks only, not the current page's group opening itself.
+      g.querySelector('summary').addEventListener('click',function(){ setTimeout(function(){
+        if(q&&q.value.trim()) return;
+        if(g.open) open[g.dataset.group]=1; else delete open[g.dataset.group];
+        try{localStorage.setItem(key,JSON.stringify(open))}catch(e){}
+      },0); });
+    });
+    var cur=idx.querySelector('[aria-current="page"]');
+    if(cur&&!mq.matches&&cur.offsetTop+cur.offsetHeight>idx.clientHeight) idx.scrollTop=cur.offsetTop-idx.clientHeight/2;
+    // Filter: show matching titles only, with their groups open.
+    var empty=idx.querySelector('.idx-empty'), saved=null;
+    if(q) q.addEventListener('input',function(){
+      var s=q.value.trim().toLowerCase(), any=false;
+      if(s&&!saved) saved=groups.map(function(g){return g.open;});
+      groups.forEach(function(g,i){
+        var n=0;
+        [].forEach.call(g.querySelectorAll('.index-item'),function(li){
+          var hit=!s||li.querySelector('.title').textContent.toLowerCase().indexOf(s)!==-1;
+          li.hidden=!hit; if(hit) n++;
+        });
+        g.hidden=!!s&&!n;
+        if(s) g.open=n>0; else if(saved) g.open=saved[i];
+        if(n) any=true;
+      });
+      if(!s) saved=null;
+      if(empty) empty.hidden=any;
+      if(s&&mq.matches) drawer(true);
+    });
+  }
+
+  // Page actions.
+  var more=d.querySelector('.split-more'), menu=d.getElementById('page-menu');
+  function closeMenu(){ if(menu&&!menu.hidden){ menu.hidden=true; more.setAttribute('aria-expanded','false'); } }
+  if(more) more.addEventListener('click',function(e){
+    e.stopPropagation(); var o=menu.hidden; menu.hidden=!o; more.setAttribute('aria-expanded',String(o));
+    if(o){ var f=menu.querySelector('button,a'); if(f) f.focus(); }
+  });
+  d.addEventListener('click',function(e){ if(menu&&!menu.contains(e.target)) closeMenu(); });
+
+  var mdEl=d.getElementById('page-md'), md=null, dlg=d.getElementById('md-dialog'), toastEl, toastT;
+  function source(){ if(md===null){ try{md=JSON.parse(mdEl.textContent)}catch(e){md='';} } return md; }
+  function toast(m){
+    if(!toastEl){ toastEl=d.createElement('div'); toastEl.className='toast'; toastEl.setAttribute('role','status'); d.body.appendChild(toastEl); }
+    toastEl.textContent=m; toastEl.classList.add('show'); clearTimeout(toastT);
+    toastT=setTimeout(function(){toastEl.classList.remove('show');},2400);
+  }
+  function copy(text,ok){
+    function legacy(){
+      var t=d.createElement('textarea'), done=false; t.value=text; t.setAttribute('readonly','');
+      t.style.position='fixed'; t.style.opacity='0'; (dlg&&dlg.open?dlg:d.body).appendChild(t); t.select();
+      try{done=d.execCommand('copy')}catch(e){} t.remove();
+      toast(done?ok:'Copy was blocked. Use View as Markdown and select the text.');
+    }
+    if(navigator.clipboard&&window.isSecureContext) navigator.clipboard.writeText(text).then(function(){toast(ok);},legacy);
+    else legacy();
+  }
+  d.addEventListener('click',function(e){
+    var a=e.target.closest&&e.target.closest('[data-act]'); if(!a||busy()) return;
+    var act=a.dataset.act; closeMenu();
+    if(act==='copy'){
+      copy(source(),'Copied the markdown for this page.');
+      var l=d.querySelector('.split-label'); if(l){ l.textContent='Copied'; setTimeout(function(){l.textContent='Copy page';},1600); }
+    } else if(act==='view'&&dlg){
+      dlg.querySelector('.md-pre').textContent=source();
+      if(dlg.showModal) dlg.showModal(); else dlg.setAttribute('open','');
+    } else if(act==='close'&&dlg){
+      if(dlg.close) dlg.close(); else dlg.removeAttribute('open');
+    } else if(act==='link'){
+      copy(location.href.split('#')[0],'Copied the link to this page.');
+    } else if(act==='top'){
+      window.scrollTo(0,0);
+    } else if(act==='close-index'){
+      drawer(false);
+    }
+  });
+  if(dlg) dlg.addEventListener('click',function(e){ if(e.target===dlg&&dlg.close) dlg.close(); });
+
+  // On this page: mark the heading being read.
+  var links=[].slice.call(d.querySelectorAll('[data-toc]'));
+  if(links.length){
+    var seen={}, heads=[];
+    links.forEach(function(a){ var id=a.dataset.toc; if(seen[id]) return; seen[id]=1; var h=d.getElementById(id); if(h) heads.push(h); });
+    var hh=parseInt(getComputedStyle(r).getPropertyValue('--header-h'),10)||64, ticking=false;
+    function spy(){
+      ticking=false; if(!heads.length) return;
+      var act=heads[0].id;
+      for(var i=0;i<heads.length;i++){ if(heads[i].getBoundingClientRect().top<hh+96) act=heads[i].id; else break; }
+      if(window.innerHeight+window.scrollY>=r.scrollHeight-4) act=heads[heads.length-1].id;
+      links.forEach(function(a){ var on=a.dataset.toc===act; a.classList.toggle('is-active',on);
+        if(on) a.setAttribute('aria-current','location'); else a.removeAttribute('aria-current'); });
+    }
+    window.addEventListener('scroll',function(){ if(!ticking){ ticking=true; requestAnimationFrame(spy); } },{passive:true});
+    spy();
+    var inl=d.querySelector('.toc-inline');
+    if(inl) inl.addEventListener('click',function(e){ if(e.target.closest('a')) inl.open=false; });
+  }
+
+  d.addEventListener('keydown',function(e){
+    if(e.key==='Escape'){
+      closeMenu();
+      if(r.classList.contains('index-open')) drawer(false);
+      if(q&&d.activeElement===q&&q.value){ q.value=''; q.dispatchEvent(new Event('input')); }
+    }
+    if(e.key==='/'&&q&&!e.ctrlKey&&!e.metaKey&&!e.altKey){
+      var t=e.target; if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
+      e.preventDefault(); q.focus();
+    }
+  });
+})();`;
 
 function renderPage(page) {
   // Timecode popovers: if this page names a transcript, resolve it and build the
@@ -1287,7 +1484,28 @@ function renderPage(page) {
   const isHome = page.target === "index";
   const isLesson = page.data.type === "lesson";
   const lesson = isLesson ? renderLesson(page) : null;
-  const bodyHtml = isHome ? renderHome(page) : isLesson ? lesson.html : mdToHtml(page.body, page, page.lineBase);
+  let bodyHtml = isHome ? renderHome(page) : isLesson ? lesson.html : mdToHtml(page.body, page, page.lineBase);
+  // A body that opens with the page title as its H1 repeats the page head; drop
+  // it. Anything the H1 adds after the title ("Limb — `DDC_Moted_MR_Limb`")
+  // moves into the head as its subtitle.
+  let heroSub = "";
+  if (!isHome && !isLesson) {
+    const t = escapeHtml(page.title);
+    bodyHtml = bodyHtml.replace(/^\s*<h1 [^>]*>([\s\S]*?)<\/h1>/, (h1, inner) => {
+      inner = inner.trim();
+      if (inner.replace(/<[^>]+>/g, "").trim() === t) return "";
+      const rest = inner.slice(t.length);
+      if (inner.startsWith(t) && /^(\s*[—–:-]\s*|\s)/.test(rest) && !page.title.includes(":")) {
+        heroSub = rest.replace(/^\s*[—–:-]?\s*/, "");
+        return "";
+      }
+      return h1;
+    });
+  }
+  // "On this page" for ordinary pages with two or more sections. Lessons have
+  // their phase rail; the landing page is its own map.
+  const toc = !isHome && !isLesson ? tocItems(bodyHtml) : [];
+  const hasToc = toc.length >= 2;
 
   // Hidden data island holding each referenced transcript chunk + its wiring script.
   let tcData = "";
@@ -1338,32 +1556,46 @@ function renderPage(page) {
 <body>
 <div class="wiki-root">
   ${renderHeader(page)}
-  <div class="entry-shell">
+  <div class="entry-shell${hasToc ? " has-toc" : ""}">
     ${renderSidebar(page)}
+    <div class="idx-scrim" data-act="close-index"></div>
     <main class="entry-main${isHome ? " is-home" : ""}${isLesson ? " is-lesson" : ""}">
+      <div class="page-col${isHome || isLesson ? " is-wide" : ""}">
       ${isHome ? bodyHtml : isLesson ? `${renderHero(page, lesson)}
       ${bodyHtml}
-      ${tcData}` : `${renderHero(page)}
+      ${tcData}` : `${renderHero(page, null, heroSub)}
       <article class="article-container">
         ${renderMeta(page)}
+        ${hasToc ? `<details class="toc-inline"><summary>On this page<span class="chev" aria-hidden="true"></span></summary>${tocList(toc)}</details>` : ""}
         ${vizBlock}
         <section class="content-body">
 ${bodyHtml}
         </section>
         ${tcData}
       </article>`}
+      ${isHome ? "" : renderPager(page)}
       <footer class="entry-footer">
         <div>${escapeHtml(CONFIG.footer)}</div>
-        <a class="ddc-btn proceed" href="${relHref(page.outRel, home.outRel)}"><span class="ddc-btn__fill" aria-hidden="true"></span>RETURN TO MASTER INDEX ›</a>
         <div class="entry-source">source: ${escapeHtml(PROVENANCE.source)} · built ${PROVENANCE.builtAt.slice(0, 10)}</div>
       </footer>
+      </div>
     </main>
+    ${hasToc ? `<aside class="page-toc" aria-label="On this page">
+      <div class="toc-label">On this page</div>
+      ${tocList(toc)}
+      <div class="toc-tools"><button type="button" data-act="top"><span>Back to top</span><span aria-hidden="true">↑</span></button><button type="button" data-act="view"><span>View as Markdown</span><span aria-hidden="true">›</span></button></div>
+    </aside>` : ""}
   </div>
 </div>
+${isHome ? "" : `<dialog class="md-dialog" id="md-dialog" aria-label="Markdown source">
+  <div class="md-head"><span class="md-path">${escapeHtml(page.srcRel)}</span><button type="button" data-act="copy">Copy</button><button type="button" data-act="close">Close</button></div>
+  <pre class="md-pre"></pre>
+</dialog>
+<script type="application/json" id="page-md">${JSON.stringify(page.raw).replace(/</g, "\\u003c")}</script>`}
 ${vizScripts}
 ${tcScript}
 ${isLesson ? `<script>${LESSON_SCRIPT}</script>` : ""}
-<script>${SB_SCRIPT}</script>
+<script>${PAGE_SCRIPT}</script>
 </body>
 </html>`;
 }
@@ -1395,7 +1627,8 @@ const CSS = `:root{
   --font-mono:"Space Mono",ui-monospace,monospace;
   --font-body:"Hanken Grotesk",ui-sans-serif,system-ui,sans-serif;
   --radius-sm:4px;--radius-md:8px;--radius-lg:16px;
-  --page-margin:16px;--header-h:72px;--touch-target:48px;
+  --page-margin:16px;--header-h:64px;--touch-target:48px;
+  --index-w:272px;--toc-w:224px;--read-w:760px;
 }
 @media(min-width:768px){:root{--page-margin:32px}}
 @media(min-width:1024px){:root{--page-margin:40px}}
@@ -1409,81 +1642,127 @@ a{color:inherit}
 
 .wiki-root{position:relative;min-height:100vh}
 
+/* Layout: three columns. The master index on the left, one reading column, and
+   "On this page" on the right. Below 1280px the right column folds into a
+   dropdown above the content; below 1024px the index becomes a drawer. */
+.chev{display:inline-block;flex:none;width:8px;height:8px;border-right:1.5px solid currentColor;border-bottom:1.5px solid currentColor;
+  transform:rotate(45deg) translate(-2px,-2px);transition:transform .2s ease}
+.ico{width:14px;height:14px;flex:none}
+
 /* Header */
-.site-header{display:flex;align-items:center;justify-content:space-between;gap:16px;
-  height:var(--header-h);padding:0 var(--page-margin);position:sticky;top:0;z-index:20;
-  background:rgba(7,7,9,.8);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+.site-header{display:flex;align-items:center;gap:16px;
+  height:var(--header-h);padding:0 var(--page-margin);position:sticky;top:0;z-index:40;
+  background:rgba(7,7,9,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--color-border)}
 .header-left{display:flex;align-items:center;gap:16px;min-width:0}
 .brand-mark{text-decoration:none;color:var(--color-text);min-width:0;display:inline-flex;align-items:center;min-height:var(--touch-target)}
 .brand-name,.brand-short{font-family:var(--font-display);font-weight:700;text-transform:uppercase;white-space:nowrap;font-size:14px;line-height:24px}
 .brand-name{overflow:hidden;text-overflow:ellipsis}
 .brand-short{display:none}
-@media(min-width:768px){.brand-name{font-size:20px;line-height:28px}}
+@media(min-width:768px){.brand-name{font-size:18px;line-height:24px}}
 @media(max-width:479px){.brand-name{display:none}.brand-short{display:inline}}
-.nav{display:flex;gap:16px;flex-wrap:nowrap;justify-content:flex-end;overflow-x:auto}
-.nav-link{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.1em;text-transform:uppercase;
-  color:var(--color-nav);text-decoration:none;display:inline-flex;align-items:center;min-height:var(--touch-target);white-space:nowrap;transition:color .2s}
-@media(max-width:767px){.nav-link:not(:first-child){display:none}}
-.sidebar-toggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:var(--touch-target);height:var(--touch-target);
+.idx-search{margin-left:auto;display:flex;align-items:center;gap:10px;height:40px;width:min(280px,40vw);padding:0 12px;
+  border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface);color:var(--color-nav);cursor:text}
+.idx-search input{flex:1;min-width:0;background:none;border:0;outline:0;color:var(--color-text);font-family:var(--font-body);font-size:14px}
+.idx-search input::placeholder{color:var(--color-nav)}
+.idx-search input::-webkit-search-cancel-button{filter:invert(1) brightness(.6)}
+.idx-search:focus-within{border-color:var(--color-border-strong)}
+.idx-search kbd{font-family:var(--font-mono);font-size:11px;line-height:18px;color:var(--color-nav);border:1px solid var(--color-border);border-radius:var(--radius-sm);padding:0 6px}
+@media(max-width:599px){.idx-search{width:auto;flex:0 1 160px}.idx-search kbd{display:none}}
+.sidebar-toggle{flex:none;display:inline-flex;align-items:center;justify-content:center;width:40px;height:40px;
   padding:0;background:transparent;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);cursor:pointer;transition:border-color .2s}
 .sb-icon,.sb-icon::before,.sb-icon::after{display:block;width:16px;height:2px;background:var(--color-secondary);transition:background .2s}
 .sb-icon{position:relative}
 .sb-icon::before,.sb-icon::after{content:"";position:absolute;left:0}
 .sb-icon::before{top:-5px}.sb-icon::after{top:5px}
 @media(hover:hover){
-  .nav-link:hover{color:var(--color-hover)}
   .sidebar-toggle:hover{border-color:var(--color-text)}
   .sidebar-toggle:hover .sb-icon,.sidebar-toggle:hover .sb-icon::before,.sidebar-toggle:hover .sb-icon::after{background:var(--color-text)}
 }
 
-/* Sidebar collapsed (reader toggled it shut; open by default) */
+/* Shell */
+.entry-shell{display:grid;grid-template-columns:var(--index-w) minmax(0,1fr);min-height:calc(100vh - var(--header-h));align-items:start}
+.entry-shell.has-toc{grid-template-columns:var(--index-w) minmax(0,1fr) var(--toc-w)}
+.entry-main{min-width:0;padding:40px var(--page-margin) 0}
+.page-col{max-width:var(--read-w);margin:0 auto}
+.page-col.is-wide{max-width:1280px;margin:0}
+/* Index collapsed (reader toggled it shut; open by default) */
 html.sidebar-collapsed .field-logs{display:none}
 html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
+html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) var(--toc-w)}
 
-/* Shell */
-.entry-shell{display:grid;grid-template-columns:320px minmax(0,1fr);min-height:calc(100vh - var(--header-h));align-items:start}
-.entry-main{min-width:0}
-
-/* Sidebar */
-.field-logs{border-right:1px solid var(--color-border);padding:32px 24px;
-  display:flex;flex-direction:column;justify-content:space-between;gap:32px;min-height:100%}
-@media(min-width:1024px){.field-logs{position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));overflow-y:auto}}
-.field-logs .brand{display:block;font-family:var(--font-display);font-size:14px;line-height:24px;font-weight:700;text-transform:uppercase;
-  color:var(--color-text);text-decoration:none;margin-bottom:24px;padding-bottom:16px;border-bottom:1px solid var(--color-border)}
-.idx-group{margin-bottom:24px}
-.idx-group-label{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--color-secondary);margin-bottom:8px}
-.index-list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px}
-.index-item{font-family:var(--font-mono);font-size:12px;line-height:16px;display:grid;
-  grid-template-columns:40px 1fr;align-items:baseline;gap:8px;color:var(--color-nav);transition:color .2s}
-.index-item .num{color:var(--color-muted)}
-.index-item .num::before{content:"["}.index-item .num::after{content:"]"}
-.index-link{display:contents;color:inherit;text-decoration:none}
-.index-item.current{color:var(--color-text);font-weight:700;cursor:default}
-.index-item.current .num{color:var(--color-text)}
+/* Master index: collapsible groups */
+.field-logs{position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));overflow-y:auto;scrollbar-width:thin;
+  border-right:1px solid var(--color-border);padding:24px 16px 32px;display:flex;flex-direction:column;gap:16px}
+.idx-head{display:flex;justify-content:space-between;align-items:center;padding:0 8px 16px}
+.field-logs .brand,.idx-total{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase;text-decoration:none}
+.field-logs .brand{color:var(--color-secondary)}
+.idx-total{color:var(--color-muted)}
+.idx-groups{flex:1}
+.idx-group{border-top:1px solid var(--color-border)}
+.idx-group:last-child{border-bottom:1px solid var(--color-border)}
+.idx-group-label{list-style:none;display:flex;align-items:center;gap:10px;min-height:44px;padding:0 8px;cursor:pointer;
+  font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-secondary)}
+.idx-group-label::-webkit-details-marker{display:none}
+.idx-group-label .chev{transform:rotate(-45deg);color:var(--color-nav);margin-right:2px}
+.idx-group[open]>.idx-group-label{color:var(--color-text)}
+.idx-group[open]>.idx-group-label .chev{transform:rotate(45deg) translate(-2px,-2px)}
+.idx-group-name{flex:1}
+.idx-count{font-weight:400;color:var(--color-muted)}
+.index-list{list-style:none;margin:0;padding:0 0 12px}
+.index-link{display:flex;gap:10px;align-items:baseline;padding:7px 8px;border-radius:var(--radius-sm);text-decoration:none;
+  color:var(--color-secondary);font-family:var(--font-body);font-size:14px;line-height:20px}
+.index-link .num{flex:none;width:36px;font-family:var(--font-mono);font-size:10px;letter-spacing:.06em;color:var(--color-muted);font-variant-numeric:tabular-nums}
+.index-link .num::before{content:"["}.index-link .num::after{content:"]"}
+.index-link[aria-current="page"]{background:var(--color-surface-raised);color:var(--color-text);font-weight:600}
+.index-link[aria-current="page"] .num{color:var(--color-text)}
+.idx-empty{margin:0;padding:12px 8px;color:var(--color-nav);font-family:var(--font-body);font-size:14px}
+.status-footer{padding:0 8px;font-family:var(--font-mono);font-weight:700;font-size:10px;line-height:16px;letter-spacing:.2em;color:var(--color-muted);text-transform:uppercase}
+.idx-scrim{display:none}
 @media(hover:hover){
-  .field-logs .brand:hover{color:var(--color-hover)}
-  .index-item:not(.current):hover{color:var(--color-text)}
-  .index-item:not(.current):hover .num{color:var(--color-secondary)}
+  .field-logs .brand:hover,.idx-group-label:hover{color:var(--color-text)}
+  .index-link:not([aria-current]):hover{color:var(--color-text);background:var(--color-surface)}
 }
-.status-footer{font-family:var(--font-mono);font-weight:700;font-size:10px;line-height:16px;letter-spacing:.2em;color:var(--color-muted);text-transform:uppercase}
 
-/* Hero: left aligned, Syne 800 uppercase, the page's one accent on the kicker */
-.hero{max-width:1040px;padding:64px var(--page-margin) 32px;border-bottom:1px solid var(--color-border)}
+/* Page head: breadcrumb, the page's one accent on the kicker, title, actions */
+.hero{padding:0 0 8px}
+.crumbs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px;font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;
+  letter-spacing:.14em;text-transform:uppercase;color:var(--color-nav)}
+.crumbs a{text-decoration:none}
+.crumbs .sep{color:var(--color-muted)}
+.crumbs .here{color:var(--color-secondary)}
+@media(hover:hover){.crumbs a:hover{color:var(--color-text)}}
 .hero-kicker{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.3em;text-transform:uppercase;
   color:var(--color-accent);margin-bottom:24px}
+.hero .hero-kicker{margin-bottom:12px}
 .headline{font-family:var(--font-display);font-weight:800;text-transform:uppercase;letter-spacing:-.02em;line-height:1;
-  font-size:clamp(32px,4.8vw,72px);margin:0;color:var(--color-text);text-wrap:balance;overflow-wrap:anywhere}
+  font-size:clamp(34px,4.6vw,60px);margin:0;color:var(--color-text);text-wrap:balance;overflow-wrap:anywhere}
 .headline-sub{display:block;margin-top:16px;font-family:var(--font-body);font-weight:400;text-transform:none;letter-spacing:0;
-  font-size:24px;line-height:1.4;color:var(--color-secondary)}
-@media(min-width:768px){.hero{padding-top:96px;padding-bottom:48px}}
+  font-size:22px;line-height:1.4;color:var(--color-secondary)}
+.headline-sub code{font-family:var(--font-mono);font-size:.8em;background:var(--color-surface-raised);padding:2px 6px;border-radius:var(--radius-sm);color:var(--color-text)}
 
-/* Article: a 720px reading column */
-.article-container{max-width:calc(720px + 2 * var(--page-margin));padding:32px var(--page-margin) 0}
-.is-home .article-container{max-width:calc(880px + 2 * var(--page-margin))}
+/* Page actions: "Copy page ▾" */
+.page-actions{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin-top:24px}
+.split{position:relative;display:inline-flex;border:1px solid var(--color-border-strong);border-radius:var(--radius-md)}
+.split>button{display:inline-flex;align-items:center;gap:8px;height:40px;padding:0 14px;background:none;border:0;cursor:pointer;color:var(--color-text);
+  font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase}
+.split>button+button{border-left:1px solid var(--color-border-strong);padding:0 12px}
+.split-more .chev{color:var(--color-secondary)}
+.split-more[aria-expanded="true"] .chev{transform:rotate(-135deg) translate(-2px,-2px)}
+.page-menu{position:absolute;top:calc(100% + 6px);left:0;z-index:50;width:max-content;min-width:260px;max-width:min(360px,calc(100vw - 32px));padding:6px;
+  background:var(--color-surface);border:1px solid var(--color-border-strong);border-radius:var(--radius-md)}
+.page-menu[hidden]{display:none}
+.page-menu button,.page-menu a{display:flex;align-items:center;gap:12px;width:100%;padding:10px 12px;border:0;background:none;border-radius:var(--radius-sm);
+  cursor:pointer;text-align:left;text-decoration:none;color:var(--color-text);font-family:var(--font-body);font-size:14px;line-height:20px}
+.menu-sub{display:block;color:var(--color-nav);font-size:12px;line-height:16px;overflow-wrap:anywhere}
+.menu-ext{margin-left:auto;color:var(--color-nav)}
+.page-menu hr{border:0;border-top:1px solid var(--color-border);margin:6px 0}
+@media(hover:hover){.split>button:hover,.page-menu button:hover,.page-menu a:hover{background:var(--color-surface-raised)}}
+
+/* Article: the reading column */
+.article-container{padding:24px 0 0}
 .article-meta{font-family:var(--font-mono);font-size:12px;line-height:16px;color:var(--color-muted);text-transform:uppercase;font-weight:700;
-  letter-spacing:.2em;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;margin-bottom:48px;
+  letter-spacing:.2em;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;margin-bottom:24px;
   padding:16px 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border)}
 @media(min-width:768px){.article-meta{grid-template-columns:repeat(4,minmax(0,1fr))}}
 .article-meta span{display:flex;flex-direction:column;gap:4px;min-width:0}
@@ -1492,6 +1771,8 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 .content-body{font-family:var(--font-body);font-size:18px;line-height:1.7;color:var(--color-text)}
 @media(max-width:767px){.content-body{font-size:16px;line-height:1.6}}
 .content-body p{margin:0 0 1em}
+.article-container .content-body>.h2:first-child{margin-top:40px}
+.content-body .h1,.content-body .h2,.content-body .h3,.lesson-phase-title{scroll-margin-top:calc(var(--header-h) + 24px)}
 
 .content-body .h1,.content-body .h2{font-family:var(--font-display);color:var(--color-text);text-wrap:balance}
 .content-body .h1{font-weight:800;text-transform:uppercase;letter-spacing:-.02em;font-size:32px;line-height:40px;margin:64px 0 24px}
@@ -1530,11 +1811,57 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 .content-body table.tbl th{font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px;line-height:16px;
   color:var(--color-secondary);background:var(--color-surface)}
 
+/* On this page: the right column, or a dropdown above the content when narrower */
+.page-toc{position:sticky;top:var(--header-h);height:calc(100vh - var(--header-h));overflow-y:auto;scrollbar-width:thin;padding:40px 24px 32px 8px}
+.toc-label,.toc-tools button,.toc-inline>summary{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase}
+.toc-label{color:var(--color-secondary);margin-bottom:16px}
+.toc-list{list-style:none;margin:0;padding:0;border-left:1px solid var(--color-border)}
+.toc-list a{display:block;margin-left:-1px;padding:6px 0 6px 14px;border-left:1px solid transparent;text-decoration:none;
+  color:var(--color-nav);font-family:var(--font-body);font-size:14px;line-height:20px;transition:color .15s,border-color .15s}
+.toc-list a.toc-h3{padding-left:28px;font-size:13px}
+.toc-list a.is-active{color:var(--color-text);border-left-color:var(--color-text)}
+.toc-tools{display:flex;flex-direction:column;gap:4px;margin-top:24px;padding-top:16px;border-top:1px solid var(--color-border)}
+.toc-tools button{display:flex;justify-content:space-between;background:none;border:0;padding:6px 0;cursor:pointer;color:var(--color-nav)}
+.toc-inline{display:none;margin:0 0 8px;border:1px solid var(--color-border);border-radius:var(--radius-md);background:var(--color-surface)}
+.toc-inline>summary{list-style:none;display:flex;align-items:center;gap:10px;min-height:48px;padding:0 16px;cursor:pointer;color:var(--color-secondary)}
+.toc-inline>summary::-webkit-details-marker{display:none}
+.toc-inline>summary .chev{margin-left:auto}
+.toc-inline[open]>summary .chev{transform:rotate(-135deg) translate(-2px,-2px)}
+.toc-inline .toc-list{margin:0 16px 16px}
+@media(hover:hover){.toc-list a:not(.is-active):hover{color:var(--color-secondary)}.toc-tools button:hover{color:var(--color-text)}}
+
+/* Previous / next */
+.pager{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-top:80px}
+.pager-link{display:flex;flex-direction:column;gap:8px;padding:20px;border:1px solid var(--color-border);border-radius:var(--radius-lg);
+  text-decoration:none;min-width:0;transition:border-color .2s,background .2s}
+.pager-link.next{grid-column:2;text-align:right}
+.pager-k,.pager-s{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-nav)}
+.pager-s{color:var(--color-muted)}
+.pager-t{font-family:var(--font-display);font-weight:600;font-size:18px;line-height:24px;color:var(--color-text);overflow-wrap:anywhere}
+@media(max-width:599px){.pager{grid-template-columns:minmax(0,1fr)}.pager-link.next{grid-column:1}}
+@media(hover:hover){.pager-link:hover{border-color:var(--color-border-strong);background:var(--color-surface)}}
+
 /* Footer */
-.entry-footer{padding:96px var(--page-margin) 64px;max-width:calc(720px + 2 * var(--page-margin));
-  display:flex;flex-direction:column;align-items:flex-start;gap:24px;
+.entry-footer{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 24px;margin-top:48px;padding:24px 0 64px;border-top:1px solid var(--color-border);
   font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;color:var(--color-muted);text-transform:uppercase}
 .entry-source{font-weight:400;font-size:10px;letter-spacing:.1em;color:var(--color-muted);word-break:break-all}
+
+/* Markdown viewer */
+.md-dialog{width:min(820px,calc(100vw - 32px));max-height:min(80vh,900px);padding:0;border:1px solid var(--color-border-strong);border-radius:var(--radius-lg);
+  background:var(--color-surface);color:var(--color-text)}
+.md-dialog::backdrop{background:rgba(7,7,9,.7)}
+.md-head{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--color-border);background:var(--color-surface)}
+.md-path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-secondary);font-family:var(--font-mono);font-size:12px}
+.md-head button{height:32px;padding:0 12px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:none;cursor:pointer;color:var(--color-text);
+  font-family:var(--font-mono);font-weight:700;font-size:11px;letter-spacing:.14em;text-transform:uppercase}
+.md-pre{margin:0;padding:20px;font-family:var(--font-mono);font-size:12.5px;line-height:1.65;white-space:pre-wrap;overflow-wrap:anywhere;color:var(--color-secondary)}
+@media(hover:hover){.md-head button:hover{background:var(--color-surface-raised)}}
+
+/* Toast (copy confirmations) */
+.toast{position:fixed;left:50%;bottom:24px;z-index:80;transform:translate(-50%,16px);opacity:0;pointer-events:none;max-width:calc(100vw - 32px);
+  padding:12px 16px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:var(--color-surface-raised);
+  font-family:var(--font-body);font-size:14px;line-height:20px;color:var(--color-text);transition:opacity .2s,transform .2s ease}
+.toast.show{opacity:1;transform:translate(-50%,0)}
 
 /* Button: off-white fill sweeps in from the left */
 .ddc-btn{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -1549,10 +1876,23 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 .is-home .content-body ul{list-style:none;padding-left:0}
 .is-home .content-body li{border-bottom:1px solid var(--color-border);padding:8px 0;margin:0}
 
-@media(max-width:1023px){
-  .entry-shell{grid-template-columns:minmax(0,1fr)}
-  .field-logs{border-right:none;border-bottom:1px solid var(--color-border);padding:24px var(--page-margin)}
+/* 1024-1279: index + page; "On this page" folds into a dropdown */
+@media(max-width:1279px){
+  .entry-shell.has-toc{grid-template-columns:var(--index-w) minmax(0,1fr)}
+  html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr)}
+  .page-toc{display:none}
+  .toc-inline{display:block}
 }
+/* Below 1024: the index is a drawer, opened from the header button */
+@media(max-width:1023px){
+  .entry-shell,.entry-shell.has-toc,html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr)}
+  .entry-main{padding-top:24px}
+  .field-logs,html.sidebar-collapsed .field-logs{display:flex;position:fixed;left:0;top:var(--header-h);bottom:0;height:auto;width:min(320px,86vw);z-index:35;
+    background:var(--color-bg);transform:translateX(-100%);visibility:hidden;transition:transform .25s ease,visibility .25s}
+  html.index-open .field-logs{transform:none;visibility:visible}
+  html.index-open .idx-scrim{display:block;position:fixed;inset:var(--header-h) 0 0 0;z-index:30;background:rgba(7,7,9,.6)}
+}
+@media(prefers-reduced-motion:reduce){.chev,.field-logs,.toc-list a,.pager-link,.toast{transition:none}}
 
 /* ---- Interactive visualizations ---- */
 .viz-block{margin:0 0 48px}
@@ -1620,7 +1960,7 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 .image-block .still{display:block;width:100%;height:auto;border-radius:var(--radius-md)}
 
 /* ---- Lesson layout (type: lesson) ---- */
-.lesson{max-width:1280px;padding:32px var(--page-margin) 0}
+.lesson{max-width:1280px;padding:32px 0 0}
 .lesson-label{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);margin:0 0 8px}
 .lesson-brief{display:flex;flex-direction:column;gap:16px;max-width:1040px;margin-bottom:48px}
 .lesson-brief-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
@@ -1752,12 +2092,12 @@ html.llm-review .lesson-visual-empty{display:flex;align-items:center;justify-con
 .lesson-prev{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-nav);text-decoration:none;min-height:var(--touch-target);display:inline-flex;align-items:center}
 @media(hover:hover){.lesson-prev:hover{color:var(--color-text)}}
 .lesson-pager .ddc-btn{max-width:100%;white-space:normal;text-align:left}
-.lesson-tail{max-width:calc(720px + 2 * var(--page-margin));padding-top:48px}
+.lesson-tail{max-width:720px;padding-top:48px}
 
 /* ---- Landing page (index.md) ---- */
-.home{max-width:1280px;padding:0 var(--page-margin) 32px}
-.home-hero{padding:64px 0 48px;border-bottom:1px solid var(--color-border)}
-@media(min-width:768px){.home-hero{padding:96px 0 64px}}
+.home{max-width:1280px;padding:0 0 32px}
+.home-hero{padding:24px 0 48px;border-bottom:1px solid var(--color-border)}
+@media(min-width:768px){.home-hero{padding:56px 0 64px}}
 .home-title{font-family:var(--font-display);font-weight:800;text-transform:uppercase;letter-spacing:-.02em;line-height:1;
   font-size:clamp(40px,6.4vw,96px);margin:0;text-wrap:balance;overflow-wrap:anywhere}
 .home-lede{font-family:var(--font-body);font-size:20px;line-height:1.6;color:var(--color-secondary);max-width:720px;margin:24px 0 32px}

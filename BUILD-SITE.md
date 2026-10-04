@@ -4,7 +4,8 @@
 a self-contained static HTML site styled with the **DDC Reel** design system
 ([artifact](https://claude.ai/artifact/QBTm2jQ8DC1f9bjhwiuDvw); skill at `~/.claude/skills/ddc-reel/`): dark and monochrome,
 Syne headings, Space Mono labels, Hanken Grotesk reading text, one orange accent
-per page (the hero kicker), and a numbered catalog sidebar. It is domain-agnostic:
+per page (the hero kicker), and a three-column layout: a collapsible master
+index, the page, and "On this page" (see "Page layout" in the README). It is domain-agnostic:
 the same script works for any llm-wiki. When DDC Reel changes, update the `CSS`
 block in `build-site.mjs` (it mirrors `ddc-reel.css`) and rebuild every registered site.
 
@@ -63,7 +64,7 @@ The equivalent `site.config.json`:
 
 - `title` — site name (header brand, `<title>`, meta description)
 - `brandLetters` — the short brand shown in the header on phone widths (the full `title` shows elsewhere)
-- `footer` — the mono status line at the bottom of the sidebar
+- `footer` — the mono status line at the bottom of the index and the page
 - `accent` — the single accent color (DDC Reel `#ff3300`); used once per page, on the hero kicker
 
 ## View
