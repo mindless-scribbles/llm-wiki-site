@@ -14,7 +14,7 @@ import { join, dirname, relative, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { resolveConfig } from "./config.mjs";
-import { findMermaidFences, renderMermaid } from "./mermaid.mjs";
+import { findMermaidFences, renderMermaid, findDiagramFont } from "./mermaid.mjs";
 
 const MARKER = ".llm-wiki-site.json";
 
@@ -1101,7 +1101,18 @@ const DIAGRAMS = new Map();
 if (existsSync(OUT)) rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });
 mkdirSync(join(OUT, "assets"), { recursive: true });
-writeFileSync(join(OUT, "assets", "wiki.css"), CSS);
+// Diagrams draw in the font they were measured in (see findDiagramFont).
+const DIAGRAM_FONT = DIAGRAMS.size ? findDiagramFont() : null;
+if (DIAGRAM_FONT) {
+  mkdirSync(join(OUT, "assets", "fonts"), { recursive: true });
+  writeFileSync(join(OUT, "assets", "fonts", "DejaVuSansMono.ttf"), readFileSync(DIAGRAM_FONT));
+}
+writeFileSync(
+  join(OUT, "assets", "wiki.css"),
+  CSS + (DIAGRAM_FONT
+    ? '\n@font-face{font-family:"DejaVu Sans Mono";src:url("fonts/DejaVuSansMono.ttf") format("truetype");font-display:block}\n'
+    : "")
+);
 
 // Copy the shared viz library + any concept widgets into assets/.
 if (widgetSlugs.size) {

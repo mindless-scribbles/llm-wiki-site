@@ -12,18 +12,19 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 
 // DDC Reel, dark and monochrome. No orange: authors opt in per diagram with
-// `classDef accent stroke:#ff3300`. fontFamily is "monospace" because mmdc's
-// Chromium measures text with whatever fonts it has and the build must work
-// offline; a web font would make label boxes disagree with the rendered text.
+// `classDef accent stroke:#ff3300`. Labels are measured in DejaVu Sans Mono,
+// which the mermaid-cli snap ships (its generic "monospace" alias falls back to
+// serif), and the SVG keeps that font, so boxes always fit their text. Space Mono
+// is not used here: a wider display font than the measured one overflows labels.
 export const MERMAID_CONFIG = {
   theme: "base",
-  fontFamily: "monospace",
+  fontFamily: "DejaVu Sans Mono, monospace",
   htmlLabels: false,
   flowchart: { htmlLabels: false },
   state: { htmlLabels: false },
   themeVariables: {
     background: "transparent",
-    fontFamily: "monospace",
+    fontFamily: "DejaVu Sans Mono, monospace",
     fontSize: "14px",
     primaryColor: "#1a1a1e",
     mainBkg: "#1a1a1e",
@@ -71,6 +72,19 @@ export function findMermaidFences(body) {
     if (isMermaid) found.push(buf.join("\n"));
   }
   return found;
+}
+
+// The font labels were measured in. The site ships it next to wiki.css so every
+// viewer draws the exact glyph widths the boxes were sized for; a substitute
+// monospace overruns them. DejaVu's licence allows redistribution.
+export function findDiagramFont() {
+  const candidates = [
+    process.env.LLM_WIKI_DIAGRAM_FONT,
+    "/snap/mermaid-cli/current/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
+    "/usr/share/fonts/TTF/DejaVuSansMono.ttf",
+  ];
+  return candidates.find((p) => p && existsSync(p)) || null;
 }
 
 function resolveMmdc() {
