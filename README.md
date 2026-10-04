@@ -74,6 +74,40 @@ with the count; diagrams never fail a build.
 - Snap caveat: a snap-packaged `mmdc` cannot see `/tmp`, so staging files live under
   `~/.cache/llm-wiki-site/`, never `os.tmpdir()`.
 
+## Lint (STE-80)
+
+`llm-wiki-site lint <wiki-path>` (or `--site <id>`, or `--all`) checks the
+measurable half of ASD-STE100 Part 1 and prints a per-page table plus a TOTAL line.
+It is report-only and never writes: it exits 0 unless you pass `--strict`, which
+exits 1 if any issue is found. `--detail` adds one line per issue
+(`L<line> <kind> (<n>): <text>`); `--pages <substring>` limits it to matching pages.
+
+- Procedural sentences (a numbered item, or an indented sub-bullet, under a heading
+  matching step / phase / procedure / how to / build it / try it) have at most 20 words;
+  descriptive sentences at most 25; paragraphs at most 6 sentences.
+- Passive voice inside procedural steps.
+- `word`: a built-in list of unapproved words (`in order to`, `utilize`, `ensure`, ...).
+- `term`: the wiki's own banned terms, read from its `CLAUDE.md` (below).
+- A `code span` counts as one word and is never searched for banned terms. Tables,
+  block quotes, headings, fences, `@` markers and `(§x.y)` citations are skipped, as are
+  the index, log, dashboard, analytics and flashcards pages.
+
+Per-wiki terminology: under a `## Writing Rule` heading in `<wiki-root>/CLAUDE.md`,
+add a table with a `Use` and a `Not` column (any other columns are ignored). Each
+`Not` cell holds one or more terms separated by `,` or ` / `, optionally in backticks;
+each is flagged with the `Use` cell as the suggestion. Matching ignores case and
+respects word boundaries. Rows whose cells start with `[` (template placeholders) are skipped.
+
+```markdown
+## Writing Rule
+
+| Use | Not | Note |
+| --- | --- | --- |
+| pole | PV, pole vector | one name for the control |
+| one deterministic formula | compensates / best-fits | the solver does not adapt |
+| `Bones` | skeleton chain | matches the node name |
+```
+
 ## Layout
 
 | Path | What |

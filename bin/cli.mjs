@@ -11,6 +11,7 @@ import { join, dirname, resolve, basename, relative, isAbsolute, sep } from "nod
 import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { build } from "../build-site.mjs";
+import { lintWiki, KINDS } from "../lint.mjs";
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
 const SITES = join(REPO, "sites");
@@ -24,6 +25,9 @@ const USAGE = `llm-wiki-site — render an llm-wiki into a static site
   llm-wiki-site build <wiki-path> [options]
   llm-wiki-site build --site <wiki-id>      resolve everything from sites/<id>/site.json
   llm-wiki-site build --all                 build every registered wiki
+  llm-wiki-site lint <wiki-path> [--detail] [--pages <substring>] [--strict]
+  llm-wiki-site lint --site <wiki-id>       same, resolved from sites/<id>/site.json
+  llm-wiki-site lint --all                  lint every registered wiki
   llm-wiki-site list                        show registered wikis
   llm-wiki-site register <wiki-id> <wiki-path> [--out DIR]
   llm-wiki-site vault [<path>]              show or set this machine's vault root
@@ -33,6 +37,9 @@ Options
   --out <dir>       output directory (default: <repo>/out/<wiki-id>)
   --widgets <dir>   concept widgets (default: sites/<id>/widgets, else <repo>/widgets)
   --media <dir>     explainer videos for @video[slug] lines (default: sites/<id>/media)
+  --detail          lint: print every issue as L<line> <kind> (<n>): <text>
+  --pages <text>    lint: only pages whose path contains <text>
+  --strict          lint: exit 1 if any issue is found (default: report only, exit 0)
   --title, --brandLetters, --footer, --accent
                     branding overrides, highest precedence of all
 
@@ -52,6 +59,7 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === "-h" || a === "--help") { opts.help = true; continue; }
     if (a === "--all") { opts.all = true; continue; }
+    if (a === "--detail" || a === "--strict") { opts[a.slice(2)] = true; continue; }
     if (a.startsWith("--")) {
       const [k, inlineV] = a.slice(2).split(/=(.*)/s);
       const v = inlineV ?? argv[++i];
@@ -235,6 +243,40 @@ function cmdBuildAll(opts) {
   if (failed) process.exit(1);
 }
 
+// Prints the report for one wiki; returns its issue total.
+function cmdLint(positional, opts) {
+  let sourcePath = positional[0];
+  if (opts.site) {
+    const record = readSite(opts.site);
+    sourcePath ??= resolveSource(record.source, opts.site);
+  }
+  if (!sourcePath) fail("need a <wiki-path> or --site <wiki-id>");
+  const { wikiRoot, wikiDir } = normalizeWikiPath(sourcePath);
+  const r = lintWiki({ wikiRoot, wikiDir, pages: opts.pages });
+
+  const heads = ["proc>20", "desc>25", "para>6", "terms", "words", "passive"];
+  console.log(`${"page".padEnd(34)}${"sent".padStart(5)}${"avg".padStart(6)}  ` + heads.map((h) => h.padStart(8)).join(""));
+  for (const p of r.pages) {
+    console.log(`${p.path.padEnd(34)}${String(p.nSent).padStart(5)}${p.avg.toFixed(1).padStart(6)}  ` +
+      KINDS.map((k) => String(p.counts[k]).padStart(8)).join(""));
+    if (opts.detail) for (const x of p.issues) console.log(`    L${x.line} ${x.kind}${x.n ? ` (${x.n})` : ""}: ${x.text}`);
+  }
+  console.log(`TOTAL ${r.sentences} sentences  ` + KINDS.map((k) => `${k} ${r.totals[k]}`).join(" · "));
+  return KINDS.reduce((n, k) => n + r.totals[k], 0);
+}
+
+function cmdLintAll(opts) {
+  const sites = listSites();
+  if (!sites.length) fail("no registered wikis");
+  let issues = 0;
+  for (const s of sites) {
+    console.log(`\n== ${s.id}`);
+    try { issues += cmdLint([], { ...opts, all: false, site: s.id }); }
+    catch (e) { console.error(`   failed: ${e.message}`); }
+  }
+  return issues;
+}
+
 // --- entry ------------------------------------------------------------------
 
 const [cmd, ...rest] = process.argv.slice(2);
@@ -248,6 +290,10 @@ if (!cmd || opts.help || cmd === "help") {
 try {
   if (cmd === "build" && opts.all) cmdBuildAll(opts);
   else if (cmd === "build") cmdBuild(positional, opts);
+  else if (cmd === "lint") {
+    const issues = opts.all ? cmdLintAll(opts) : cmdLint(positional, opts);
+    if (opts.strict && issues) process.exit(1);
+  }
   else if (cmd === "vault") cmdVault(positional);
   else if (cmd === "list") cmdList();
   else if (cmd === "register") cmdRegister(positional, opts);
