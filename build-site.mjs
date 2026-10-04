@@ -14,6 +14,7 @@ import { join, dirname, relative, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { resolveConfig } from "./config.mjs";
+import { findMermaidFences, renderMermaid } from "./mermaid.mjs";
 
 const MARKER = ".llm-wiki-site.json";
 
@@ -349,6 +350,13 @@ function mdToHtml(body, page) {
       i++;
       while (i < lines.length && !/^```/.test(lines[i])) buf.push(lines[i++]);
       i++; // closing fence
+      if (/^```\s*mermaid\s*$/.test(line) && DIAGRAMS.has(buf.join("\n"))) {
+        out.push(
+          `<figure class="diagram-block"><div class="viz"><div class="viz-label">Diagram</div>` +
+          `${DIAGRAMS.get(buf.join("\n"))}</div></figure>`,
+        );
+        continue;
+      }
       out.push(`<pre class="code"><code>${escapeHtml(buf.join("\n"))}</code></pre>`);
       continue;
     }
@@ -1018,6 +1026,8 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 .viz-block{margin:0 0 48px}
 .video-block{margin:0 0 48px}
 .video-block .video{display:block;width:100%;aspect-ratio:16/9;background:#000;border-radius:var(--radius-md)}
+.diagram-block{margin:0 0 48px}
+.diagram-block svg{display:block;max-width:100%;height:auto;margin:0 auto}
 .video-caption{font-family:var(--font-mono);font-size:13px;line-height:20px;color:var(--color-secondary);padding:12px 8px 0}
 .viz{border:1px solid var(--color-border);background:var(--color-surface);border-radius:var(--radius-lg);overflow:hidden;padding:8px}
 .viz-label{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);padding:8px 8px 4px}
@@ -1077,6 +1087,16 @@ html.sidebar-collapsed .entry-shell{grid-template-columns:minmax(0,1fr)}
 // ---------------------------------------------------------------------------
 // 5. Write output
 // ---------------------------------------------------------------------------
+
+// Mermaid diagrams: rendered up front (in one batch) because page rendering is
+// synchronous. Anything that fails stays a plain code block.
+const DIAGRAMS = new Map();
+{
+  const sources = pages.flatMap((p) => findMermaidFences(p.body));
+  const r = renderMermaid(sources);
+  for (const [k, v] of r.svgs) DIAGRAMS.set(k, v);
+  if (r.failed) console.warn(`mermaid: ${r.failed} diagram(s) left as code blocks (${r.reason})`);
+}
 
 if (existsSync(OUT)) rmSync(OUT, { recursive: true, force: true });
 mkdirSync(OUT, { recursive: true });

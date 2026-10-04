@@ -58,6 +58,22 @@ Branding resolves highest-precedence-first from CLI flags → `sites/<id>/site.j
 → `<wiki-root>/site.config.json` → a `site:` block in `wiki/index.md` frontmatter.
 Use the frontmatter form for synced vaults; it is the only one that is markdown.
 
+## Mermaid diagrams (optional)
+
+A ```` ```mermaid ```` fence renders as an inline SVG diagram when `mmdc`
+([@mermaid-js/mermaid-cli](https://github.com/mermaid-js/mermaid-cli)) is on
+`PATH` (or `LLM_WIKI_MMDC` points at the binary). Without it, or if a render
+fails, the fence stays a plain code block and the build prints one warning line
+with the count; diagrams never fail a build.
+
+- All new diagrams in a build are rendered in one `mmdc` run (Chromium starts once).
+- SVGs are cached in `~/.cache/llm-wiki-site/mermaid/<sha256>.svg`, keyed by the
+  fence source plus the theme config, so a theme change re-renders everything.
+- The theme is DDC Reel (dark, monochrome, no orange). Opt in to the accent per
+  diagram with `classDef accent stroke:#ff3300`.
+- Snap caveat: a snap-packaged `mmdc` cannot see `/tmp`, so staging files live under
+  `~/.cache/llm-wiki-site/`, never `os.tmpdir()`.
+
 ## Layout
 
 | Path | What |
@@ -65,6 +81,7 @@ Use the frontmatter form for synced vaults; it is the only one that is markdown.
 | `bin/cli.mjs` | CLI: `build` (`--site`, `--all`), `register`, `list`, `vault` |
 | `build-site.mjs` | the generator — `build({ wikiRoot, outDir, … })` |
 | `config.mjs` | branding resolution across the three sources |
+| `mermaid.mjs` | optional `mmdc` batch rendering and cache for mermaid fences |
 | `widgets/_viz.js` | shared canvas library for concept visualizations |
 | `sites/<id>/site.json` | where a wiki lives and where it builds to |
 | `sites/<id>/widgets/*.js` | that wiki's concept widgets |
