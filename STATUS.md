@@ -22,11 +22,11 @@
 
 - Text pages follow uiarc.dev/docs/introduction: body 16px in `#b4b4bb`, off-white kept for emphasis; title Syne 700 sentence case; h2/h3 Syne 600 at 24/18px with no rules.
 - Blockquotes: one short paragraph (≤240 chars, no bold or ⚠️ lead) is a pull quote; anything else is a callout, with a `**Label:**` lead as its mono label and ⚠️ as a warning.
-- Ground is charcoal `#141416` (surfaces `#1a1a1d` / `#222226`, ink `#f2f2f3`) for all DDC Reel work, approved by Don. dondecastro.com still uses `#070709`; the skill records this as a deliberate exception.
+- Ground is charcoal `#141416` (surfaces `#1a1a1d` / `#222226`, ink `#f2f2f3`) for all DDC Reel work, approved by Don.
+- DDC Reel is Don's own system for internal work and the wikis. It started from dondecastro.com but is independent: never sync from the site, and leave the site alone (it gets its own design system).
 
 ## Next Steps
 
-- [ ] dondecastro.com (`dondecastro-demoreel`) still has the near-black ground and the old prose scale. Ask Don whether the site should follow the new ground.
 - [ ] Lint flags five older long paragraphs on the OverRig source code map (lines ~136, 180, 235, 341, 358). Fix them when that page is next touched.
 - [ ] No wiki has a `type: lesson` page yet. Check the lesson layout on the first real one (it was only tested on a throwaway wiki).
 
