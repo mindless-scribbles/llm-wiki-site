@@ -1,0 +1,26 @@
+{
+  "id": "20261004-173512-9ae6",
+  "kind": "content",
+  "site": "animation-blending",
+  "status": "resolved",
+  "created": "2026-10-05T00:35:12.933Z",
+  "page": "syntheses/overrig-source-code-map.html",
+  "source": "wiki/syntheses/overrig-source-code-map.md",
+  "anchor": {
+    "selector": "main > div:nth-of-type(1) > article:nth-of-type(1) > section:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1) > ul:nth-of-type(1) > li:nth-of-type(1)",
+    "line": 48,
+    "heading": "Parenting and space switching",
+    "headingId": "parenting-and-space-switching",
+    "excerpt": "apply_parentConstrAnim(size) · mel:2076–2103 → 2862–2897",
+    "tag": "li",
+    "phase": null
+  },
+  "text": "can we display the mel code in code block?",
+  "images": [],
+  "viewport": {
+    "w": 1476,
+    "h": 807
+  },
+  "resolution": "Each tool's commands now sit in a mel code block under its description, with the line range as a // comment (multi-command tools one command per line). Source: the page's own citations, unchanged.",
+  "resolvedAt": "2026-10-05T00:46:06.434Z"
+}

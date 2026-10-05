@@ -520,10 +520,31 @@ function mdToHtml(body, page, base = null) {
       }
       // Split into paragraphs on blank inner lines.
       const paras = buf.join("\n").split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+      const para = (p) => `<p>${inline(p.replace(/\n/g, " "), page)}</p>`;
+      // One short line is a pull quote, the line to remember. Anything longer is
+      // a callout set in reading text: a "**Label:**" or "**Label.**" lead
+      // becomes its label, and a leading ⚠️ makes it a warning.
+      if (paras.length === 1 && paras[0].length <= 240 && !/^(\*\*|⚠)/.test(paras[0])) {
+        out.push(`<blockquote class="quote"${at}>${para(paras[0])}</blockquote>`);
+        continue;
+      }
+      const warn = paras.length > 0 && /^⚠/.test(paras[0]);
+      let label = "";
+      if (paras.length) {
+        let first = paras[0].replace(/^⚠️?\s*/, "");
+        const lm = first.match(/^\*\*([^*]{1,32}?)(?:[:.]\*\*|\*\*[:.])\s*/);
+        if (lm) {
+          label = lm[1];
+          first = first.slice(lm[0].length).replace(/^[a-z]/, (c) => c.toUpperCase());
+        }
+        if (first) paras[0] = first; else paras.shift();
+      }
+      if (warn && !label) label = "Warning";
       out.push(
-        `<blockquote class="quote"${at}>${paras
-          .map((p) => `<p>${inline(p.replace(/\n/g, " "), page)}</p>`)
-          .join("")}</blockquote>`
+        `<aside class="callout${warn ? " is-warn" : ""}"${at}>` +
+          (label ? `<div class="callout-label">${inline(label, page)}</div>` : "") +
+          paras.map(para).join("") +
+          `</aside>`
       );
       continue;
     }
@@ -1610,11 +1631,13 @@ ${isLesson ? `<script>${LESSON_SCRIPT}</script>` : ""}
 // highlighted data series.
 const CSS = `:root{
   color-scheme:dark;
-  --color-bg:#070709;
-  --color-surface:#111114;
-  --color-surface-raised:#1a1a1e;
-  --color-text:#f4f4f5;
+  --color-bg:#141416;
+  --color-bg-rgb:20,20,22;
+  --color-surface:#1a1a1d;
+  --color-surface-raised:#222226;
+  --color-text:#f2f2f3;
   --color-secondary:#a1a1aa;
+  --color-body:#b4b4bb;
   --color-nav:#71717a;
   --color-muted:#52525b;
   --color-hover:rgba(244,244,245,.55);
@@ -1652,7 +1675,7 @@ a{color:inherit}
 /* Header */
 .site-header{display:flex;align-items:center;gap:16px;
   height:var(--header-h);padding:0 var(--page-margin);position:sticky;top:0;z-index:40;
-  background:rgba(7,7,9,.82);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
+  background:rgba(var(--color-bg-rgb),.88);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);
   border-bottom:1px solid var(--color-border)}
 .header-left{display:flex;align-items:center;gap:16px;min-width:0}
 .brand-mark{text-decoration:none;color:var(--color-text);min-width:0;display:inline-flex;align-items:center;min-height:var(--touch-target)}
@@ -1735,10 +1758,10 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .hero-kicker{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.3em;text-transform:uppercase;
   color:var(--color-accent);margin-bottom:24px}
 .hero .hero-kicker{margin-bottom:12px}
-.headline{font-family:var(--font-display);font-weight:800;text-transform:uppercase;letter-spacing:-.02em;line-height:1;
-  font-size:clamp(34px,4.6vw,60px);margin:0;color:var(--color-text);text-wrap:balance;overflow-wrap:anywhere}
-.headline-sub{display:block;margin-top:16px;font-family:var(--font-body);font-weight:400;text-transform:none;letter-spacing:0;
-  font-size:22px;line-height:1.4;color:var(--color-secondary)}
+.headline{font-family:var(--font-display);font-weight:700;letter-spacing:-.02em;line-height:1.1;
+  font-size:clamp(30px,3.4vw,42px);margin:0;color:var(--color-text);text-wrap:balance;overflow-wrap:anywhere}
+.headline-sub{display:block;margin-top:12px;font-family:var(--font-body);font-weight:400;letter-spacing:0;
+  font-size:18px;line-height:1.5;color:var(--color-body)}
 .headline-sub code{font-family:var(--font-mono);font-size:.8em;background:var(--color-surface-raised);padding:2px 6px;border-radius:var(--radius-sm);color:var(--color-text)}
 
 /* Page actions: "Copy page ▾" */
@@ -1764,20 +1787,24 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .article-meta{font-family:var(--font-mono);font-size:12px;line-height:16px;color:var(--color-muted);text-transform:uppercase;font-weight:700;
   letter-spacing:.2em;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px 24px;margin-bottom:24px;
   padding:16px 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border)}
-@media(min-width:768px){.article-meta{grid-template-columns:repeat(4,minmax(0,1fr))}}
+@media(min-width:768px){.article-meta{grid-template-columns:repeat(4,auto);justify-content:start;column-gap:40px}.article-meta span{max-width:44ch}}
 .article-meta span{display:flex;flex-direction:column;gap:4px;min-width:0}
 .article-meta b{color:var(--color-text);font-weight:400;letter-spacing:0;text-transform:none;font-size:14px;line-height:24px;overflow-wrap:anywhere}
 
-.content-body{font-family:var(--font-body);font-size:18px;line-height:1.7;color:var(--color-text)}
-@media(max-width:767px){.content-body{font-size:16px;line-height:1.6}}
+/* Reading text: Hanken in the reading gray; off-white is kept for headings,
+   emphasis, links and code, so the eye finds the important words first. */
+.content-body{font-family:var(--font-body);font-size:16px;line-height:1.65;color:var(--color-body)}
+@media(max-width:767px){.content-body{font-size:15px;line-height:1.6}}
 .content-body p{margin:0 0 1em}
-.article-container .content-body>.h2:first-child{margin-top:40px}
+.content-body strong,.content-body b{color:var(--color-text);font-weight:600}
+.article-container .content-body>.h2:first-child{margin-top:32px}
 .content-body .h1,.content-body .h2,.content-body .h3,.lesson-phase-title{scroll-margin-top:calc(var(--header-h) + 24px)}
 
-.content-body .h1,.content-body .h2{font-family:var(--font-display);color:var(--color-text);text-wrap:balance}
-.content-body .h1{font-weight:800;text-transform:uppercase;letter-spacing:-.02em;font-size:32px;line-height:40px;margin:64px 0 24px}
-.content-body .h2{font-weight:600;font-size:28px;line-height:1.25;margin:64px 0 24px;padding-bottom:16px;border-bottom:1px solid var(--color-border)}
-.content-body .h3{font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:14px;line-height:24px;margin:40px 0 8px;color:var(--color-text)}
+/* Section headings: Syne 600, normal case, no rules. Space above sets the sections apart. */
+.content-body .h1,.content-body .h2,.content-body .h3{font-family:var(--font-display);font-weight:600;color:var(--color-text);text-wrap:balance}
+.content-body .h1{font-size:28px;line-height:1.2;letter-spacing:-.02em;margin:48px 0 12px}
+.content-body .h2{font-size:24px;line-height:1.2;letter-spacing:-.02em;margin:48px 0 12px}
+.content-body .h3{font-size:18px;line-height:1.3;letter-spacing:-.01em;margin:32px 0 8px}
 .content-body .h4{font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.2em;font-size:12px;line-height:16px;margin:32px 0 8px;color:var(--color-secondary)}
 
 .content-body a.wl,.content-body a.lnk{color:var(--color-text);text-decoration:underline;text-decoration-color:var(--color-border-strong);
@@ -1787,7 +1814,8 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .wl-missing{color:var(--color-nav);text-decoration:underline dotted var(--color-muted);text-underline-offset:3px}
 
 .content-body ul,.content-body ol{margin:0 0 1em;padding-left:1.2em}
-.content-body li{margin:0 0 .4em}
+.content-body li{margin:0 0 .3em}
+.content-body li>ul,.content-body li>ol{margin:.3em 0 0}
 .content-body li::marker{color:var(--color-secondary)}
 .content-body ol li::marker{font-family:var(--font-mono);font-size:.85em}
 
@@ -1797,18 +1825,28 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
   padding:16px;overflow-x:auto;margin:0 0 1.6em;border-radius:var(--radius-md)}
 .content-body pre.code code{background:none;padding:0;color:var(--color-text);font-size:13px;line-height:1.6}
 
-.content-body blockquote.quote{margin:1.6em 0;padding:24px 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border);
-  font-family:var(--font-display);font-weight:600;font-size:22px;line-height:1.45;color:var(--color-text)}
+.content-body blockquote.quote{margin:1.6em 0;padding:20px 0;border-top:1px solid var(--color-border);border-bottom:1px solid var(--color-border);
+  font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1.45;color:var(--color-text)}
 .content-body blockquote.quote p{margin:0 0 .6em}
 .content-body blockquote.quote p:last-child{margin-bottom:0}
 
-.content-body hr.rule{border:none;border-top:1px solid var(--color-border);margin:48px 0}
+/* Callout: a note, a caveat or a pointer, set in reading text in a quiet box */
+.callout{margin:24px 0;padding:16px 20px;background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-md);
+  font-size:15px;line-height:1.6}
+.callout p{margin:0 0 .6em}
+.callout p:last-child{margin-bottom:0}
+.callout-label{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-secondary);margin-bottom:8px}
+.callout.is-warn{background:var(--color-surface-raised);border-color:var(--color-border-strong)}
+.callout.is-warn .callout-label{color:var(--color-text)}
+
+.content-body hr.rule{border:none;border-top:1px solid var(--color-border);margin:40px 0}
 
 .table-wrap{overflow-x:auto;margin:0 0 1.8em;border:1px solid var(--color-border);border-radius:var(--radius-md)}
-.content-body table.tbl{border-collapse:collapse;width:100%;font-size:15px;line-height:1.5}
+.content-body table.tbl{border-collapse:collapse;width:100%;font-size:14px;line-height:1.5}
+.content-body table.tbl code{background:none;padding:0;font-size:.9em}
 .content-body table.tbl th,.content-body table.tbl td{border-bottom:1px solid var(--color-border);padding:12px 16px;text-align:left;vertical-align:top}
 .content-body table.tbl tr:last-child td{border-bottom:none}
-.content-body table.tbl th{font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:12px;line-height:16px;
+.content-body table.tbl th{font-family:var(--font-mono);font-weight:700;text-transform:uppercase;letter-spacing:.1em;font-size:11px;line-height:16px;
   color:var(--color-secondary);background:var(--color-surface)}
 
 /* On this page: the right column, or a dropdown above the content when narrower */
@@ -1849,7 +1887,7 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 /* Markdown viewer */
 .md-dialog{width:min(820px,calc(100vw - 32px));max-height:min(80vh,900px);padding:0;border:1px solid var(--color-border-strong);border-radius:var(--radius-lg);
   background:var(--color-surface);color:var(--color-text)}
-.md-dialog::backdrop{background:rgba(7,7,9,.7)}
+.md-dialog::backdrop{background:rgba(var(--color-bg-rgb),.7)}
 .md-head{position:sticky;top:0;display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--color-border);background:var(--color-surface)}
 .md-path{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--color-secondary);font-family:var(--font-mono);font-size:12px}
 .md-head button{height:32px;padding:0 12px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);background:none;cursor:pointer;color:var(--color-text);
@@ -1866,7 +1904,7 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 /* Button: off-white fill sweeps in from the left */
 .ddc-btn{position:relative;isolation:isolate;overflow:hidden;display:inline-flex;align-items:center;justify-content:center;gap:8px;
   min-height:var(--touch-target);padding:16px 32px;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);
-  background:rgba(7,7,9,.4);color:var(--color-text);font-family:var(--font-mono);font-weight:700;text-transform:uppercase;
+  background:rgba(var(--color-bg-rgb),.4);color:var(--color-text);font-family:var(--font-mono);font-weight:700;text-transform:uppercase;
   letter-spacing:.2em;font-size:12px;line-height:16px;text-decoration:none;cursor:pointer;transition:border-color .3s ease,color .3s ease}
 .ddc-btn__fill{position:absolute;inset:0;z-index:-1;background:var(--color-text);transform:scaleX(var(--fill-scale,0));transform-origin:left;transition:transform .3s ease}
 @media(hover:hover){.ddc-btn:hover{border-color:var(--color-text);color:var(--color-bg);--fill-scale:1}}
@@ -1890,7 +1928,7 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
   .field-logs,html.sidebar-collapsed .field-logs{display:flex;position:fixed;left:0;top:var(--header-h);bottom:0;height:auto;width:min(320px,86vw);z-index:35;
     background:var(--color-bg);transform:translateX(-100%);visibility:hidden;transition:transform .25s ease,visibility .25s}
   html.index-open .field-logs{transform:none;visibility:visible}
-  html.index-open .idx-scrim{display:block;position:fixed;inset:var(--header-h) 0 0 0;z-index:30;background:rgba(7,7,9,.6)}
+  html.index-open .idx-scrim{display:block;position:fixed;inset:var(--header-h) 0 0 0;z-index:30;background:rgba(var(--color-bg-rgb),.6)}
 }
 @media(prefers-reduced-motion:reduce){.chev,.field-logs,.toc-list a,.pager-link,.toast{transition:none}}
 

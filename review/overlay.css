@@ -1,9 +1,9 @@
 /* Review overlay. Injected by `llm-wiki-site serve --review`; never part of a build.
    DDC Reel: dark, monochrome, hairline borders, no shadows, no accent. */
 #llm-review-root {
-  --rv-bg: var(--color-bg, #070709);
-  --rv-surface: var(--color-surface, #111114);
-  --rv-raised: var(--color-surface-raised, #1a1a1e);
+  --rv-bg: var(--color-bg, #141416);
+  --rv-surface: var(--color-surface, #1a1a1d);
+  --rv-raised: var(--color-surface-raised, #222226);
   --rv-text: var(--color-text, #f4f4f5);
   --rv-secondary: var(--color-secondary, #a1a1aa);
   --rv-border: var(--color-border, rgba(244, 244, 245, .1));

@@ -1,0 +1,26 @@
+{
+  "id": "20261004-171807-8572",
+  "kind": "design",
+  "site": "animation-blending",
+  "status": "resolved",
+  "created": "2026-10-05T00:18:07.434Z",
+  "page": "syntheses/overrig-source-code-map.html",
+  "source": "wiki/syntheses/overrig-source-code-map.md",
+  "anchor": {
+    "selector": "main > div:nth-of-type(1) > article:nth-of-type(1) > section:nth-of-type(1) > blockquote:nth-of-type(1)",
+    "line": 20,
+    "heading": "OVERRIG SOURCE CODE MAP — TECHNIQUE TO LINE NUMBER",
+    "headingId": null,
+    "excerpt": "This page is the flat index; the walkthrough lives elsewhere. For the tools Barnev demonstrates in his 2h07m guide — the Knot family, attach, the Parent frame, Smart Objects, aim, the key tools, Double Knot, Snapshot, Hierarchy and IK — go ",
+    "tag": "blockquote",
+    "phase": null
+  },
+  "text": "There are blocks like this that keep showing up, but its just a big block of tex with different headers.",
+  "images": [],
+  "viewport": {
+    "w": 1476,
+    "h": 863
+  },
+  "resolution": "Design rollout to all 22 wikis: long blockquotes are callouts (label from a **Label:** lead, ⚠️ = warning), short ones stay pull quotes; text pages follow uiarc.dev/docs/introduction (16px body in reading gray #b4b4bb, Syne 700 sentence-case title, 24px/18px Syne 600 headings without rules); charcoal ground #141416 with surfaces #1a1a1d/#222226 (also in mermaid.mjs, _viz.js, overlay). DDC Reel skill updated to match.",
+  "resolvedAt": "2026-10-05T00:55:48.326Z"
+}

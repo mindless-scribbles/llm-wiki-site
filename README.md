@@ -129,6 +129,19 @@ content. Below 1024px the index becomes a drawer opened from the header button.
 A body that opens with the page title as its `# H1` drops it (the head already
 shows it); anything the H1 adds after the title becomes the subtitle.
 
+Reading text follows a docs register: a charcoal ground (`#141416`), body text at
+16px in the reading gray (`--color-body`), and off-white kept for headings,
+**bold**, links and code. The page title is Syne 700 in sentence case; `##` is
+Syne 600 at 24px with no rule, `###` Syne 600 at 18px.
+
+Blockquotes render two ways:
+
+- one short paragraph (240 characters or fewer, no bold or ⚠️ lead) is a **pull
+  quote**, the line to remember;
+- anything longer is a **callout**: a quiet box in reading text. A lead of
+  `**Label:**` or `**Label.**` (32 characters or fewer) becomes the callout's
+  mono label; a leading ⚠️ makes it a warning.
+
 ## Landing page
 
 `index.md` stays the master catalog in Obsidian. On the site, `index.html` opens as a

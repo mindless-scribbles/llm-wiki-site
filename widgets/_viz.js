@@ -42,7 +42,7 @@
   const ACCENT_RGB = cssVar("--color-accent-rgb", "255,51,0");
 
   const C = {
-    bg: "#111114",
+    bg: "#1a1a1d",
     grid: "rgba(244,244,245,0.06)",
     gridBold: "rgba(244,244,245,0.13)",
     ink: "#f4f4f5",
