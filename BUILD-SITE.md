@@ -126,8 +126,17 @@ shared `widgets/_viz.js` library from this repo. See `widgets/README.md` for the
 shared `VIZ` API and the widget skeleton. No widget file → no panel (the page
 still builds).
 
-## Mermaid diagrams (optional)
+## Diagrams (`@diagram`)
 
+`@diagram[slug] optional caption` on a line of its own inlines
+`sites/<wiki-id>/diagrams/<slug>.svg` in the framed diagram block, caption below.
+The SVG is cleaned on the way in (no XML prologue or export `@import`; ids prefixed
+`dg-<slug>-`). A missing file shows a "Diagram needed" slot in review mode only.
+Change the folder with `--diagrams <dir>` or a `diagrams` field in `site.json`.
+
+## Mermaid diagrams (legacy fallback)
+
+New diagrams use `@diagram`. Existing fences still render.
 A ```` ```mermaid ```` fence renders as an inline SVG diagram when `mmdc`
 ([@mermaid-js/mermaid-cli](https://github.com/mermaid-js/mermaid-cli)) is on
 `PATH` (or `LLM_WIKI_MMDC` points at the binary). Without it, or if a render

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Controllers and pawns</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;   /* deep warm charcoal */
+      --color-ink:     #f2f2f3;   /* warm off-white */
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 704px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Architecture · Unreal Engine</p>
+    <h1>Controllers possess pawns</h1>
+
+    <div class="diagram-container">
+      <svg viewBox="0 0 704 472" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="controller-arch-title controller-arch-desc">
+        <title id="controller-arch-title">Controllers possess pawns</title>
+        <desc id="controller-arch-desc">Class tree of controllers (PlayerController with HeroController, AIController with RoamingController) beside the Pawn tree (Character with C_Hero and C_Enemy), with HeroController possessing C_Hero and RoamingController possessing C_Enemy.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+        <rect x="8" y="12" width="284" height="400" rx="8" fill="rgba(242,242,243,0.02)" stroke="rgba(242,242,243,0.10)" stroke-width="0.8"/><rect x="66" y="16" width="168" height="12" rx="2" fill="#1a1a1d"/><text x="150" y="25" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">CONTROLLERS · THE SOUL</text><rect x="412" y="12" width="284" height="400" rx="8" fill="rgba(242,242,243,0.02)" stroke="rgba(242,242,243,0.10)" stroke-width="0.8"/><rect x="486" y="16" width="136" height="12" rx="2" fill="#1a1a1d"/><text x="554" y="25" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.14em">PAWNS · THE BODY</text>
+        <path d="M160,120 V92" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M160,196 V168" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M160,348 V320" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M40,296 H28 Q20,296 20,288 V76 Q20,68 28,68 H40" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M544,120 V92" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M544,196 V168" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M664,372 H676 Q684,372 684,364 V152 Q684,144 676,144 H664" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<path d="M280,68 H424" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)" stroke-dasharray="5,4"/>
+<path d="M280,220 H424" fill="none" stroke="#ff3300" stroke-width="1.6" marker-end="url(#arrow-accent)"/>
+<path d="M280,372 H424" fill="none" stroke="#a1a1aa" stroke-width="1.6" marker-end="url(#arrow)"/>
+        <rect x="318" y="48" width="68" height="12" rx="2" fill="#1a1a1d"/><text x="352" y="57" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">CAN POSSESS</text><rect x="324" y="200" width="56" height="12" rx="2" fill="#1a1a1d"/><text x="352" y="209" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">POSSESSES</text><rect x="324" y="352" width="56" height="12" rx="2" fill="#1a1a1d"/><text x="352" y="361" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">POSSESSES</text>
+        <rect x="40" y="44" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="40" y="44" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="160" y="65" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Controller</text><text x="160" y="80" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">possesses and unpossesses a Pawn</text><rect x="40" y="120" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="40" y="120" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="160" y="141" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">PlayerController</text><text x="160" y="156" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">the soul · takes user input</text><rect x="40" y="196" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="40" y="196" width="240" height="48" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/><text x="160" y="217" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">HeroController</text><text x="160" y="232" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">built in lesson 11</text><rect x="40" y="272" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="40" y="272" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="160" y="293" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">AIController</text><text x="160" y="308" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">decides its own moves</text><rect x="40" y="348" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="40" y="348" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="160" y="369" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">RoamingController</text><text x="160" y="384" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">built in lesson 13</text><rect x="424" y="44" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="424" y="44" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="544" y="65" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Pawn</text><text x="544" y="80" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">the body · any child can be possessed</text><rect x="424" y="120" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="424" y="120" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="544" y="148" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Character</text><rect x="424" y="196" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="424" y="196" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="544" y="217" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">C_Hero</text><text x="544" y="232" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">the hero character</text><rect x="424" y="348" width="240" height="48" rx="6" fill="#1a1a1d"/><rect x="424" y="348" width="240" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="544" y="369" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">C_Enemy</text><text x="544" y="384" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">moves under AI control</text>
+        <line x1="30" y1="432" x2="674" y2="432" stroke="rgba(242,242,243,0.10)" stroke-width="0.8"/><path d="M30,452 H58" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/><text x="66" y="455" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.04em">EXTENDS (TO PARENT)</text><path d="M212,452 H240" fill="none" stroke="#a1a1aa" stroke-width="1.6" marker-end="url(#arrow)"/><text x="248" y="455" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.04em">POSSESSES</text><path d="M340,452 H368" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)" stroke-dasharray="5,4"/><text x="376" y="455" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.04em">CAN POSSESS</text><rect x="482" y="447" width="28" height="10" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/><text x="518" y="455" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.04em">FOCAL</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

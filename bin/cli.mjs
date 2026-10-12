@@ -46,6 +46,7 @@ Options
   --out <dir>       output directory (default: <repo>/out/<wiki-id>)
   --widgets <dir>   concept widgets (default: sites/<id>/widgets, else <repo>/widgets)
   --media <dir>     explainer videos for @video[slug] lines (default: sites/<id>/media)
+  --diagrams <dir>  diagram SVGs for @diagram[slug] lines (default: sites/<id>/diagrams)
   --no-review       serve: do not inject the review overlay (it is on by default)
   --design          notes: the design queue instead of one wiki's content notes
   --port, --host    serve: listen address (default 127.0.0.1:4173)
@@ -206,7 +207,7 @@ function cmdRegister(positional, opts) {
   if (isAbsolute(rec.source)) console.log("  (absolute source: set a vault root first to make this registration portable)");
 }
 
-// Resolves source, out, widgets and media for a build; shared by build and serve.
+// Resolves source, out, widgets, media and diagrams for a build; shared by build and serve.
 function resolveBuild(positional, opts) {
   let id = opts.site;
   let record = {};
@@ -234,12 +235,17 @@ function resolveBuild(positional, opts) {
   // Explainer videos (mp4 + jpg poster) mounted by "@video[slug]" lines.
   const mediaDir = resolve(opts.media ?? record.media ?? join(SITES, id, "media"));
 
+  // Editorial diagrams (<slug>.svg, drawn by the add-diagram skill) mounted by
+  // "@diagram[slug]" lines. Like media, they live beside the site record.
+  const diagramsDir = resolve(opts.diagrams ?? record.diagrams ?? join(SITES, id, "diagrams"));
+
   return {
     wikiRoot,
     wikiDir,
     outDir,
     widgetsDir,
     mediaDir,
+    diagramsDir,
     wikiId: id,
     overrides: { ...pickBranding(record), ...pickBranding(opts) },
   };

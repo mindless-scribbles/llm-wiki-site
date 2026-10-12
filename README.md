@@ -150,8 +150,8 @@ landing page instead of a list of links:
 - a hero: the site title, the first paragraph as the lede, and a `START HERE ›` button;
 - a **Start here** path, made from the links in a `**Start here:**` paragraph, in order;
 - a grid of cards for every catalog table of 12 rows or fewer where each row links a
-  page. A card shows the linked page's first visual (a video poster, an `@image`, or
-  its first Mermaid diagram), else the number from a short cell such as `Day`;
+  page. A card shows the linked page's first visual (a video poster, an `@image`, an
+  `@diagram`, or a legacy Mermaid diagram), else the number from a short cell such as `Day`;
 - bigger tables stay tables, further down.
 
 ## Lessons (`type: lesson`)
@@ -168,7 +168,7 @@ markdown stays plain, so Obsidian shows it unchanged; the builder reads these ma
 | `**Read:**` | the read-off; hidden behind "check your prediction" when the phase had a Predict |
 | a line starting `⚠️` | a trap callout |
 | `> quote` | the line to remember |
-| a Mermaid fence, `@video`, `@image`, `@viz` | the phase's visual, beside the steps (click to enlarge) |
+| `@diagram`, `@video`, `@image`, `@viz`, or a legacy Mermaid fence | the phase's visual, beside the steps (click to enlarge) |
 | `**Goal:**`, `**Result:**`, `**Open beside this page:**` or `**Open in <app>:**` (one line split by ` · `, or a lead line and a list) before the first phase | the brief |
 | `## Related` / `## Sources` | the tail, rendered as normal |
 
@@ -185,8 +185,20 @@ by copying it into the media folder under a slug, never into the vault. An `@ima
 file does not exist yet renders as a "screenshot needed" slot in review mode only, so a page
 can ask for a capture where the reviewer will paste it.
 
-## Mermaid diagrams (optional)
+## Diagrams (`@diagram`)
 
+`@diagram[slug] optional caption` on a line of its own inlines `sites/<id>/diagrams/<slug>.svg`
+in the same framed block Mermaid used (label "Diagram"), with the caption below. The build
+cleans the SVG on the way in: it removes the XML prologue and the export `@import`, and prefixes
+every id with `dg-<slug>-`. Beside each SVG sit its `.html` (the diagram-design source) and a
+`.md` content spec with page line references. The `add-diagram` skill draws them in the DDC Reel
+profile at a 704-unit viewBox, so they render 1:1 in the 720px column. An `@diagram` whose
+file does not exist yet renders as a "Diagram needed" slot in review mode only. Use `--diagrams <dir>`
+(or a `diagrams` field in `site.json`) to read them from another folder.
+
+## Mermaid diagrams (legacy fallback)
+
+New diagrams use `@diagram` (above). Existing fences still render, so nothing breaks.
 A ```` ```mermaid ```` fence renders as an inline SVG diagram when `mmdc`
 ([@mermaid-js/mermaid-cli](https://github.com/mermaid-js/mermaid-cli)) is on
 `PATH` (or `LLM_WIKI_MMDC` points at the binary). Without it, or if a render
@@ -249,6 +261,7 @@ respects word boundaries. Rows whose cells start with `[` (template placeholders
 | `widgets/_viz.js` | shared canvas library for concept visualizations |
 | `sites/<id>/site.json` | where a wiki lives and where it builds to |
 | `sites/<id>/widgets/*.js` | that wiki's concept widgets |
+| `sites/<id>/diagrams/` | `@diagram` SVGs, plus each one's `.html` source and `.md` spec (`--diagrams`) |
 | `out/` | default build output (git-ignored) |
 
 See `BUILD-SITE.md` for the full generator reference and `widgets/README.md` for

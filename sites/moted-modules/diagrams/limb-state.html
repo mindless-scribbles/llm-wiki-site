@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limb: FK mode and IK mode</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; max-width: 704px; margin: 0 auto; overflow-x: auto; }
+    .head { max-width: 704px; margin: 0 auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 704px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="head">
+      <p class="eyebrow">State machine · Diagram Design</p>
+      <h1>Limb: FK mode and IK mode</h1>
+    </div>
+    <div class="diagram-container">
+      <svg viewBox="0 0 704 272" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="limb-state-title limb-state-desc">
+        <title id="limb-state-title">Limb: FK mode and IK mode</title>
+        <desc id="limb-state-desc">A Limb starts in FK mode; ticking IK on moves it to IK mode and unticking moves it back, each flip auto-keyed, and each mode back-solves the other side so the flip lands on the pose already there.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+<circle cx="124" cy="28" r="6" fill="#f2f2f3"/>
+<line x1="124" y1="34" x2="124" y2="72" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="232" y1="112" x2="472" y2="112" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="472" y1="152" x2="232" y2="152" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<rect x="284" y="90" width="136" height="12" rx="2" fill="#1a1a1d"/>
+<text x="352.0" y="98.5" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">tick IK on, auto-key</text>
+<rect x="278" y="160" width="148" height="12" rx="2" fill="#1a1a1d"/>
+<text x="352.0" y="168.5" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">untick IK on, auto-key</text>
+<rect x="16" y="72" width="216" height="112" rx="8" fill="#1a1a1d"/>
+<rect x="16" y="72" width="216" height="112" rx="8" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="124.0" y="100" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">FK mode</text>
+<text x="124.0" y="124" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">FK controls drive the bones</text>
+<rect x="28" y="140" width="192" height="32" rx="4" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+<text x="124.0" y="160" fill="#f2f2f3" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Backward IK readies IK + pole</text>
+<rect x="472" y="72" width="216" height="112" rx="8" fill="#1a1a1d"/>
+<rect x="472" y="72" width="216" height="112" rx="8" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="580.0" y="100" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">IK mode</text>
+<text x="580.0" y="124" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">TwoBoneIK drives the bones</text>
+<rect x="484" y="140" width="192" height="32" rx="4" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+<text x="580.0" y="160" fill="#f2f2f3" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Backward FK readies FK controls</text>
+<line x1="16" y1="216" x2="688" y2="216" stroke="rgba(244,244,245,0.10)" stroke-width="0.8"/>
+<text x="16" y="232" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<circle cx="22" cy="246" r="5" fill="#f2f2f3"/>
+<text x="34" y="249" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Start</text>
+<line x1="96" y1="246" x2="124" y2="246" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<text x="132" y="249" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Transition: trigger, auto-key</text>
+<rect x="316" y="240" width="16" height="12" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+<text x="340" y="249" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Back-solve: readies the other side</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

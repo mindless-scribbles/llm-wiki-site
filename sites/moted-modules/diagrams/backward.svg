@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 472" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="backward-title backward-desc" id="backward-root">
+        <title id="backward-title">One frame of a stock bake</title>
+        <desc id="backward-desc">Message order for one baked frame: the take poses the bones, the backward event reads them and writes the controls it knows, and the section keys the controls; a control nothing wrote is keyed at its initial value.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #backward-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #backward-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #backward-root .diagram-container { width: 100%; max-width: 704px; margin: 0 auto; overflow-x: auto; }
+      #backward-root .head { max-width: 704px; margin: 0 auto; }
+      #backward-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="backward-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="backward-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="backward-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+<line x1="80" y1="64" x2="80" y2="388" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="218" y1="64" x2="218" y2="388" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="356" y1="64" x2="356" y2="388" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="494" y1="64" x2="494" y2="388" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="632" y1="64" x2="632" y2="388" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="80" y1="112" x2="218" y2="112" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#backward-arrow)"/>
+<line x1="218" y1="168" x2="356" y2="168" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#backward-arrow)"/>
+<line x1="356" y1="232" x2="494" y2="232" stroke="#ff3300" stroke-width="1.4" marker-end="url(#backward-arrow-accent)"/>
+<line x1="494" y1="296" x2="632" y2="296" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#backward-arrow)"/>
+<rect x="107" y="94" width="84" height="12" rx="2" fill="#1a1a1d"/>
+<text x="149.0" y="102.5" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">pose the frame</text>
+<rect x="231" y="150" width="112" height="12" rx="2" fill="#1a1a1d"/>
+<text x="287.0" y="158.5" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">run InverseExecution</text>
+<rect x="373" y="204" width="104" height="22" rx="2" fill="#1a1a1d"/>
+<text x="425.0" y="212.5" fill="#ff3300" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">write each control</text>
+<text x="425.0" y="222.5" fill="#ff3300" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">it knows</text>
+<rect x="517" y="278" width="92" height="12" rx="2" fill="#1a1a1d"/>
+<text x="563.0" y="286.5" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">key the controls</text>
+<rect x="464" y="328" width="200" height="44" rx="4" fill="#1a1a1d"/>
+<rect x="464" y="328" width="200" height="44" rx="4" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="564.0" y="347" fill="#f2f2f3" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">a control nothing wrote is</text>
+<text x="564.0" y="360" fill="#f2f2f3" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">keyed at its initial value</text>
+<rect x="20" y="16" width="120" height="48" rx="6" fill="#1a1a1d"/>
+<rect x="20" y="16" width="120" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="80" y="44" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Take</text>
+<rect x="158" y="16" width="120" height="48" rx="6" fill="#1a1a1d"/>
+<rect x="158" y="16" width="120" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="218" y="44" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Bones</text>
+<rect x="296" y="16" width="120" height="48" rx="6" fill="#1a1a1d"/>
+<rect x="296" y="16" width="120" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="356" y="44" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Backward event</text>
+<rect x="434" y="16" width="120" height="48" rx="6" fill="#1a1a1d"/>
+<rect x="434" y="16" width="120" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="494" y="44" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Controls</text>
+<rect x="572" y="16" width="120" height="48" rx="6" fill="#1a1a1d"/>
+<rect x="572" y="16" width="120" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="632" y="44" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Section</text>
+<line x1="16" y1="420" x2="688" y2="420" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+<text x="16" y="436" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<line x1="16" y1="449" x2="44" y2="449" stroke="#ff3300" stroke-width="1.4" marker-end="url(#backward-arrow-accent)"/>
+<text x="52" y="452" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Focal call: the mapping</text>
+<line x1="208" y1="449" x2="236" y2="449" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#backward-arrow)"/>
+<text x="244" y="452" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Call</text>
+<rect x="304" y="443" width="24" height="12" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="336" y="452" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Note: the gotcha</text>
+      </svg>

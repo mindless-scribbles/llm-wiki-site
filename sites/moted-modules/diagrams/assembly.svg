@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 592" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="assembly-title assembly-desc" id="assembly-root">
+        <title id="assembly-title">An assembly is a tree of modules</title>
+        <desc id="assembly-desc">Assembly tree: Root (FNRoot) parents Body, then Spine (SpineChain), which parents Head, the legs and the clavicles; each Limb parents its twists and its ball or fingers.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #assembly-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #assembly-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #assembly-root .diagram-container { width: 100%; max-width: 704px; margin: 0 auto; overflow-x: auto; }
+      #assembly-root .head { max-width: 704px; margin: 0 auto; }
+      #assembly-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="assembly-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="assembly-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="assembly-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+<line x1="328" y1="68" x2="328" y2="92" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<line x1="328" y1="136" x2="328" y2="160" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<line x1="328" y1="204" x2="328" y2="252" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<path d="M328 228 L152 228 A8 8 0 0 0 144 236 L144 252" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<path d="M328 228 L536 228 A8 8 0 0 1 544 236 L544 252" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<path d="M256 296 L256 394 A8 8 0 0 0 264 402 L272 402" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<line x1="256" y1="342" x2="272" y2="342" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<path d="M472 296 L472 334 A8 8 0 0 0 480 342 L488 342" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<path d="M504 364 L504 462 A8 8 0 0 0 512 470 L520 470" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<line x1="504" y1="410" x2="520" y2="410" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+
+<rect x="240" y="24" width="176" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="240" y="24" width="176" height="44" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/>
+<text x="328" y="43.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Root</text>
+<text x="328" y="56.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">FNRoot</text>
+<rect x="240" y="92" width="176" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="240" y="92" width="176" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="328" y="111.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Body</text>
+<text x="328" y="124.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Body</text>
+<rect x="240" y="160" width="176" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="240" y="160" width="176" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="328" y="179.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Spine</text>
+<text x="328" y="192.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">SpineChain</text>
+<rect x="72" y="252" width="144" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="72" y="252" width="144" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="144" y="271.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Head</text>
+<text x="144" y="284.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Head</text>
+<rect x="240" y="252" width="176" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="240" y="252" width="176" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="328" y="271.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Leg L/R</text>
+<text x="328" y="284.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Limb</text>
+<rect x="456" y="252" width="176" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="456" y="252" width="176" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="544" y="271.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Clavicle L/R</text>
+<text x="544" y="284.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">FkChain</text>
+<rect x="272" y="320" width="144" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="272" y="320" width="144" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="344" y="339.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Upper/Lower Twist</text>
+<text x="344" y="352.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">LimbTwist</text>
+<rect x="272" y="380" width="144" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="272" y="380" width="144" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="344" y="399.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Ball</text>
+<text x="344" y="412.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">FkChain</text>
+<rect x="488" y="320" width="144" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="488" y="320" width="144" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="560" y="339.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Arm L/R</text>
+<text x="560" y="352.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Limb</text>
+<rect x="520" y="388" width="144" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="520" y="388" width="144" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="592" y="407.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Upper/Lower Twist</text>
+<text x="592" y="420.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">LimbTwist</text>
+<rect x="520" y="448" width="144" height="44" rx="6" fill="#1a1a1d"/>
+<rect x="520" y="448" width="144" height="44" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="592" y="467.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">5 fingers</text>
+<text x="592" y="480.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">FkChain</text>
+<line x1="16" y1="520" x2="688" y2="520" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+<text x="16" y="536" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="16" y="546" width="16" height="12" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/>
+<text x="40" y="556" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Root of the assembly</text>
+<line x1="200" y1="552" x2="228" y2="552" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#assembly-arrow)"/>
+<text x="236" y="556" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Parent connector: targets a control of the module above</text>
+<text x="16" y="576" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Each box: name in the tree over the module it uses.</text>
+      </svg>

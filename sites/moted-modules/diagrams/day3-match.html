@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Match controls to the FK pose</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; max-width: 704px; margin: 0 auto; overflow-x: auto; }
+    .head { max-width: 704px; margin: 0 auto; }
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+    svg { width: 100%; min-width: 704px; display: block; }
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <div class="head">
+      <p class="eyebrow">Flowchart · Diagram Design</p>
+      <h1>Match controls to the FK pose</h1>
+    </div>
+    <div class="diagram-container">
+      <svg viewBox="0 0 704 472" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="day3-match-title day3-match-desc">
+        <title id="day3-match-title">Match controls to the FK pose</title>
+        <desc id="day3-match-desc">With the bones posed by FK, two graphs each read the bones and set a control: one matches the pole vector control, the other matches the IK control.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+<rect x="64" y="136" width="608" height="112" rx="8" fill="#141416" stroke="rgba(244,244,245,0.10)" stroke-width="1"/>
+<text x="112" y="156" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">A · MATCH IK CONTROL</text>
+<rect x="64" y="280" width="608" height="112" rx="8" fill="#141416" stroke="rgba(244,244,245,0.10)" stroke-width="1"/>
+<text x="112" y="300" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">B · MATCH POLE VECTOR CONTROL</text>
+<line x1="96" y1="104" x2="96" y2="176" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<path d="M48 104 L48 340 A8 8 0 0 0 56 348 L80 348" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="208" y1="204" x2="240" y2="204" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="432" y1="204" x2="464" y2="204" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+<line x1="304" y1="348" x2="464" y2="348" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#arrow)"/>
+
+<rect x="16" y="48" width="128" height="56" rx="28" fill="#1a1a1d"/>
+<rect x="16" y="48" width="128" height="56" rx="28" fill="rgba(161,161,170,0.10)" stroke="#8b8b94" stroke-width="1"/>
+<text x="80" y="73.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Bones</text>
+<text x="80" y="86.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">posed by FK</text>
+<rect x="80" y="176" width="128" height="56" rx="6" fill="#1a1a1d"/>
+<rect x="80" y="176" width="128" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="144" y="201.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">At −1 of Bones</text>
+<text x="144" y="214.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">the wrist</text>
+<rect x="240" y="176" width="192" height="56" rx="6" fill="#1a1a1d"/>
+<rect x="240" y="176" width="192" height="56" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+<text x="336" y="201.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Project to new Parent</text>
+<text x="336" y="214.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">keep the control's rest offset</text>
+<rect x="464" y="176" width="192" height="56" rx="6" fill="#1a1a1d"/>
+<rect x="464" y="176" width="192" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="560" y="201.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Set Transform</text>
+<text x="560" y="214.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">on IK Control, propagate on</text>
+<rect x="80" y="320" width="224" height="56" rx="6" fill="#1a1a1d"/>
+<rect x="80" y="320" width="224" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="192" y="345.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Compute Pole Vector Location</text>
+<text x="192" y="358.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Day 2</text>
+<rect x="464" y="320" width="192" height="56" rx="6" fill="#1a1a1d"/>
+<rect x="464" y="320" width="192" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="560" y="345.5" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Set Transform</text>
+<text x="560" y="358.5" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">on PV Control, translation only</text>
+<line x1="16" y1="416" x2="688" y2="416" stroke="rgba(244,244,245,0.10)" stroke-width="0.8"/>
+<text x="16" y="432" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="16" y="442" width="24" height="12" rx="6" fill="rgba(161,161,170,0.10)" stroke="#8b8b94" stroke-width="1"/>
+<text x="48" y="452" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Input</text>
+<rect x="104" y="442" width="24" height="12" rx="2" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="136" y="452" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Step</text>
+<rect x="192" y="442" width="24" height="12" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+<text x="224" y="452" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Focal step: project, do not copy</text>
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

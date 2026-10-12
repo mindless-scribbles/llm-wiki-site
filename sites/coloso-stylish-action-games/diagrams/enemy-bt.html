@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enemy AI Behavior Tree</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;   /* deep warm charcoal */
+      --color-ink:     #f2f2f3;   /* warm off-white */
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+
+    body {
+      font-family: var(--font-sans);
+      background: var(--color-paper);
+      color: var(--color-ink);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 3rem 2rem;
+    }
+
+    .frame { max-width: 1200px; width: 100%; }
+    /* The SVG holds its readable width (min-width == the viewBox width, so the
+       type ramp is never silently scaled down). This wrapper lets a narrow
+       screen scroll the diagram instead of the whole page. */
+    .diagram-container { width: 100%; overflow-x: auto; }
+
+    .eyebrow {
+      font-family: var(--font-mono);
+      font-size: 0.66rem;
+      font-weight: 500;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--color-muted);
+      margin-bottom: 0.5rem;
+    }
+
+    h1 {
+      font-family: var(--font-serif);
+      font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem);
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      line-height: 1.15;
+      color: var(--color-ink);
+      margin-bottom: 1.5rem;
+    }
+
+    svg { width: 100%; min-width: 704px; display: block; }
+    /* Paper has no scrollbar, so the local scroller would clip instead of
+       scroll. Let the diagram scale down to the sheet: smaller but whole
+       beats sharp but cut off. Must come after the svg rule above - a media
+       query adds no specificity, so a later plain rule would win. */
+    @media print {
+      .diagram-container { overflow-x: visible; }
+      svg { min-width: 0; }
+    }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Tree · Diagram Design</p>
+    <h1>BT_ScifiSoo after lesson 78: close-range actions</h1>
+
+    <!-- Replace enemy-bt with a unique slug for this diagram before export. -->
+    <div class="diagram-container">
+      <svg viewBox="0 0 704 612" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="enemy-bt-title enemy-bt-desc">
+        <title id="enemy-bt-title">BT_ScifiSoo behavior tree after lesson 78</title>
+        <desc id="enemy-bt-desc">Behavior tree where a Root Selector tries a close-range Melee Selector first, then GunFire, and Melee rolls a dice to pick Dodge 40% of the time or Sword ATTACK 60%.</desc>
+        <defs>
+          <marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+
+          <!-- OPTIONAL: dot-pattern background. Uncomment and add <rect fill="url(#dots)"/> after the paper rect to enable. -->
+          <!--
+          <pattern id="dots" width="22" height="22" patternUnits="userSpaceOnUse">
+            <circle cx="1" cy="1" r="0.9" fill="rgba(244,244,245,0.08)"/>
+          </pattern>
+          -->
+        </defs>
+
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+        <!-- Connectors first -->
+        <path d="M 427 72 V 104" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+        <path d="M 400 152 V 168 A 8 8 0 0 1 392 176 H 278 A 8 8 0 0 0 270 184 V 192" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+        <path d="M 453 152 V 168 A 8 8 0 0 0 461 176 H 576 A 8 8 0 0 1 584 184 V 192" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+        <path d="M 164 316 V 364" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+        <path d="M 376 316 V 364" fill="none" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+        <path d="M 130 288 H 40 A 8 8 0 0 0 32 296 V 512 A 8 8 0 0 0 40 520 H 56" fill="none" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <path d="M 164 492 V 452" fill="none" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow)"/>
+        <!-- Arrow labels -->
+        <rect x="321.0" y="156" width="28" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="335" y="165" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">1ST</text>
+        <rect x="504.0" y="156" width="28" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="518" y="165" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">2ND</text>
+        <rect x="172.0" y="334" width="56" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="200" y="343" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">1ST · 40%</text>
+        <rect x="384.0" y="334" width="56" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="412" y="343" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">2ND · 60%</text>
+        <rect x="65.0" y="268" width="40" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="85" y="277" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">WRITES</text>
+        <rect x="172.0" y="466" width="40" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="192" y="475" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">READS</text>
+        <!-- Nodes -->
+        <rect x="367" y="24" width="120" height="48" rx="6" fill="#1a1a1d"/>
+        <rect x="367" y="24" width="120" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <rect x="375" y="30" width="32" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="391.0" y="39" fill="#a1a1aa" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">ROOT</text>
+        <text x="427" y="56" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Root</text>
+        <text x="427" y="68" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">BT_ScifiSoo</text>
+        <rect x="347" y="104" width="160" height="48" rx="6" fill="#1a1a1d"/>
+        <rect x="347" y="104" width="160" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <rect x="355" y="110" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="369.0" y="119" fill="#a1a1aa" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">SEL</text>
+        <text x="427" y="140" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Action</text>
+        <rect x="130" y="192" width="280" height="124" rx="6" fill="#1a1a1d"/>
+        <rect x="130" y="192" width="280" height="124" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+        <rect x="138" y="198" width="28" height="12" rx="2" fill="transparent" stroke="rgba(255,51,0,0.50)" stroke-width="0.8"/>
+        <text x="152.0" y="207" fill="#ff3300" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">SEL</text>
+        <text x="270" y="222" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Melee</text>
+        <line x1="138" y1="234" x2="402" y2="234" stroke="rgba(244,244,245,0.10)" stroke-width="0.8"/>
+        <text x="140" y="252" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif">If Distance &lt;= 300</text>
+        <text x="402" y="250" fill="#8b8b94" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="end" letter-spacing="0.14em">DECORATOR</text>
+        <text x="140" y="264" fill="#8b8b94" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">BotCheckFocusNear, Acceptance Distance 300</text>
+        <line x1="138" y1="274" x2="402" y2="274" stroke="rgba(244,244,245,0.10)" stroke-width="0.8"/>
+        <text x="140" y="292" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif">BotRollDice</text>
+        <text x="402" y="290" fill="#8b8b94" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="end" letter-spacing="0.14em">DECORATOR</text>
+        <text x="140" y="304" fill="#8b8b94" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">writes Random Float 0 to 1 to DiceValue</text>
+        <rect x="504" y="192" width="160" height="52" rx="6" fill="#1a1a1d"/>
+        <rect x="504" y="192" width="160" height="52" rx="6" fill="rgba(242,242,243,0.03)" stroke="rgba(242,242,243,0.30)" stroke-width="1"/>
+        <rect x="512" y="198" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="526.0" y="207" fill="#a1a1aa" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TASK</text>
+        <text x="584" y="224" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">GunFire</text>
+        <text x="584" y="236" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Character.Attack.GunFire</text>
+        <rect x="56" y="364" width="216" height="88" rx="6" fill="#1a1a1d"/>
+        <rect x="56" y="364" width="216" height="88" rx="6" fill="rgba(242,242,243,0.03)" stroke="rgba(242,242,243,0.30)" stroke-width="1"/>
+        <rect x="64" y="370" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="78.0" y="379" fill="#a1a1aa" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TASK</text>
+        <text x="164" y="396" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Dodge</text>
+        <text x="164" y="408" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Character.Dodge</text>
+        <line x1="64" y1="416" x2="264" y2="416" stroke="rgba(244,244,245,0.10)" stroke-width="0.8"/>
+        <text x="64" y="434" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif">40%</text>
+        <text x="264" y="432" fill="#8b8b94" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="end" letter-spacing="0.14em">DECORATOR</text>
+        <text x="64" y="446" fill="#8b8b94" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">BotCheckDice, DesiredPercentage 40</text>
+        <rect x="296" y="364" width="160" height="52" rx="6" fill="#1a1a1d"/>
+        <rect x="296" y="364" width="160" height="52" rx="6" fill="rgba(242,242,243,0.03)" stroke="rgba(242,242,243,0.30)" stroke-width="1"/>
+        <rect x="304" y="370" width="28" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="318.0" y="379" fill="#a1a1aa" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">TASK</text>
+        <text x="376" y="396" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Sword ATTACK</text>
+        <text x="376" y="408" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Character.Attack.Sword</text>
+        <rect x="56" y="492" width="240" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="56" y="492" width="240" height="56" rx="6" fill="#1a1a1d" stroke="#a1a1aa" stroke-width="1"/>
+        <rect x="64" y="498" width="32" height="12" rx="2" fill="transparent" stroke="rgba(161,161,170,0.40)" stroke-width="0.8"/>
+        <text x="80.0" y="507" fill="#a1a1aa" font-size="7" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.08em">STORE</text>
+        <text x="176" y="524" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">BotBlackboard</text>
+        <text x="176" y="536" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">DiceValue (Float)</text>
+        <!-- Notes -->
+        <line x1="24" y1="24" x2="24" y2="90" stroke="#5a5a60" stroke-width="1"/>
+        <text x="36" y="34" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">SELECTOR RULE</text>
+        <text x="36" y="54" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">Children are tried left to right, leftmost first.</text>
+        <text x="36" y="68" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">A Selector stops at the first child that returns True.</text>
+        <text x="36" y="82" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">A Sequence stops at the first that returns False.</text>
+        <line x1="328" y1="492" x2="328" y2="548" stroke="#5a5a60" stroke-width="1"/>
+        <text x="340" y="502" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">BOTCHECKDICE</text>
+        <text x="340" y="520" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">True when DiceValue - DesiredPercentage × 0.01 &lt;= 0</text>
+        <text x="340" y="534" fill="#8b8b94" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="start">With 40: a roll up to 0.40 passes. Dodge 40%, Sword 60%.</text>
+        <!-- Legend -->
+        <line x1="24" y1="568" x2="680" y2="568" stroke="rgba(244,244,245,0.10)" stroke-width="0.8"/>
+        <text x="24" y="590" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">LEGEND</text>
+        <rect x="96" y="581" width="14" height="10" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/>
+        <text x="116" y="590" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Focal composite</text>
+        <rect x="204" y="581" width="14" height="10" rx="2" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <text x="224" y="590" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Composite</text>
+        <rect x="290" y="581" width="14" height="10" rx="2" fill="rgba(242,242,243,0.03)" stroke="rgba(242,242,243,0.30)" stroke-width="1"/>
+        <text x="310" y="590" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Task (leaf)</text>
+        <rect x="376" y="581" width="14" height="10" rx="2" fill="#1a1a1d" stroke="#a1a1aa" stroke-width="1"/>
+        <text x="396" y="590" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Blackboard</text>
+        <line x1="466" y1="586" x2="486" y2="586" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="5,4"/>
+        <text x="492" y="590" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Blackboard read or write</text>
+
+      </svg>
+    </div>
+  </div>
+</body>
+</html>

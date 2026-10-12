@@ -1,0 +1,135 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 852" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="combo-wait-title combo-wait-desc" id="combo-wait-root">
+        <title id="combo-wait-title">Click during the combo wait window</title>
+        <desc id="combo-wait-desc">Message order for a combo montage: the ANS_ComboWaiting notify tells ActionHeroController the window opened, a left-click inside it calls Act the Next on STT_GroundComboAttack, and the End notify clears the stored window.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #combo-wait-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #combo-wait-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #combo-wait-root .diagram-container { width: 100%; max-width: 704px; margin: 0 auto; overflow-x: auto; }
+      #combo-wait-root .head { max-width: 704px; margin: 0 auto; }
+      #combo-wait-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="combo-wait-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="combo-wait-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="combo-wait-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+<line x1="82" y1="88" x2="82" y2="772" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="240" y1="88" x2="240" y2="772" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="392" y1="88" x2="392" y2="772" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="528" y1="88" x2="528" y2="772" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<line x1="648" y1="88" x2="648" y2="772" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="3,3"/>
+<rect x="364" y="400" width="272" height="220" rx="4" fill="#f2f2f3" fill-opacity="0.04" stroke="#f2f2f3" stroke-opacity="0.22" stroke-width="1"/>
+<rect x="364" y="400" width="40" height="16" rx="2" fill="#1a1a1d" stroke="#f2f2f3" stroke-opacity="0.22" stroke-width="1"/>
+<text x="384" y="412" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.12em">ALT</text>
+<text x="400" y="432" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.04em">[valid, tags match]</text>
+<line x1="372" y1="548" x2="628" y2="548" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="400" y="568" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.04em">[not valid]</text>
+<rect x="236" y="124" width="8" height="584" fill="#f2f2f3" fill-opacity="0.06" stroke="#a1a1aa" stroke-width="0.8"/>
+
+<rect x="388" y="232" width="8" height="48" fill="#f2f2f3" fill-opacity="0.06" stroke="#a1a1aa" stroke-width="0.8"/>
+
+<rect x="388" y="328" width="8" height="280" fill="#f2f2f3" fill-opacity="0.06" stroke="#a1a1aa" stroke-width="0.8"/>
+
+<rect x="388" y="708" width="8" height="48" fill="#f2f2f3" fill-opacity="0.06" stroke="#a1a1aa" stroke-width="0.8"/>
+
+<rect x="524" y="476" width="8" height="52" fill="#f2f2f3" fill-opacity="0.06" stroke="#a1a1aa" stroke-width="0.8"/>
+
+<line x1="82" y1="128" x2="236" y2="128" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<rect x="101" y="110" width="116" height="12" rx="2" fill="#1a1a1d"/>
+<text x="159" y="119" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">Received Notify Begin</text>
+
+<path d="M244 160 H254 A6 6 0 0 1 260 166 V182 A6 6 0 0 1 254 188 H244" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="268" y="167" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">Get Owner</text>
+<text x="268" y="177" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">Cast To CharacterBase</text>
+<text x="268" y="187" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">Get Controller</text>
+
+<line x1="244" y1="232" x2="388" y2="232" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<rect x="252" y="214" width="128" height="12" rx="2" fill="#1a1a1d"/>
+<text x="316" y="223" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">BeginComboWaiting(Self)</text>
+
+<path d="M396 264 H406 A6 6 0 0 1 412 270 V274 A6 6 0 0 1 406 280 H396" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="420" y="275" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">save ComboWaiting</text>
+
+<line x1="648" y1="328" x2="396" y2="328" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<rect x="540" y="300" width="96" height="22" rx="2" fill="#1a1a1d"/>
+<text x="588" y="309" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">left-click</text>
+<text x="588" y="319" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">Try Player Action</text>
+
+<path d="M396 352 H406 A6 6 0 0 1 412 358 V374 A6 6 0 0 1 406 380 H396" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="420" y="364" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">Is Valid</text>
+<text x="420" y="374" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">(ComboWaiting)</text>
+
+<line x1="396" y1="476" x2="524" y2="476" stroke="#ff3300" stroke-width="1.4" marker-end="url(#combo-wait-arrow-accent)"/>
+<rect x="420" y="448" width="80" height="22" rx="2" fill="#1a1a1d"/>
+<text x="460" y="457" fill="#ff3300" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">Act the Next</text>
+<text x="460" y="467" fill="#ff3300" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">(ComboWaiting)</text>
+
+<path d="M532 500 H542 A6 6 0 0 1 548 506 V522 A6 6 0 0 1 542 528 H532" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="556" y="507" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">Jump to</text>
+<text x="556" y="517" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">NextSection</text>
+<text x="556" y="527" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">Combo2, Combo3</text>
+
+<path d="M396 592 H406 A6 6 0 0 1 412 598 V602 A6 6 0 0 1 406 608 H396" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="420" y="603" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">run existing code</text>
+
+<line x1="82" y1="660" x2="236" y2="660" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<rect x="105" y="642" width="108" height="12" rx="2" fill="#1a1a1d"/>
+<text x="159" y="651" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">Received Notify End</text>
+
+<line x1="244" y1="708" x2="388" y2="708" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<rect x="258" y="690" width="116" height="12" rx="2" fill="#1a1a1d"/>
+<text x="316" y="699" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.02em">EndComboWaiting(Self)</text>
+
+<path d="M396 728 H406 A6 6 0 0 1 412 734 V750 A6 6 0 0 1 406 756 H396" fill="none" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="420" y="740" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">clear ComboWaiting</text>
+<text x="420" y="750" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.02em">if it matches</text>
+
+<rect x="12" y="16" width="140" height="72" rx="6" fill="#1a1a1d"/>
+<rect x="12" y="16" width="140" height="72" rx="6" fill="#f2f2f3" fill-opacity="0.03" stroke="#f2f2f3" stroke-opacity="0.30" stroke-width="1"/>
+<text x="82" y="40" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">AM_ScifiSoo_</text>
+<text x="82" y="55" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">GroundComboAttack</text>
+<text x="82" y="74" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Animation Montage</text>
+
+<rect x="176" y="16" width="128" height="72" rx="6" fill="#1a1a1d"/>
+<rect x="176" y="16" width="128" height="72" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/>
+<text x="240" y="40" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">ANS_Combo</text>
+<text x="240" y="55" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Waiting</text>
+<text x="240" y="74" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">AnimNotifyState</text>
+
+<rect x="336" y="16" width="112" height="72" rx="6" fill="#1a1a1d"/>
+<rect x="336" y="16" width="112" height="72" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="392" y="40" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">ActionHero</text>
+<text x="392" y="55" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Controller</text>
+<text x="392" y="74" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">IController</text>
+
+<rect x="472" y="16" width="112" height="72" rx="6" fill="#1a1a1d"/>
+<rect x="472" y="16" width="112" height="72" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="528" y="40" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">STT_Ground</text>
+<text x="528" y="55" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">ComboAttack</text>
+<text x="528" y="74" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">IAction</text>
+
+<rect x="608" y="16" width="80" height="72" rx="6" fill="#1a1a1d"/>
+<rect x="608" y="16" width="80" height="72" rx="6" fill="#a1a1aa" fill-opacity="0.10" stroke="#8b8b94" stroke-width="1"/>
+<text x="648" y="47" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Player</text>
+<text x="648" y="66" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">left-click</text>
+
+<line x1="16" y1="796" x2="688" y2="796" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+<text x="16" y="812" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+<rect x="16" y="827" width="16" height="12" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/>
+<text x="40" y="836" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Focal: new class, gated call</text>
+<line x1="212" y1="833" x2="240" y2="833" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#combo-wait-arrow)"/>
+<text x="248" y="836" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Call, self call</text>
+<rect x="352" y="827" width="8" height="14" fill="#f2f2f3" fill-opacity="0.06" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="368" y="836" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Active</text>
+<rect x="440" y="825" width="32" height="18" rx="2" fill="#f2f2f3" fill-opacity="0.04" stroke="#f2f2f3" stroke-opacity="0.22" stroke-width="1"/>
+<text x="456" y="836" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">ALT</text>
+<text x="480" y="836" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Fragment</text>
+      </svg>

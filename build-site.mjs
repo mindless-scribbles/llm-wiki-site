@@ -14,6 +14,8 @@ import { join, dirname, relative, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { resolveConfig } from "./config.mjs";
+// Mermaid is the legacy diagram path: new diagrams are @diagram SVGs (add-diagram
+// skill). Fences still render so an unconverted page never breaks.
 import { findMermaidFences, renderMermaid, findDiagramFont } from "./mermaid.mjs";
 
 const MARKER = ".llm-wiki-site.json";
@@ -49,6 +51,36 @@ function builderCommit() {
   return gitOut(BUILDER_DIR, ["rev-parse", "--short", "HEAD"]);
 }
 
+// A diagram-design export, made safe to inline: no XML prologue, no Google Fonts
+// @import (export_svg.py hard-codes the skill's own faces; the page loads DDC
+// Reel's), no fixed width or height (the .diagram-block rule sizes it), and every
+// id prefixed with the slug so two diagrams on one page never share an id, even
+// when an svg was drawn without the skill's slug-namespaced ids.
+function cleanDiagramSvg(svg, slug) {
+  const p = `dg-${slug}-`;
+  let s = svg.replace(/^﻿?\s*<\?xml[^>]*\?>\s*/, "").replace(/<!DOCTYPE[^>]*>\s*/i, "");
+  s = s.replace(/@import\s+url\([^)]*\)\s*;?/g, "");
+  s = s.replace(/<svg\b[^>]*>/, (tag) => tag.replace(/\s(width|height)="[^"]*"/g, ""));
+  s = s.replace(/\sid="([^"]+)"/g, ` id="${p}$1"`);
+  s = s.replace(/url\(\s*(['"]?)#([^'")\s]+)\1\s*\)/g, `url(#${p}$2)`);
+  s = s.replace(/(\s(?:xlink:)?href)="#([^"]+)"/g, `$1="#${p}$2"`);
+  s = s.replace(/\s(aria-labelledby|aria-describedby)="([^"]+)"/g,
+    (_, a, ids) => ` ${a}="${ids.trim().split(/\s+/).map((x) => p + x).join(" ")}"`);
+  // export_svg scopes the template CSS as "#<slug>-root …". Rewrite id selectors
+  // only: a chunk followed by "{" is a selector; one followed by "}" holds
+  // declarations, whose hex colors (#ff3300) must stay as they are.
+  s = s.replace(/(<style\b[^>]*>)([\s\S]*?)(<\/style>)/g, (_, open, css, close) => {
+    const parts = css.split(/([{}])/);
+    for (let k = 0; k < parts.length; k += 2) {
+      if (parts[k + 1] === "{" && !/^\s*@/.test(parts[k])) {
+        parts[k] = parts[k].replace(/#([A-Za-z_][\w-]*)/g, `#${p}$1`);
+      }
+    }
+    return open + parts.join("") + close;
+  });
+  return s.trim();
+}
+
 /**
  * Render a wiki to a static site.
  *
@@ -57,6 +89,8 @@ function builderCommit() {
  * @param {string} [o.wikiDir]    The markdown root. Defaults to <wikiRoot>/wiki.
  * @param {string}  o.outDir      Where the HTML goes. Wiped and rebuilt.
  * @param {string} [o.widgetsDir] Folder of per-wiki <slug>.js concept widgets.
+ * @param {string} [o.mediaDir]   Folder of per-wiki videos and stills (@video, @image).
+ * @param {string} [o.diagramsDir] Folder of per-wiki <slug>.svg diagrams (@diagram).
  * @param {string} [o.vizLib]     The shared _viz.js library. Defaults to the copy
  *                                shipped alongside this generator.
  * @param {string} [o.wikiId]     Name recorded in the provenance marker.
@@ -137,6 +171,19 @@ export function build(o) {
           .map((f) => f.replace(/\.jpg$/, ""))
       : []
   );
+
+  // Diagrams: <diagrams>/<slug>.svg, mounted by "@diagram[slug] caption". The
+  // add-diagram skill draws them (diagram-design, DDC Reel profile) at a 704-unit
+  // viewBox so they sit 1:1 in the .viz frame; the .html and .md beside each svg
+  // are its source and content spec. Inlined, not <img>, so the page's fonts apply.
+  const DIAGRAMS_DIR = o.diagramsDir ? resolve(o.diagramsDir) : null;
+  const diagramSvgs = new Map();
+  if (DIAGRAMS_DIR && existsSync(DIAGRAMS_DIR)) {
+    for (const f of readdirSync(DIAGRAMS_DIR)) {
+      const m = f.match(/^([a-z0-9][a-z0-9-]*)\.svg$/);
+      if (m) diagramSvgs.set(m[1], cleanDiagramSvg(readFileSync(join(DIAGRAMS_DIR, f), "utf8"), m[1]));
+    }
+  }
 
   // NOTE: the body below is deliberately left at its original (unindented) level
   // rather than re-indented into this function. It keeps `git blame` intact and,
@@ -482,6 +529,28 @@ function mdToHtml(body, page, base = null) {
       continue;
     }
 
+    // Inline diagram: "@diagram[slug] optional caption" inlines <diagrams>/<slug>.svg
+    // in the same frame Mermaid used. Not drawn yet: a review-only slot, like @image.
+    const dg = line.match(/^\s*@diagram\[([a-z0-9][a-z0-9-]*)\](?:\s+(.*))?$/);
+    if (dg && page) {
+      const svg = diagramSvgs.get(dg[1]);
+      const cap = (dg[2] || "").trim();
+      if (svg) {
+        out.push(
+          `<figure class="diagram-block"${dl(i)}><div class="viz"><div class="viz-label">Diagram</div>` +
+            `${svg}</div>` +
+            (cap ? `<figcaption class="video-caption">${inline(cap, page)}</figcaption>` : "") +
+            `</figure>`
+        );
+      } else {
+        out.push(`<figure class="image-wanted diagram-wanted"${dl(i)}><div class="image-wanted-box">` +
+          `<span class="image-wanted-label">Diagram needed · ${escapeHtml(dg[1])}</span>` +
+          (cap ? `<span class="image-wanted-cap">${inline(cap, page)}</span>` : "") + `</div></figure>`);
+      }
+      i++;
+      continue;
+    }
+
     // Heading
     const h = line.match(/^(#{1,6})\s+(.*)$/);
     if (h) {
@@ -731,7 +800,7 @@ const TYPE_LABELS = {
 
 // DDC Reel type: Syne (display), Space Mono (labels), Hanken Grotesk (reading text).
 const FONTS =
-  "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;600&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap";
+  "https://fonts.googleapis.com/css2?family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&family=Syne:wght@400;600;700;800&display=swap";
 
 // Pages in master-index order (the sidebar's groups, top to bottom), and where a
 // page sits in it: its group and its number within the group.
@@ -889,10 +958,11 @@ function renderMeta(page) {
 //   **Predict:** / **Read:**      -> a prediction box; the read-off hides until checked
 //   ⚠️ line                        -> a trap callout
 //   > quote                        -> the line to remember
-//   mermaid / @video / @image / @viz -> the phase's visual, beside the steps
+//   @diagram / @video / @image / @viz / mermaid -> the phase's visual, beside the steps
 //   **Goal:** / **Result:** / **Open beside this page:** or **Open in Unreal:** (a list may
 //   follow on the next lines) before the first phase -> the brief
-//   @image[slug] with no file yet  -> a "screenshot needed" slot, shown in review mode only
+//   @image[slug] / @diagram[slug] with no file yet -> a "screenshot needed" / "diagram
+//   needed" slot, shown in review mode only
 // Obsidian sees plain markdown; only the site reads the markers.
 
 const MARKER_RE = /^(\*\*(Ask|Decision|Predict|Read|Why|Goal|Result|Open beside this page|Open in [A-Za-z ]+):\*\*|⚠️)/;
@@ -946,7 +1016,7 @@ function lessonBlocks(sec) {
     const mk = f.match(/^\*\*([A-Za-z ]+):\*\*\s*/);
     b.label = mk ? mk[1] : "";
     b.text = b.lines.join("\n");
-    if (/^```\s*mermaid\s*$/.test(f) || /^\s*@(video|image|viz)\[/.test(f)) b.kind = "visual";
+    if (/^```\s*mermaid\s*$/.test(f) || /^\s*@(video|image|diagram|viz)\[/.test(f)) b.kind = "visual";
     else if (/^\s*>/.test(f)) b.kind = "remember";
     else if (/^⚠️/.test(f)) { b.kind = "trap"; b.text = b.text.replace(/^⚠️️?\s*/, "").replace(/^[a-z]/, (c) => c.toUpperCase()); }
     else if (mk && MARKER_RE.test(f)) {
@@ -1077,7 +1147,7 @@ function renderLesson(page) {
     <div class="lesson-phase-kicker">Phase ${num} / ${n}${p.minutes ? ` · ${p.minutes} min` : ""}</div>
     <h2 class="lesson-phase-title" id="${p.id}">${inline(p.title, page)}</h2>
   </header>
-  <div class="lesson-phase-grid ${visuals.some((v) => !v.includes('class="image-wanted"')) ? "has-visual" : "no-visual"}">
+  <div class="lesson-phase-grid ${visuals.some((v) => !/class="image-wanted[ "]/.test(v)) ? "has-visual" : "no-visual"}">
     <div class="lesson-flow">${flow}</div>
     <aside class="lesson-visual">${visual}</aside>
   </div>
@@ -1232,6 +1302,11 @@ function cardMedia(dest, page) {
   if (im && mediaImages.has(im[1])) {
     return `<img class="home-card-img" src="${relHref(page.outRel, "assets/media/" + mediaImages.get(im[1]))}" alt="" loading="lazy">`;
   }
+  const dg = dest.body.match(/^\s*@diagram\[([a-z0-9][a-z0-9-]*)\]/m);
+  if (dg && diagramSvgs.has(dg[1])) {
+    return `<div class="home-card-svg" aria-hidden="true">${diagramSvgs.get(dg[1])}</div>`;
+  }
+  // Legacy: a Mermaid fence (new diagrams are @diagram; see mermaid.mjs).
   const fence = findMermaidFences(dest.body).find((f) => DIAGRAMS.has(f));
   return fence ? `<div class="home-card-svg" aria-hidden="true">${DIAGRAMS.get(fence)}</div>` : "";
 }

@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="anim-threads-title anim-threads-desc" id="anim-threads-root">
+        <title id="anim-threads-title">Game Thread and Animation Thread</title>
+        <desc id="anim-threads-desc">Swimlane diagram of an Animation Blueprint in which the Event Graph computes GroundSpeed on the Game Thread and the AnimGraph reads it into BS_Walk on the Animation Thread, while a direct Try Get Pawn Owner call from the AnimGraph is thread-unsafe.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #anim-threads-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #anim-threads-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #anim-threads-root .diagram-container { width: 100%; overflow-x: auto; }
+      #anim-threads-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="anim-threads-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <marker id="anim-threads-arrow-accent" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#ff3300"/></marker>
+          <marker id="anim-threads-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+        <!-- Lane dividers and labels -->
+        <line x1="24" y1="16" x2="680" y2="16" stroke="#5a5a60" stroke-width="1"/>
+        <line x1="24" y1="124" x2="680" y2="124" stroke="#5a5a60" stroke-width="1"/>
+        <line x1="24" y1="244" x2="680" y2="244" stroke="#5a5a60" stroke-width="1"/>
+        <text x="36" y="34" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">GAME THREAD · EVENT GRAPH</text>
+        <text x="36" y="142" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.18em">ANIMATION THREAD · ANIMGRAPH</text>
+
+        <!-- Arrows (drawn first) -->
+        <line x1="180" y1="72" x2="212" y2="72" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#anim-threads-arrow)"/>
+        <line x1="364" y1="72" x2="396" y2="72" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#anim-threads-arrow)"/>
+        <line x1="524" y1="72" x2="556" y2="72" stroke="#a1a1aa" stroke-width="1.2" marker-end="url(#anim-threads-arrow)"/>
+        <!-- Handoff: GroundSpeed -> BS_Walk (focal) -->
+        <line x1="612" y1="100" x2="612" y2="164" stroke="#ff3300" stroke-width="1.4" marker-end="url(#anim-threads-arrow-accent)"/>
+        <!-- Unsafe: AnimGraph Try Get Pawn Owner -> Game Thread -->
+        <line x1="288" y1="164" x2="288" y2="100" stroke="#a1a1aa" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#anim-threads-arrow)"/>
+
+        <!-- Callout leader -->
+        <line x1="540" y1="140" x2="606" y2="140" stroke="#f2f2f3" stroke-opacity="0.40" stroke-width="1" stroke-dasharray="4,3"/>
+        <circle cx="607" cy="140" r="2" fill="#f2f2f3"/>
+
+        <!-- Arrow labels -->
+        <rect x="620" y="126" width="56" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="648" y="135" fill="#ff3300" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">SAFE READ</text>
+        <rect x="296" y="126" width="76" height="12" rx="2" fill="#1a1a1d"/>
+        <text x="334" y="135" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle" letter-spacing="0.06em">THREAD-UNSAFE</text>
+
+        <!-- Callout -->
+        <text font-size="14" font-style="italic" font-family="'Hanken Grotesk', system-ui, sans-serif" fill="#f2f2f3">
+          <tspan x="392" y="144">Property Access makes</tspan>
+          <tspan x="392" y="160">the same handoff, before</tspan>
+          <tspan x="392" y="176">the Event Graph</tspan>
+        </text>
+
+        <!-- Game Thread nodes -->
+        <rect x="36" y="44" width="144" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="36" y="44" width="144" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <text x="108" y="63" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Event Blueprint</text>
+        <text x="108" y="77" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Update Animation</text>
+        <text x="108" y="91" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">every Tick</text>
+
+        <rect x="212" y="44" width="152" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="212" y="44" width="152" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <text x="288" y="68" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Try Get Pawn Owner</text>
+        <text x="288" y="84" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">then Get Velocity</text>
+
+        <rect x="396" y="44" width="128" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="396" y="44" width="128" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <text x="460" y="68" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Vector Length XY</text>
+        <text x="460" y="84" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Vector to Float</text>
+
+        <rect x="556" y="44" width="112" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="556" y="44" width="112" height="56" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/>
+        <text x="612" y="68" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">GroundSpeed</text>
+        <text x="612" y="84" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Float variable</text>
+
+        <!-- Animation Thread nodes -->
+        <rect x="212" y="164" width="152" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="212" y="164" width="152" height="56" rx="6" fill="#f2f2f3" fill-opacity="0.02" stroke="#f2f2f3" stroke-opacity="0.30" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="288" y="188" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">Try Get Pawn Owner</text>
+        <text x="288" y="204" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">thread-unsafe warning</text>
+
+        <rect x="552" y="164" width="120" height="56" rx="6" fill="#1a1a1d"/>
+        <rect x="552" y="164" width="120" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <rect x="560" y="170" width="72" height="12" rx="2" fill="none" stroke="#f2f2f3" stroke-opacity="0.40" stroke-width="0.8"/>
+        <polygon points="569,170.5 563.5,177 566.5,177 565.5,181.5 571.5,174.5 568.5,174.5" fill="#f2f2f3"/>
+        <text x="575" y="179" fill="#f2f2f3" fill-opacity="0.8" font-size="7" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.08em">FAST PATH</text>
+        <text x="612" y="198" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif" text-anchor="middle">BS_Walk</text>
+        <text x="612" y="212" fill="#a1a1aa" font-size="9" font-family="'Space Mono', ui-monospace, monospace" text-anchor="middle">Speed pin</text>
+
+        <!-- Legend -->
+        <line x1="24" y1="264" x2="680" y2="264" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <text x="24" y="283" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+
+        <rect x="88" y="274" width="14" height="10" rx="2" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+        <text x="108" y="283" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Node</text>
+
+        <rect x="152" y="274" width="14" height="10" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/>
+        <text x="172" y="283" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Variable shared across threads</text>
+
+        <line x1="340" y1="279" x2="368" y2="279" stroke="#ff3300" stroke-width="1.4" marker-end="url(#anim-threads-arrow-accent)"/>
+        <text x="376" y="283" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Safe handoff</text>
+
+        <line x1="460" y1="279" x2="488" y2="279" stroke="#a1a1aa" stroke-width="1.2" stroke-dasharray="5,4" marker-end="url(#anim-threads-arrow)"/>
+        <text x="496" y="283" fill="#a1a1aa" font-size="9" font-family="'Hanken Grotesk', system-ui, sans-serif">Unsafe cross-thread call</text>
+      </svg>

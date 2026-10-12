@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 688" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="getup-timeline-title getup-timeline-desc" id="getup-timeline-root">
+        <title id="getup-timeline-title">Air-hit recovery, from launch to getting up</title>
+        <desc id="getup-timeline-desc">Timeline of an enemy hit by an Air Combo: launch, landing and ragdoll, a random time on the ground, then a 0.7 second blend back to animation.</desc>
+        <defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #getup-timeline-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #getup-timeline-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #getup-timeline-root .diagram-container { width: 100%; overflow-x: auto; }
+      #getup-timeline-root .diagram-container { overflow-x: visible; }</style>
+          <marker id="getup-timeline-getup-timeline-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker>
+          <linearGradient id="getup-timeline-getup-timeline-fade" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#ff3300" stop-opacity="0.55"/>
+            <stop offset="1" stop-color="#ff3300" stop-opacity="0.04"/>
+          </linearGradient>
+        </defs>
+
+        <rect width="100%" height="100%" fill="#1a1a1d"/>
+
+        <!-- Phase hairlines and eyebrows -->
+        <g font-family="'Space Mono', ui-monospace, monospace" font-size="8" letter-spacing="0.18em" fill="#a1a1aa">
+          <line x1="32" y1="44" x2="672" y2="44" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+          <text x="32" y="36">01 AIR</text>
+          <line x1="32" y1="176" x2="672" y2="176" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+          <text x="32" y="168">02 LANDING</text>
+          <line x1="32" y1="284" x2="672" y2="284" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+          <text x="32" y="276">03 RAGDOLL ON THE GROUND</text>
+          <text x="272" y="276">SECONDS SINCE LANDING</text>
+          <line x1="32" y1="498" x2="672" y2="498" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+          <text x="32" y="490">04 GETTING UP</text>
+          <text x="272" y="490">THREE CALLS AT T = 0, IN ORDER</text>
+        </g>
+
+        <!-- Spine, in three runs around the axis break -->
+        <line x1="256" y1="60" x2="256" y2="470" stroke="#5a5a60" stroke-width="1"/>
+        <line x1="248" y1="470" x2="264" y2="470" stroke="#5a5a60" stroke-width="1"/>
+        <line x1="248" y1="480" x2="264" y2="480" stroke="#5a5a60" stroke-width="1"/>
+        <text x="240" y="478" fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.06em" text-anchor="end">TIME RESTARTS AT END OF DELAY</text>
+        <line x1="256" y1="480" x2="256" y2="628" stroke="#5a5a60" stroke-width="1" marker-end="url(#getup-timeline-getup-timeline-arrow)"/>
+
+        <!-- Ground-phase scale: 28px per second, 0 s at y=324 -->
+        <g stroke="#5a5a60" stroke-width="1">
+          <line x1="253" y1="324" x2="259" y2="324"/>
+          <line x1="253" y1="352" x2="259" y2="352"/>
+          <line x1="253" y1="380" x2="259" y2="380"/>
+          <line x1="253" y1="408" x2="259" y2="408"/>
+          <line x1="253" y1="436" x2="259" y2="436"/>
+          <line x1="253" y1="464" x2="259" y2="464"/>
+        </g>
+        <g fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.06em">
+          <text x="266" y="327">0 s</text>
+          <text x="266" y="355">1 s</text>
+          <text x="266" y="383">2 s</text>
+          <text x="266" y="411">3 s</text>
+          <text x="266" y="439">4 s</text>
+          <text x="266" y="467">5 s</text>
+        </g>
+
+        <!-- Lie bars -->
+        <g stroke="#a1a1aa" stroke-width="1">
+          <rect x="296" y="324" width="24" height="84" fill="#a1a1aa" fill-opacity="0.15"/>
+          <rect x="296" y="408" width="24" height="56" fill="#f2f2f3" fill-opacity="0.02" stroke-dasharray="4,3"/>
+          <rect x="480" y="324" width="24" height="14" fill="#a1a1aa" fill-opacity="0.15"/>
+          <rect x="480" y="338" width="24" height="42" fill="#f2f2f3" fill-opacity="0.02" stroke-dasharray="4,3"/>
+        </g>
+        <g font-family="'Hanken Grotesk', system-ui, sans-serif" font-size="12" font-weight="600" fill="#f2f2f3">
+          <text x="296" y="316">Strike Down</text>
+          <text x="480" y="316">Air Hit</text>
+        </g>
+        <g font-family="'Space Mono', ui-monospace, monospace" font-size="9" fill="#a1a1aa">
+          <text x="330" y="438">random 3–5 s</text>
+          <text x="514" y="362">random 0.5–2 s</text>
+        </g>
+
+        <!-- Blend bar (focal): 0.7 s at 60px per second, 0 at y=534 -->
+        <rect x="296" y="534" width="24" height="42" fill="url(#getup-timeline-getup-timeline-fade)" stroke="#ff3300" stroke-width="1"/>
+        <g stroke="#5a5a60" stroke-width="1">
+          <line x1="253" y1="576" x2="259" y2="576"/>
+        </g>
+        <g fill="#8b8b94" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.06em">
+          <text x="266" y="537">0 s</text>
+          <text x="266" y="579">0.7 s</text>
+        </g>
+        <g font-family="'Space Mono', ui-monospace, monospace" font-size="9" fill="#a1a1aa">
+          <text x="330" y="548" fill="#f2f2f3">FinalPoseAlpha 1 to 0</text>
+          <text x="330" y="562">FinalPoseRemainingTime / FinalPoseBlendOutTime</text>
+          <text x="330" y="576">plain Blend node, not Blend Poses by bool</text>
+          <text x="330" y="590">A: normal pose, B: Save Pose Snapshot</text>
+        </g>
+
+        <!-- Event dots -->
+        <circle cx="256" cy="72" r="4" fill="#f2f2f3"/>
+        <circle cx="256" cy="124" r="4" fill="#1a1a1d" stroke="#f2f2f3" stroke-width="1" stroke-dasharray="2,2"/>
+        <circle cx="256" cy="204" r="4" fill="#f2f2f3"/>
+        <circle cx="256" cy="324" r="4" fill="#f2f2f3"/>
+        <circle cx="256" cy="534" r="6" fill="#ff3300"/>
+
+        <!-- Event labels, left of the spine -->
+        <g font-family="'Hanken Grotesk', system-ui, sans-serif" font-size="12" font-weight="600" fill="#f2f2f3" text-anchor="end">
+          <text x="240" y="76">Air Launch</text>
+          <text x="240" y="208">Event On Landed</text>
+          <text x="240" y="328">Activate(PhysicalAnimation)</text>
+          <text x="240" y="538" fill="#ff3300">Blend From Current Pose</text>
+          <text x="240" y="572">Deactivate Physical Anim</text>
+          <text x="240" y="606">Play Action Montage</text>
+        </g>
+        <g font-family="'Space Mono', ui-monospace, monospace" font-size="9" fill="#a1a1aa" text-anchor="end">
+          <text x="240" y="90">IsAirDamage = true</text>
+          <text x="240" y="222">Branch on IsAirDamage</text>
+          <text x="240" y="234">reset IsAirDamage to false</text>
+          <text x="240" y="246">Can Be Damaged = false</text>
+          <text x="240" y="342">Physical Weight 1</text>
+          <text x="240" y="354">Ragdoll constraint profile</text>
+          <text x="240" y="366">gravity on</text>
+          <text x="240" y="552">BlendTime 0.7 s</text>
+          <text x="240" y="586">then Can Be Damaged = true</text>
+          <text x="240" y="620">AM_SquidG_Standup</text>
+        </g>
+
+        <!-- Event labels, right of the spine -->
+        <text x="272" y="128" fill="#f2f2f3" font-size="12" font-weight="600" font-family="'Hanken Grotesk', system-ui, sans-serif">Air Strike Down</text>
+        <g font-family="'Space Mono', ui-monospace, monospace" font-size="9" fill="#a1a1aa">
+          <text x="272" y="142">Can Be Damaged = false</text>
+          <text x="272" y="154">only if the combo gets this far</text>
+          <text x="272" y="222">false on a normal landing: nothing runs</text>
+        </g>
+
+        <!-- Legend -->
+        <line x1="32" y1="652" x2="672" y2="652" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="0.8"/>
+        <text x="32" y="672" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace" letter-spacing="0.14em">LEGEND</text>
+        <rect x="104" y="664" width="12" height="10" fill="#a1a1aa" fill-opacity="0.15" stroke="#a1a1aa" stroke-width="1"/>
+        <text x="124" y="672" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace">shortest lie</text>
+        <rect x="216" y="664" width="12" height="10" fill="#f2f2f3" fill-opacity="0.02" stroke="#a1a1aa" stroke-width="1" stroke-dasharray="4,3"/>
+        <text x="236" y="672" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace">random end</text>
+        <circle cx="344" cy="669" r="4" fill="#1a1a1d" stroke="#f2f2f3" stroke-width="1" stroke-dasharray="2,2"/>
+        <text x="356" y="672" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace">only if reached</text>
+        <rect x="464" y="664" width="12" height="10" fill="url(#getup-timeline-getup-timeline-fade)" stroke="#ff3300" stroke-width="1"/>
+        <text x="484" y="672" fill="#a1a1aa" font-size="8" font-family="'Space Mono', ui-monospace, monospace">physics to animation blend</text>
+      </svg>
