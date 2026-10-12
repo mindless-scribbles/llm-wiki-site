@@ -6,8 +6,8 @@
 
 ## Last Session
 
-- **Date:** 2026-10-12 (two sessions; the first crashed mid-work and the second recovered it)
-- **Summary:** Mermaid is retired for editorial `@diagram` SVGs drawn by the diagram-design plugin (DDC Reel profile, 704 wide). There are 11 diagrams so far: Moted Modules (5, converted from Mermaid) and Coloso Stylish Action Games (6 new), commit `0a64724`, and every wiki was rebuilt. Then `type: lesson` pages moved into the approved three-column shell, with markers as callouts and reveals and visuals inline (`6d0a899`). Don approved Moted Day 3 in the new layout.
+- **Date:** 2026-10-12 (three sessions)
+- **Summary:** editorial `@diagram` SVGs replaced Mermaid (`0a64724`), and lesson pages moved into the reading shell (`6d0a899`). Then Moted Days 1, 2 and 4–10 were converted to `type: lesson` with Day 3 as the model. One `worker` per day, run from a shared brief. Steps and budgets were frozen, then checked by diff. Every Decision sentence was checked against backups. Moted was rebuilt and all ten days render, each phase with its Why callout. That last change is all in the vault, so this repo only has a STATUS commit for it.
 
 ## Files Modified
 
@@ -16,6 +16,7 @@
 - `README.md`, `BUILD-SITE.md`: Diagrams section, Lessons table. `LESSONS.md`: two lessons.
 - `sites/{moted-modules,coloso-stylish-action-games}/diagrams/`: `<slug>.svg` + `.html` source + `.md` spec.
 - Outside this repo:
+  - Moted vault: `wiki/workshop/day-{1,2,4..10}.md` (lessons), `log.md`, `CLAUDE.md` (the pilot note). Pre-edit backups are in the session scratchpad.
   - `~/.claude/skills/add-diagram/SKILL.md`: loads `diagram-design:diagram-design` from the plugin cache.
   - `~/.claude/skills/add-lesson/SKILL.md`: the layout wording, and a caption goes on the marker line.
   - llm-wiki template `CLAUDE.md` (`ac05f29`, branch `editorial-diagrams`).
@@ -26,20 +27,15 @@
 
 - New diagrams are `@diagram` SVGs via the `add-diagram` skill, never Mermaid. Don: "there is no version where the mermaid default wins." The plugin `diagram-design@diagram-design` is installed at user scope (marketplace `cathrynlavery/diagram-design`).
 - Lessons share every page's shell: phases are ordinary h2s (listed in "On this page") and their minutes add up in the hero kicker. Why / Ask / Predict / Read / Trap / Goal / Result / Open in are `.callout`s. Decision and Read sit behind `<details>`. A visual's caption goes on its marker line, so the old `:` title paragraph is now just a lead-in.
+- Converting a lesson page leaves its numbered steps and `(NN min)` budgets frozen. Other pages cite steps by number ("Day 8 step 6"), so the skill's "collapse the wiring" rewrite waits for Don's review of each day. An Ask stays only when its wrong answer fails visibly.
 - Text pages follow uiarc.dev/docs/introduction (16px body in `#b4b4bb`, Syne headings, charcoal `#141416` ground). DDC Reel is Don's own system, independent of dondecastro.com.
 
 ## Next Steps
 
-- [ ] **Convert Moted Modules Days 1, 2, 4–10 to `type: lesson`** (Don, 2026-10-12; Day 3 is the approved pilot and model). Vault: `wiki_projects/Moted_Modules/wiki/workshop/day-N.md`. Use the `add-lesson` skill: §"Converting an existing page", then §3 "Fan out" with one `worker` per day, given Day 3's path as the model.
-  - Keep every fact, name, number and step number.
-  - Set `type: lesson` and bump `updated:`.
-  - Add a `**Why:**` lead to each phase (only Day 3 has one now).
-  - Change `**Open beside this page:**` to `**Open in Unreal:**` plus a list, as Day 3 has it.
-  - Keep `**Ask:**`/`**Decision:**` only for a real call the room could get wrong; turn the rest into bold-lead facts.
-  - Add an `@image[dayN-...]` capture slot per phase where a graph shows the how.
-  - Don't invent diagrams in this pass; use `@diagram` slots only where a page describes structure.
-  - Review every result yourself (Why lines, no fake Asks, budgets match the work). Run `llm-wiki-site lint --site moted-modules`, build `--site moted-modules`, check a couple of days in Chrome, log the change in the wiki's `log.md`, and give Don the URLs.
-  - Moted's `CLAUDE.md` "Lesson pages" section has the marker rules.
+- [ ] **Don reviews the nine converted Moted days** (converted 2026-10-12; vault-only change, logged in Moted `log.md`). Start at `http://127.0.0.1:4173/moted-modules/workshop/day-1.html`. Steps and budgets are unchanged; Asks went 125 → 31; there are 50 `@image` capture slots. Work his notes with `work-notes`. Open questions for him:
+  - Day 3's Phases 2 to 5 have no `**Why:**`. Should they get one, like the other days?
+  - Budgets that look tight (not changed): Day 2 Phase 4, Day 4 Phase 2, Day 6 Phase 6, Day 7 Phase 4.
+  - The capture briefs name boxes from the page text; nobody checked them against the rig.
 - [ ] Lint flags five older long paragraphs on the animation-blending OverRig source code map (lines ~136, 180, 235, 341, 358). Fix them when that page is next touched.
 - [ ] `diagram-plugins` is not merged to `main`, and llm-wiki `editorial-diagrams` is not merged either. Ask Don before merging.
 
