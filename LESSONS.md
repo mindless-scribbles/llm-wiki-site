@@ -23,3 +23,5 @@ Project-specific lessons learned across sessions. Read at session start. Update 
 **Browser checks under Hyprland:** `resize_window` does not change the viewport here. To check narrow layouts, load the page in fixed-width iframes from a page on the same origin. Animation frames do not run while a JS-tool call holds the page, so test scroll-driven UI with real wheel scrolls (2026-10-04). A fresh tab can report `visibilityState: hidden` and time out the first screenshot or two; check the DOM with the JS tool meanwhile and retry (2026-10-12).
 
 **Freeze step numbers when converting lessons:** Moted pages cite each other's steps by number ("Day 8 step 6", "Day 5 step 15", "Repeat 4 to 7"). A conversion that merges or drops a numbered step breaks those citations without warning. Before and after, diff the `^ *N. ` lines of each page (2026-10-12).
+
+**A Why must not answer its phase's Ask:** the site hides a Decision behind a reveal, but a `**Why:**` sits above it in plain view. When the workers wrote Why lines from the Decisions, 18 of them gave the hidden answer away. Write the Why from what breaks, and leave out the answer (2026-10-12).
