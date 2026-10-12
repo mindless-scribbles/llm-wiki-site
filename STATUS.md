@@ -16,11 +16,10 @@
 - `README.md`, `BUILD-SITE.md`: Diagrams section, Lessons table. `LESSONS.md`: two lessons.
 - `sites/{moted-modules,coloso-stylish-action-games}/diagrams/`: `<slug>.svg` + `.html` source + `.md` spec.
 - Outside this repo:
-  - Moted vault: `wiki/workshop/day-{1,2,4..10}.md` (lessons), `log.md`, `CLAUDE.md` (the pilot note). Pre-edit backups are in the session scratchpad.
+  - Moted vault: `wiki/workshop/day-{1,2,4..10}.md` (lessons), `CLAUDE.md` (the pilot note), `log.md`. Pre-edit backups: `~/.cache/llm-wiki-site/backups/moted-2026-10-12/`.
   - `~/.claude/skills/add-diagram/SKILL.md`: loads `diagram-design:diagram-design` from the plugin cache.
   - `~/.claude/skills/add-lesson/SKILL.md`: the layout wording, and a caption goes on the marker line.
   - llm-wiki template `CLAUDE.md` (`ac05f29`, branch `editorial-diagrams`).
-  - Moted vault `CLAUDE.md` + `log.md`.
   - Coloso vault: six tutorial pages with `@diagram` lines (+ `log.md`).
 
 ## Key Decisions
@@ -36,6 +35,7 @@
   - Day 3's Phases 2 to 5 have no `**Why:**`. Should they get one, like the other days?
   - Budgets that look tight (not changed): Day 2 Phase 4, Day 4 Phase 2, Day 6 Phase 6, Day 7 Phase 4.
   - The capture briefs name boxes from the page text; nobody checked them against the rig.
+  - Three phases carry two captures (Day 1 Phase 2, Day 6 Phases 3 and 4) against the one-visual rule. Keep both, or cut one?
 - [ ] Lint flags five older long paragraphs on the animation-blending OverRig source code map (lines ~136, 180, 235, 341, 358). Fix them when that page is next touched.
 - [ ] `diagram-plugins` is not merged to `main`, and llm-wiki `editorial-diagrams` is not merged either. Ask Don before merging.
 
