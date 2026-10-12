@@ -156,26 +156,25 @@ landing page instead of a list of links:
 
 ## Lessons (`type: lesson`)
 
-A page with `type: lesson` renders as a workshop lesson instead of an article. The
-markdown stays plain, so Obsidian shows it unchanged; the builder reads these markers:
+A page with `type: lesson` is a workshop lesson. It renders in the same layout as every
+page (index, reading column, "On this page", meta row), and its markers become the page's
+callouts. The markdown stays plain, so Obsidian shows it unchanged; the builder reads:
 
 | Markdown | On the site |
 |---|---|
-| `## Phase N — Title (75 min)` | a phase; the minutes size its bar on the phase rail |
-| `**Why:**` at the top of a phase | the phase's lead: what it teaches and what breaks without it |
-| `**Ask:**` then `**Decision:**` | a question card; the decision hides behind a reveal |
-| `**Predict:**` | a prediction box (kept per reader in localStorage) |
+| `## Phase N — Title (75 min)` | an ordinary heading, listed in "On this page"; the minutes add up in the hero kicker (`LESSON · 5 PHASES · 5 H 30 M`) |
+| `**Why:**` at the top of a phase | a "Why this phase" callout: what it teaches and what breaks without it |
+| `**Ask:**` then `**Decision:**` | an "Ask the room" callout; the decision hides behind a reveal |
+| `**Predict:**` | a callout with a text box (kept per reader in localStorage) |
 | `**Read:**` | the read-off; hidden behind "check your prediction" when the phase had a Predict |
-| a line starting `⚠️` | a trap callout |
-| `> quote` | the line to remember |
-| `@diagram`, `@video`, `@image`, `@viz`, or a legacy Mermaid fence | the phase's visual, beside the steps (click to enlarge) |
-| `**Goal:**`, `**Result:**`, `**Open beside this page:**` or `**Open in <app>:**` (one line split by ` · `, or a lead line and a list) before the first phase | the brief |
+| a line starting `⚠️` | a "Trap" warning callout |
+| `> quote` | the pull quote, the line to remember |
+| `@diagram`, `@video`, `@image`, `@viz`, or a legacy Mermaid fence | inline where it is written, as on any page |
+| `**Goal:**`, `**Result:**`, `**Open beside this page:**` or `**Open in <app>:**` (one line split by ` · `, or a lead line and a list) before the first phase | callouts above the first phase |
 | `## Related` / `## Sources` | the tail, rendered as normal |
 
-A short paragraph ending in `:` just before a visual becomes its title, and one sentence
-just after it becomes its caption. Readers see one phase at a time (arrow keys or the
-rail) or all phases, and can mark phases done. In review mode, a phase with no visual
-shows an empty "NO VISUAL YET" slot.
+A visual's caption goes on its own marker line (`@diagram[slug] caption`). Every reveal is
+a `<details>`, so the page works without JavaScript.
 
 ## Stills (`@image`)
 

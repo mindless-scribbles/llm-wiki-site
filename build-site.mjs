@@ -864,7 +864,7 @@ function renderHeader(page) {
 function renderHero(page, override, sub = "") {
   const t = page.data.type;
   const kicker = override?.kicker || TYPE_LABELS[t] || "PAGE";
-  const conf = page.data.confidence && !override ? ` · CONFIDENCE ${String(page.data.confidence).toUpperCase()}` : "";
+  const conf = page.data.confidence && !override?.title ?` · CONFIDENCE ${String(page.data.confidence).toUpperCase()}` : "";
   // Split "Title: Subtitle" so the part after the colon reads as a subtitle line.
   const raw = override?.title || page.title;
   const colon = raw.indexOf(":");
@@ -951,16 +951,18 @@ function renderMeta(page) {
 // 3b. Lesson layout (pages with `type: lesson`)
 // ---------------------------------------------------------------------------
 
-// A lesson is the same markdown as any page, read for its teaching structure:
-//   "## Phase N — Title (75 min)"  -> a phase, with its time budget on the rail
-//   **Why:**                       -> the phase's lead: what it teaches, what breaks without it
-//   **Ask:** + **Decision:**      -> a question card; the decision hides behind a reveal
-//   **Predict:** / **Read:**      -> a prediction box; the read-off hides until checked
-//   ⚠️ line                        -> a trap callout
-//   > quote                        -> the line to remember
-//   @diagram / @video / @image / @viz / mermaid -> the phase's visual, beside the steps
+// A lesson is the same markdown as any page, in the same reading column, read
+// for its teaching structure. Its markers become the page's callouts:
+//   "## Phase N — Title (75 min)"  -> an ordinary h2 (listed in "On this page");
+//                                     the budgets add up in the hero kicker
+//   **Why:**                       -> a "Why this phase" callout
+//   **Ask:** + **Decision:**      -> an "Ask the room" callout; the decision hides behind a reveal
+//   **Predict:** / **Read:**      -> a callout with a text box; the read-off hides until checked
+//   ⚠️ line                        -> a "Trap" warning callout
+//   > quote                        -> the pull quote, the line to remember
+//   @diagram / @video / @image / @viz / mermaid -> inline, where it is written
 //   **Goal:** / **Result:** / **Open beside this page:** or **Open in Unreal:** (a list may
-//   follow on the next lines) before the first phase -> the brief
+//   follow on the next lines) before the first phase -> the brief, as callouts
 //   @image[slug] / @diagram[slug] with no file yet -> a "screenshot needed" / "diagram
 //   needed" slot, shown in review mode only
 // Obsidian sees plain markdown; only the site reads the markers.
@@ -1030,257 +1032,96 @@ function lessonBlocks(sec) {
   return blocks;
 }
 
-// A short plain paragraph next to a visual reads as its title (ends with ":")
-// or caption (one sentence after it).
-const isTitleFor = (b) => b && b.kind === "md" && b.lines.length === 1 && b.text.length < 160 && /:\s*$/.test(b.text);
-const isCaptionFor = (b) => b && b.kind === "md" && b.lines.length === 1 && b.text.length < 200 && !/:\s*$/.test(b.text) && !/^\*\*/.test(b.text);
-
 function renderLesson(page) {
   const lines = page.body.replace(/\r\n/g, "\n").split("\n");
   const base = page.lineBase;
   const md = (b) => mdToHtml(b.text, page, base + b.start);
   const at = (k) => ` data-line="${base + k + 1}"`;
-  const label = (t) => `<div class="lesson-label">${t}</div>`;
+  const label = (t) => `<div class="callout-label">${t}</div>`;
+  const callout = (b, name, body, warn = false) =>
+    `<aside class="callout${warn ? " is-warn" : ""}"${at(b.start)}>${label(name)}${body}</aside>`;
   const secs = splitSections(lines);
 
   // ---- brief: everything before the first "## ", minus the H1 (the hero has it)
   const intro = { ...secs[0], lines: secs[0].lines.map((l) => (/^#\s/.test(l) ? "" : l)) };
-  let briefCards = "";
-  let openList = "";
-  let briefMd = "";
+  let brief = "";
   for (const b of lessonBlocks(intro)) {
     if (b.kind === "goal" || b.kind === "result") {
-      briefCards += `<div class="lesson-brief-card"${at(b.start)}>${label(b.kind)}<p>${inline(b.text, page)}</p></div>`;
+      brief += callout(b, b.label, `<p>${inline(b.text, page)}</p>`);
     } else if (b.kind === "open beside this page" || b.kind.startsWith("open in ")) {
       // Either "a · b · c" on one line, or a lead line followed by a list.
       const body = /\n\s*[-*]\s/.test(b.text)
-        ? `<div class="lesson-open-md">${md(b)}</div>`
-        : `<ul class="lesson-open-list">${b.text.replace(/\.\s*$/, "").split(/\s+·\s+/).map((t) => `<li>${inline(t, page)}</li>`).join("")}</ul>`;
-      openList = `<div class="lesson-open"${at(b.start)}>${label(b.label)}${body}</div>`;
-    } else briefMd += md(b);
+        ? md(b)
+        : `<ul class="list ul">${b.text.replace(/\.\s*$/, "").split(/\s+·\s+/).map((t) => `<li>${inline(t, page)}</li>`).join("")}</ul>`;
+      brief += callout(b, b.label, body);
+    } else brief += md(b);
   }
 
-  // ---- phases and tail
-  const phases = [];
-  let tail = "";
+  // ---- phases and tail: each "## " section keeps its heading as written, like
+  // any page, so "On this page" lists the phases.
+  let body = "";
+  let n = 0;
+  let total = 0;
   for (const sec of secs.slice(1)) {
+    const head = `<h2 id="${headingId(sec.head)}" class="h2"${at(sec.headLine)}>${inline(sec.head, page)}</h2>`;
     if (TAIL_RE.test(sec.head)) {
-      tail += `<h2 id="${headingId(sec.head)}" class="h2"${at(sec.headLine)}>${inline(sec.head, page)}</h2>` +
-        mdToHtml(sec.lines.join("\n"), page, base + sec.start);
+      body += head + mdToHtml(sec.lines.join("\n"), page, base + sec.start);
       continue;
     }
-    const pm = sec.head.match(/^Phase\s+(\d+)\s*[—–:-]\s*(.*)$/i);
-    let title = pm ? pm[2] : sec.head;
-    const bud = title.match(/\s*\((\d+)\s*min\)\s*$/i);
-    if (bud) title = title.slice(0, bud.index);
-    phases.push({ sec, title, minutes: bud ? +bud[1] : null, id: headingId(sec.head) });
-  }
-  const n = phases.length;
-  const total = phases.reduce((t, p) => t + (p.minutes || 0), 0);
-  const fmtMin = (m) => (m >= 60 ? `${Math.floor(m / 60)} H${m % 60 ? ` ${String(m % 60).padStart(2, "0")} M` : ""}` : `${m} MIN`);
-
-  const phaseHtml = phases.map((p, idx) => {
-    const num = idx + 1;
-    const blocks = lessonBlocks(p.sec);
-    const visuals = [];
-    const used = new Set();
-    // Lift each visual (with its title/caption paragraphs) out of the flow.
-    blocks.forEach((b, k) => {
-      if (b.kind !== "visual") return;
-      const prev = blocks[k - 1], next = blocks[k + 1];
-      const t = !used.has(k - 1) && isTitleFor(prev) ? prev : null;
-      const c = isCaptionFor(next) ? next : null;
-      if (t) used.add(k - 1);
-      if (c) used.add(k + 1);
-      used.add(k);
-      visuals.push(
-        `<figure class="lesson-figure" tabindex="0" title="Click to enlarge">` +
-          (t ? `<div class="lesson-figure-title"${at(t.start)}>${inline(t.text.replace(/:\s*$/, ""), page)}</div>` : "") +
-          md(b) +
-          (c ? `<figcaption class="lesson-figure-caption"${at(c.start)}>${inline(c.text, page)}</figcaption>` : "") +
-          `</figure>`
-      );
-    });
-
+    n++;
+    const bud = sec.head.match(/\((\d+)\s*min\)\s*$/i);
+    if (bud) total += +bud[1];
+    const blocks = lessonBlocks(sec);
     let flow = "";
     let predicted = false;
     let predictN = 0;
     for (let k = 0; k < blocks.length; k++) {
-      if (used.has(k)) continue;
       const b = blocks[k];
-      if (b.kind === "ask") {
+      if (b.kind === "why") {
+        flow += callout(b, "Why this phase", md(b));
+      } else if (b.kind === "ask") {
         const d = blocks[k + 1] && blocks[k + 1].kind === "decision" ? blocks[++k] : null;
-        flow += `<div class="lesson-ask"${at(b.start)}>${label("Ask the room")}<p class="lesson-q">${inline(b.text, page)}</p>` +
-          (d ? `<details class="lesson-reveal"${at(d.start)}><summary>Reveal the decision</summary><div class="lesson-reveal-body">${md({ ...d, text: d.text })}</div></details>` : "") +
-          `</div>`;
-      } else if (b.kind === "why") {
-        flow += `<div class="lesson-why"${at(b.start)}>${label("Why this phase")}${md(b)}</div>`;
+        flow += callout(b, "Ask the room", `<p>${inline(b.text, page)}</p>` +
+          (d ? `<details class="lesson-reveal"${at(d.start)}><summary>Reveal the decision</summary><div class="lesson-reveal-body">${md(d)}</div></details>` : ""));
       } else if (b.kind === "decision") {
-        flow += `<div class="lesson-ask"${at(b.start)}>${label("Decision")}${md(b)}</div>`;
+        flow += callout(b, "Decision", md(b));
       } else if (b.kind === "predict") {
         predicted = true;
-        const key = `p${num}-${++predictN}`;
-        flow += `<div class="lesson-predict"${at(b.start)}>${label("Predict")}<p class="lesson-q">${inline(b.text, page)}</p>` +
-          `<textarea class="lesson-predict-input" data-key="${key}" rows="2" placeholder="Write your call before you run it"></textarea></div>`;
+        flow += callout(b, "Predict", `<p>${inline(b.text, page)}</p>` +
+          `<textarea class="lesson-predict-input" data-key="p${n}-${++predictN}" rows="2" placeholder="Write your call before you run it"></textarea>`);
       } else if (b.kind === "read") {
         flow += predicted
-          ? `<details class="lesson-read"${at(b.start)}><summary>Check your prediction</summary><div class="lesson-reveal-body">${label("Read-off")}${md(b)}</div></details>`
-          : `<div class="lesson-read is-open"${at(b.start)}>${label("Read-off")}${md(b)}</div>`;
+          ? `<details class="callout lesson-read"${at(b.start)}><summary>Check your prediction</summary><div class="lesson-reveal-body">${label("Read-off")}${md(b)}</div></details>`
+          : callout(b, "Read-off", md(b));
       } else if (b.kind === "trap") {
-        flow += `<div class="lesson-trap"${at(b.start)}>${label("Trap")}${md(b)}</div>`;
-      } else if (b.kind === "remember") {
-        flow += `<div class="lesson-remember"${at(b.start)}>${label("Remember")}${md({ ...b, text: b.text.replace(/^\s*>\s?/gm, "") })}</div>`;
-      } else if (b.kind === "steps") {
-        flow += md(b).replace(/<ol class="list ol"(?: start="(\d+)")?/g, (_, st) => `<ol class="list ol lesson-steps"${st ? ` start="${st}"` : ""} style="--start:${(st ? +st : 1) - 1}"`);
+        flow += callout(b, "Trap", md(b), true);
       } else {
+        // Steps, prose, visuals and "> the line to remember" render as on any page.
         flow += md(b);
       }
     }
+    body += head + flow;
+  }
 
-    const visual = visuals.length
-      ? visuals.join("")
-      : `<div class="lesson-visual-empty">No visual yet · phase ${num}</div>`;
-    const nextP = phases[idx + 1];
-    const prevP = phases[idx - 1];
-    return `<section class="lesson-phase" id="phase-${num}" data-phase="${num}">
-  <header class="lesson-phase-head"${at(p.sec.headLine)}>
-    <div class="lesson-phase-kicker">Phase ${num} / ${n}${p.minutes ? ` · ${p.minutes} min` : ""}</div>
-    <h2 class="lesson-phase-title" id="${p.id}">${inline(p.title, page)}</h2>
-  </header>
-  <div class="lesson-phase-grid ${visuals.some((v) => !/class="image-wanted[ "]/.test(v)) ? "has-visual" : "no-visual"}">
-    <div class="lesson-flow">${flow}</div>
-    <aside class="lesson-visual">${visual}</aside>
-  </div>
-  <footer class="lesson-phase-foot">
-    <button type="button" class="lesson-done" data-done="${num}" aria-pressed="false">Mark phase done</button>
-    <div class="lesson-pager">
-      ${prevP ? `<a class="lesson-prev" href="#phase-${num - 1}" data-phase-link="${num - 1}">‹ Phase ${num - 1}</a>` : ""}
-      ${nextP ? `<a class="ddc-btn" href="#phase-${num + 1}" data-phase-link="${num + 1}"><span class="ddc-btn__fill" aria-hidden="true"></span>Next · ${escapeHtml(nextP.title.replace(/`/g, ""))} ›</a>` : ""}
-    </div>
-  </footer>
-</section>`;
-  }).join("\n");
-
-  const rail = n
-    ? `<nav class="lesson-rail" aria-label="Phases">
-  <div class="lesson-rail-track">${phases.map((p, idx) =>
-      `<a class="lesson-rail-item" href="#phase-${idx + 1}" data-phase-link="${idx + 1}" style="flex:${p.minutes || 60} 1 0">` +
-      `<span class="lesson-rail-bar" aria-hidden="true"></span>` +
-      `<span class="lesson-rail-k">Phase ${idx + 1}${p.minutes ? ` · ${p.minutes} min` : ""}</span>` +
-      `<span class="lesson-rail-t">${inline(p.title, page).replace(/<[^>]+>/g, "")}</span></a>`).join("")}</div>
-  <div class="lesson-rail-tools">${total ? `<span class="lesson-rail-total">Total ${fmtMin(total)}</span>` : ""}` +
-      `<div class="lesson-view" role="group" aria-label="View"><button type="button" class="lesson-view-btn" data-view="one" aria-pressed="true">One phase</button>` +
-      `<button type="button" class="lesson-view-btn" data-view="all" aria-pressed="false">All phases</button></div></div>
-</nav>`
-    : "";
-
-  const brief = briefCards || openList || briefMd
-    ? `<section class="lesson-brief">${briefCards ? `<div class="lesson-brief-grid">${briefCards}</div>` : ""}${openList}${briefMd ? `<div class="lesson-brief-md content-body">${briefMd}</div>` : ""}</section>`
-    : "";
-
-  const t = splitTitle(page.title);
+  const fmtMin = (m) => (m >= 60 ? `${Math.floor(m / 60)} H${m % 60 ? ` ${String(m % 60).padStart(2, "0")} M` : ""}` : `${m} MIN`);
   return {
-    kicker: [t.eyebrow, "Lesson", n ? `${n} phases` : "", total ? fmtMin(total) : ""].filter(Boolean).join(" · "),
-    title: t.eyebrow ? t.main + (t.sub ? `: ${t.sub}` : "") : page.title,
-    html: `<div class="lesson" data-lesson>
-${brief}
-${rail}
-<div class="lesson-phases content-body">
-${phaseHtml}
-</div>
-${tail ? `<section class="lesson-tail content-body">${tail}</section>` : ""}
-</div>`,
+    kicker: ["LESSON", n ? `${n} PHASES` : "", total ? fmtMin(total) : ""].filter(Boolean).join(" · "),
+    html: `<div data-lesson>${brief}${body}</div>`,
   };
 }
 
-// Client script for lesson pages: one phase at a time (or all), the rail, done
-// marks and prediction text, kept per page in localStorage. Without JS every
-// phase shows and every reveal still works (they are <details>).
+// Client script for lesson pages: keeps each prediction's text per page in
+// localStorage. Every reveal is a <details>, so the page works without it.
 const LESSON_SCRIPT = `(function(){
   var root=document.querySelector('[data-lesson]'); if(!root) return;
-  var html=document.documentElement, key='lesson:'+location.pathname, st={};
+  var key='lesson:'+location.pathname, st={};
   try{st=JSON.parse(localStorage.getItem(key)||'{}')||{}}catch(e){}
-  st.done=st.done||{}; st.p=st.p||{};
+  st.p=st.p||{};
   function save(){try{localStorage.setItem(key,JSON.stringify(st))}catch(e){}}
-  var phases=[].slice.call(root.querySelectorAll('.lesson-phase'));
-  if(!phases.length) return;
-  var rail=root.querySelector('.lesson-rail'), viewBtns=[].slice.call(root.querySelectorAll('.lesson-view-btn'));
-  var paged=st.mode!=='all', cur=1;
-  function phaseOf(hash){
-    if(!hash) return 0; var m=/^#phase-(\\d+)$/.exec(hash); if(m) return +m[1];
-    var el=document.getElementById(decodeURIComponent(hash.slice(1)));
-    var p=el&&el.closest&&el.closest('.lesson-phase'); return p?+p.dataset.phase:0;
-  }
-  function mark(){
-    [].forEach.call(root.querySelectorAll('.lesson-rail-item'),function(a){
-      var k=+a.dataset.phaseLink; a.classList.toggle('is-current',k===cur);
-      a.classList.toggle('is-done',!!st.done[k]);
-      if(k===cur) a.setAttribute('aria-current','step'); else a.removeAttribute('aria-current');
-    });
-    [].forEach.call(root.querySelectorAll('.lesson-done'),function(b){
-      var d=!!st.done[b.dataset.done]; b.setAttribute('aria-pressed',String(d));
-      b.textContent=d?'Phase done':'Mark phase done';
-    });
-  }
-  function show(n,scroll){
-    cur=Math.min(Math.max(1,n),phases.length);
-    phases.forEach(function(p){p.classList.toggle('is-current',+p.dataset.phase===cur)});
-    st.cur=cur; save(); mark();
-    if(scroll&&rail){var y=rail.getBoundingClientRect().top+window.scrollY-parseInt(getComputedStyle(html).getPropertyValue('--header-h')||72);
-      if(window.scrollY>y) window.scrollTo(0,y);}
-  }
-  function setMode(p){
-    paged=p; html.classList.toggle('lesson-paged',p);
-    viewBtns.forEach(function(b){b.setAttribute('aria-pressed',String((b.dataset.view==='one')===p));});
-    st.mode=p?'paged':'all'; save();
-  }
-  root.addEventListener('click',function(e){
-    if(html.classList.contains('llm-review-annotating')) return;
-    var a=e.target.closest&&e.target.closest('[data-phase-link]');
-    if(a){ var n=+a.dataset.phaseLink;
-      if(paged){e.preventDefault(); show(n,true); history.replaceState(null,'','#phase-'+n);}
-      else { cur=n; mark(); }
-      return; }
-    var d=e.target.closest&&e.target.closest('.lesson-done');
-    if(d){ var k=d.dataset.done; st.done[k]=!st.done[k]; save(); mark(); }
-  });
-  // Click a visual to see it full screen; click again or Esc to close.
-  root.addEventListener('click',function(e){
-    if(html.classList.contains('llm-review-annotating')) return;
-    var f=e.target.closest&&e.target.closest('.lesson-figure');
-    if(!f||e.target.closest('video,a,button,.viz-controls')) return;
-    var z=f.classList.toggle('is-zoomed'); html.classList.toggle('lesson-zoomed',z);
-  });
-  document.addEventListener('keydown',function(e){
-    if(e.key==='Escape'){var z=root.querySelector('.lesson-figure.is-zoomed'); if(z){z.classList.remove('is-zoomed');html.classList.remove('lesson-zoomed');}}
-    if(e.key==='Enter'&&e.target.classList&&e.target.classList.contains('lesson-figure')){e.target.click();}
-  });
-  viewBtns.forEach(function(b){ b.addEventListener('click',function(){
-    var p=b.dataset.view==='one'; if(p===paged) return;
-    setMode(p); if(paged) show(cur,true);
-    else { var el=document.getElementById('phase-'+cur); if(el) el.scrollIntoView(); }
-  }); });
   [].forEach.call(root.querySelectorAll('.lesson-predict-input'),function(t){
     t.value=st.p[t.dataset.key]||'';
     t.addEventListener('input',function(){st.p[t.dataset.key]=t.value;save();});
   });
-  document.addEventListener('keydown',function(e){
-    if(!paged||html.classList.contains('lesson-zoomed')||e.altKey||e.ctrlKey||e.metaKey) return;
-    var t=e.target; if(t&&(t.isContentEditable||/^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName))) return;
-    if(e.key==='ArrowRight'&&cur<phases.length){show(cur+1,true);history.replaceState(null,'','#phase-'+cur);}
-    if(e.key==='ArrowLeft'&&cur>1){show(cur-1,true);history.replaceState(null,'','#phase-'+cur);}
-  });
-  window.addEventListener('hashchange',function(){var n=phaseOf(location.hash); if(n) show(n,false);});
-  if('IntersectionObserver' in window){
-    var io=new IntersectionObserver(function(es){ if(paged) return;
-      es.forEach(function(en){ if(en.isIntersecting){cur=+en.target.dataset.phase; mark();} });
-    },{rootMargin:'-40% 0px -55% 0px'});
-    phases.forEach(function(p){io.observe(p)});
-  }
-  setMode(paged);
-  show(phaseOf(location.hash)||st.cur||1,false);
-  var h=location.hash&&document.getElementById(decodeURIComponent(location.hash.slice(1)));
-  if(h&&!/^#phase-/.test(location.hash)) h.scrollIntoView();
 })();`;
 
 // ---------------------------------------------------------------------------
@@ -1585,7 +1426,7 @@ function renderPage(page) {
   // it. Anything the H1 adds after the title ("Limb — `DDC_Moted_MR_Limb`")
   // moves into the head as its subtitle.
   let heroSub = "";
-  if (!isHome && !isLesson) {
+  if (!isHome) {
     const t = escapeHtml(page.title);
     bodyHtml = bodyHtml.replace(/^\s*<h1 [^>]*>([\s\S]*?)<\/h1>/, (h1, inner) => {
       inner = inner.trim();
@@ -1598,9 +1439,9 @@ function renderPage(page) {
       return h1;
     });
   }
-  // "On this page" for ordinary pages with two or more sections. Lessons have
-  // their phase rail; the landing page is its own map.
-  const toc = !isHome && !isLesson ? tocItems(bodyHtml) : [];
+  // "On this page" for every page with two or more sections (a lesson lists its
+  // phases); the landing page is its own map.
+  const toc = !isHome ? tocItems(bodyHtml) : [];
   const hasToc = toc.length >= 2;
 
   // Hidden data island holding each referenced transcript chunk + its wiring script.
@@ -1655,11 +1496,9 @@ function renderPage(page) {
   <div class="entry-shell${hasToc ? " has-toc" : ""}">
     ${renderSidebar(page)}
     <div class="idx-scrim" data-act="close-index"></div>
-    <main class="entry-main${isHome ? " is-home" : ""}${isLesson ? " is-lesson" : ""}">
-      <div class="page-col${isHome || isLesson ? " is-wide" : ""}">
-      ${isHome ? bodyHtml : isLesson ? `${renderHero(page, lesson)}
-      ${bodyHtml}
-      ${tcData}` : `${renderHero(page, null, heroSub)}
+    <main class="entry-main${isHome ? " is-home" : ""}">
+      <div class="page-col${isHome ? " is-wide" : ""}">
+      ${isHome ? bodyHtml : `${renderHero(page, lesson, heroSub)}
       <article class="article-container">
         ${renderMeta(page)}
         ${hasToc ? `<details class="toc-inline"><summary>On this page<span class="chev" aria-hidden="true"></span></summary>${tocList(toc)}</details>` : ""}
@@ -1873,7 +1712,7 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .content-body p{margin:0 0 1em}
 .content-body strong,.content-body b{color:var(--color-text);font-weight:600}
 .article-container .content-body>.h2:first-child{margin-top:32px}
-.content-body .h1,.content-body .h2,.content-body .h3,.lesson-phase-title{scroll-margin-top:calc(var(--header-h) + 24px)}
+.content-body .h1,.content-body .h2,.content-body .h3{scroll-margin-top:calc(var(--header-h) + 24px)}
 
 /* Section headings: Syne 600, normal case, no rules. Space above sets the sections apart. */
 .content-body .h1,.content-body .h2,.content-body .h3{font-family:var(--font-display);font-weight:600;color:var(--color-text);text-wrap:balance}
@@ -2072,61 +1911,7 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .image-block{margin:0 0 48px}
 .image-block .still{display:block;width:100%;height:auto;border-radius:var(--radius-md)}
 
-/* ---- Lesson layout (type: lesson) ---- */
-.lesson{max-width:1280px;padding:32px 0 0}
-.lesson-label{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);margin:0 0 8px}
-.lesson-brief{display:flex;flex-direction:column;gap:16px;max-width:1040px;margin-bottom:48px}
-.lesson-brief-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:16px}
-@media(min-width:768px){.lesson-brief-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-.lesson-brief-card,.lesson-open{background:var(--color-surface);border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px}
-.lesson-brief-card p{margin:0;font-family:var(--font-body);font-size:18px;line-height:1.6}
-.lesson-open-list{list-style:none;margin:0;padding:0;font-family:var(--font-body);font-size:15px;line-height:1.5;color:var(--color-secondary)}
-.lesson-open-list li{padding:8px 0;border-top:1px solid var(--color-border)}
-.lesson-open-list li:first-child{border-top:none;padding-top:0}
-.lesson-open-list code,.lesson-brief code{font-family:var(--font-mono);font-size:.85em;background:var(--color-surface-raised);padding:2px 4px;border-radius:var(--radius-sm);color:var(--color-text)}
-
-/* Phase rail: one bar per phase, its width the phase's time budget */
-.lesson-rail{position:sticky;top:var(--header-h);z-index:15;background:var(--color-bg);border-bottom:1px solid var(--color-border);
-  display:flex;align-items:flex-start;gap:32px;padding:16px 0;margin-bottom:8px}
-.lesson-rail-track{display:flex;gap:8px;flex:1;min-width:0;overflow-x:auto;scrollbar-width:none}
-.lesson-rail-item{display:flex;flex-direction:column;gap:8px;min-width:132px;padding:0 0 4px;text-decoration:none;color:var(--color-secondary);transition:color .2s}
-.lesson-rail-bar{height:4px;border-radius:2px;background:var(--color-border-strong);transition:background .2s}
-.lesson-rail-k{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-nav)}
-.lesson-rail-t{font-family:var(--font-body);font-size:14px;line-height:20px;
-  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-.lesson-rail-item.is-done .lesson-rail-bar{background:var(--color-secondary)}
-.lesson-rail-item.is-current{color:var(--color-text)}
-.lesson-rail-item.is-current .lesson-rail-k{color:var(--color-text)}
-.lesson-rail-item.is-current .lesson-rail-bar{background:var(--color-text)}
-.lesson-rail-tools{display:flex;flex-direction:column;align-items:flex-end;gap:8px;flex:none}
-.lesson-rail-total{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.1em;text-transform:uppercase;color:var(--color-secondary);white-space:nowrap}
-.lesson-view{display:inline-flex;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);overflow:hidden}
-.lesson-view-btn{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.15em;text-transform:uppercase;
-  color:var(--color-secondary);background:transparent;border:none;min-height:40px;padding:8px 14px;cursor:pointer;white-space:nowrap;transition:background .2s,color .2s}
-.lesson-view-btn+.lesson-view-btn{border-left:1px solid var(--color-border-strong)}
-.lesson-view-btn[aria-pressed="true"]{background:var(--color-text);color:var(--color-bg);cursor:default}
-.lesson-done{font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;
-  color:var(--color-text);background:transparent;border:1px solid var(--color-border-strong);border-radius:var(--radius-md);
-  min-height:40px;padding:8px 16px;cursor:pointer;white-space:nowrap;transition:border-color .2s,background .2s,color .2s}
-.lesson-done[aria-pressed="true"]{background:var(--color-text);color:var(--color-bg);border-color:var(--color-text)}
-@media(max-width:767px){.lesson-rail{flex-direction:column;align-items:stretch;gap:12px}.lesson-rail-tools{flex-direction:row;justify-content:space-between;align-items:center}}
-@media(hover:hover){
-  .lesson-rail-item:not(.is-current):hover{color:var(--color-text)}
-  .lesson-view-btn[aria-pressed="false"]:hover{color:var(--color-text)}
-  .lesson-done:hover{border-color:var(--color-text)}
-}
-/* All phases on one page: the pager has nothing to do */
-html:not(.lesson-paged) .lesson-pager{display:none}
-
-/* Why this phase: the lead of every phase */
-.lesson-why{margin:0 0 32px;padding:24px 0;border-top:1px solid var(--color-border-strong);border-bottom:1px solid var(--color-border)}
-.lesson-why p{font-size:19px;line-height:1.6}
-.lesson-why p:last-child{margin-bottom:0}
-.lesson-open-md p{margin:0 0 8px;font-size:16px;line-height:1.5}
-.lesson-open-md ul{margin:0;padding-left:1.2em;font-family:var(--font-body);font-size:15px;line-height:1.6;color:var(--color-secondary)}
-.lesson-open-md li{margin:0 0 4px}
-
-/* A screenshot not taken yet: shown in review mode only */
+/* A screenshot or diagram not made yet: shown in review mode only */
 .image-wanted{display:none;margin:0 0 24px}
 html.llm-review .image-wanted{display:block}
 .image-wanted-box{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:200px;padding:24px;text-align:center;
@@ -2134,78 +1919,23 @@ html.llm-review .image-wanted{display:block}
 .image-wanted-label{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text)}
 .image-wanted-cap{font-family:var(--font-mono);font-size:13px;line-height:20px;color:var(--color-secondary);max-width:40ch}
 
-/* Phases. Paged mode (set by the script) shows the current one only. */
-html.lesson-paged .lesson-phase:not(.is-current){display:none}
-.lesson-phases.content-body{font-size:17px}
-.lesson-phase{padding-top:40px;scroll-margin-top:calc(var(--header-h) + 80px)}
-.lesson-phase-head{margin-bottom:32px}
-.lesson-phase-kicker{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-secondary);margin-bottom:12px}
-.content-body .lesson-phase-title{font-family:var(--font-display);font-weight:600;font-size:clamp(26px,3.2vw,40px);line-height:1.15;margin:0;padding:0;border:none;text-wrap:balance}
-.content-body .lesson-phase-title code{font-size:.85em;background:none;padding:0}
-.lesson-figure{cursor:zoom-in}
-.lesson-figure.is-zoomed{position:fixed;inset:0;z-index:70;margin:0;padding:32px var(--page-margin);background:var(--color-bg);
-  display:flex;flex-direction:column;justify-content:center;overflow:auto;cursor:zoom-out}
-.lesson-figure.is-zoomed .diagram-block svg{width:100%;height:auto;max-width:none!important;max-height:calc(100vh - 160px)}
-.lesson-figure.is-zoomed .viz{max-width:1600px;width:100%;margin:0 auto}
-.lesson-figure.is-zoomed .lesson-figure-title,.lesson-figure.is-zoomed .lesson-figure-caption{max-width:1600px;width:100%;margin-left:auto;margin-right:auto}
-.lesson-phase-grid{display:flex;flex-direction:column;gap:32px}
-.lesson-visual{order:-1;min-width:0}
-.lesson-phase-grid.no-visual .lesson-visual{display:none}
-.lesson-visual-empty{display:none}
-html.llm-review .lesson-phase-grid.no-visual .lesson-visual{display:block}
-html.llm-review .lesson-visual-empty{display:flex;align-items:center;justify-content:center;min-height:200px;border:1px dashed var(--color-border-strong);
-  border-radius:var(--radius-lg);font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-nav)}
-@media(min-width:1280px){
-  .lesson-phase-grid.has-visual,html.llm-review .lesson-phase-grid.no-visual{display:grid;grid-template-columns:minmax(0,680px) minmax(0,1fr);gap:48px;align-items:start}
-  .lesson-visual{order:0;position:sticky;top:calc(var(--header-h) + 96px)}
-}
-.lesson-flow{min-width:0;max-width:720px}
-.lesson-figure{margin:0 0 24px}
-.lesson-figure .diagram-block,.lesson-figure .video-block,.lesson-figure .image-block,.lesson-figure .viz-block{margin:0}
-.lesson-figure-title{font-family:var(--font-mono);font-weight:700;font-size:12px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text);margin-bottom:12px}
-.lesson-figure-caption{font-family:var(--font-mono);font-size:13px;line-height:20px;color:var(--color-secondary);padding:12px 8px 0}
-
-/* Steps: the source numbers, kept across splits */
-.content-body ol.lesson-steps{list-style:none;padding:0;margin:0 0 24px;counter-reset:step var(--start,0)}
-.content-body ol.lesson-steps>li{counter-increment:step;position:relative;padding:16px 0 16px 56px;margin:0;border-top:1px solid var(--color-border)}
-.content-body ol.lesson-steps>li::before{content:counter(step,decimal-leading-zero);position:absolute;left:0;top:16px;
-  font-family:var(--font-mono);font-weight:700;font-size:13px;line-height:1.7;letter-spacing:.05em;color:var(--color-secondary)}
-.content-body ol.lesson-steps>li>ul{margin:8px 0 0}
-
-/* Cards in the flow */
-.lesson-ask,.lesson-predict,.lesson-read,.lesson-trap{border:1px solid var(--color-border);border-radius:var(--radius-lg);padding:24px;margin:0 0 24px;background:var(--color-surface)}
-.lesson-q{font-family:var(--font-display);font-weight:600;font-size:20px;line-height:1.4;margin:0}
-.lesson-q code{font-family:var(--font-mono)}
-.lesson-ask p:last-child,.lesson-read p:last-child,.lesson-trap p:last-child,.lesson-reveal-body p:last-child{margin-bottom:0}
-.lesson-reveal{margin-top:16px}
-.lesson-reveal>summary,.lesson-read>summary{list-style:none;display:inline-flex;align-items:center;min-height:var(--touch-target);padding:0 16px;
-  border:1px solid var(--color-border-strong);border-radius:var(--radius-md);cursor:pointer;
-  font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text);transition:background .2s,color .2s,border-color .2s}
+/* ---- Lesson markers (type: lesson): callouts with a reveal or a text box ---- */
+.lesson-reveal{margin-top:12px}
+.lesson-reveal>summary,.lesson-read>summary{list-style:none;display:inline-flex;align-items:center;min-height:var(--touch-target);cursor:pointer;
+  font-family:var(--font-mono);font-weight:700;font-size:11px;line-height:16px;letter-spacing:.14em;text-transform:uppercase;color:var(--color-text);transition:color .2s}
 .lesson-reveal>summary::-webkit-details-marker,.lesson-read>summary::-webkit-details-marker{display:none}
 .lesson-reveal>summary::after,.lesson-read>summary::after{content:" \\203A";margin-left:8px}
-.lesson-reveal[open]>summary,.lesson-read[open]>summary{border-color:var(--color-border);color:var(--color-nav)}
+.lesson-reveal[open]>summary,.lesson-read[open]>summary{color:var(--color-nav)}
 .lesson-reveal[open]>summary::after,.lesson-read[open]>summary::after{content:""}
-.lesson-reveal-body{margin-top:16px;padding-top:16px;border-top:1px solid var(--color-border)}
-.lesson-read:not(.is-open){background:transparent;border-style:dashed;border-color:var(--color-border-strong)}
-.lesson-read{border-color:var(--color-border-strong)}
-.lesson-predict-input{display:block;width:100%;margin-top:16px;padding:12px 16px;background:var(--color-bg);color:var(--color-text);
-  border:1px solid var(--color-border-strong);border-radius:var(--radius-md);font-family:var(--font-body);font-size:16px;line-height:1.5;resize:vertical}
+.lesson-read>summary{min-height:24px}
+.lesson-read:not([open]){background:transparent;border-style:dashed;border-color:var(--color-border-strong)}
+.lesson-reveal-body{margin-top:8px;padding-top:12px;border-top:1px solid var(--color-border)}
+.lesson-reveal-body p:last-child{margin-bottom:0}
+.lesson-predict-input{display:block;width:100%;margin-top:12px;padding:12px 16px;background:var(--color-bg);color:var(--color-text);
+  border:1px solid var(--color-border-strong);border-radius:var(--radius-md);font-family:var(--font-body);font-size:15px;line-height:1.5;resize:vertical}
 .lesson-predict-input::placeholder{color:var(--color-nav)}
-.lesson-trap{background:var(--color-surface-raised);border-color:var(--color-border-strong)}
-.lesson-trap .lesson-label{color:var(--color-text)}
-.lesson-remember{margin:32px 0;padding:24px 0;border-top:1px solid var(--color-border-strong);border-bottom:1px solid var(--color-border-strong)}
-.lesson-remember p{font-family:var(--font-display);font-weight:600;font-size:24px;line-height:1.4;margin:0}
-@media(hover:hover){
-  .lesson-reveal>summary:hover,.lesson-read>summary:hover{background:var(--color-text);color:var(--color-bg);border-color:var(--color-text)}
-}
-@media(prefers-reduced-motion:reduce){.lesson-rail-item,.lesson-rail-bar,.lesson-view-btn,.lesson-done,.lesson-reveal>summary,.lesson-read>summary{transition:none}}
-
-.lesson-phase-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:16px;margin-top:32px;padding:24px 0;border-top:1px solid var(--color-border)}
-.lesson-pager{display:flex;flex-wrap:wrap;align-items:center;gap:24px}
-.lesson-prev{font-family:var(--font-mono);font-weight:700;font-size:12px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-nav);text-decoration:none;min-height:var(--touch-target);display:inline-flex;align-items:center}
-@media(hover:hover){.lesson-prev:hover{color:var(--color-text)}}
-.lesson-pager .ddc-btn{max-width:100%;white-space:normal;text-align:left}
-.lesson-tail{max-width:720px;padding-top:48px}
+@media(hover:hover){.lesson-reveal>summary:hover,.lesson-read>summary:hover{color:var(--color-secondary)}}
+@media(prefers-reduced-motion:reduce){.lesson-reveal>summary,.lesson-read>summary{transition:none}}
 
 /* ---- Landing page (index.md) ---- */
 .home{max-width:1280px;padding:0 0 32px}

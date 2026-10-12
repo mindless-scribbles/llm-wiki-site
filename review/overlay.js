@@ -195,11 +195,9 @@
     }).catch(function (e) { showError("Could not update: " + e.message); });
   }
 
-  // A note can sit in a lesson phase that is hidden (one phase at a time) or in a
-  // closed <details>. Open its phase and its reveal, then scroll to it.
+  // A note can sit in a closed <details> (a lesson's reveal). Open it, then
+  // scroll to the note.
   function reveal(el) {
-    var phase = el.closest && el.closest(".lesson-phase");
-    if (phase && !phase.getClientRects().length) location.hash = "phase-" + phase.getAttribute("data-phase");
     var d = el.closest && el.closest("details");
     if (d) d.open = true;
     setTimeout(function () { el.scrollIntoView({ block: "center" }); schedulePlace(); }, 0);

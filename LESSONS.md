@@ -18,4 +18,6 @@ Project-specific lessons learned across sessions. Read at session start. Update 
 
 **Mermaid cache is keyed on the theme:** `diagramHash` hashes the source plus `MERMAID_CONFIG`, so a palette change in `mermaid.mjs` re-renders every diagram on the next build. No manual cache clear needed (2026-10-04).
 
-**Browser checks under Hyprland:** `resize_window` does not change the viewport here. To check narrow layouts, load the page in fixed-width iframes from a page on the same origin. Animation frames do not run while a JS-tool call holds the page, so test scroll-driven UI with real wheel scrolls (2026-10-04).
+**A design change covers every renderer:** `renderPage` has three paths (home, lesson, article). The three-column layout and reading register only changed the article path, so the one lesson page (Moted Day 3) kept the old look for a week. Check a home page and a `type: lesson` page before calling a design change done (2026-10-12).
+
+**Browser checks under Hyprland:** `resize_window` does not change the viewport here. To check narrow layouts, load the page in fixed-width iframes from a page on the same origin. Animation frames do not run while a JS-tool call holds the page, so test scroll-driven UI with real wheel scrolls (2026-10-04). A fresh tab can report `visibilityState: hidden` and time out the first screenshot or two; check the DOM with the JS tool meanwhile and retry (2026-10-12).
