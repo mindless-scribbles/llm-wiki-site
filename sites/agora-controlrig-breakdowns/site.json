@@ -1,4 +1,25 @@
 {
   "source": "wiki_projects/Agora_ControlRig_Breakdowns",
-  "out": "~/sites/agora-controlrig-breakdowns"
+  "out": "~/sites/agora-controlrig-breakdowns",
+  "startHere": ["concepts/rigvm-primer"],
+  "sections": [
+    { "heading": "Read first" },
+    "concepts",
+    { "heading": "The modules" },
+    "entities",
+    { "heading": "Behind the scenes", "quiet": true },
+    "summaries"
+  ],
+  "labels": { "entities": "Modules" },
+  "order": {
+    "concepts": ["construction-vs-forward-solve", "connectors", "animation-channels",
+                 "parent-constraint-pattern", "module-variables", "control-types", "naming-and-sides"],
+    "entities": ["crm-agora-top-stack", "crm-agora-vis-control", "crm-agora-visibility-control",
+                 "crm-agora-spine", "crm-agora-neck-head",
+                 "crm-agora-ik2bones", "crm-agora-foot", "crm-agora-twist",
+                 "crm-agora-quad-arm", "crm-agora-quad-leg",
+                 "crm-agora-look-at", "crm-agora-lid", "crm-agora-brow", "crm-agora-mouth", "crm-agora-face-tweakers",
+                 "crm-agora-chain", "crm-agora-chain-cache", "crm-agora-simple-chain", "crm-agora-piston",
+                 "crm-agora-meta", "crm-agora-detachable-part", "crm-agora-multi-parent", "crm-agora-remap-push"]
+  }
 }
