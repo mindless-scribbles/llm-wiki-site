@@ -59,7 +59,9 @@ Branding resolves highest-precedence-first from CLI flags → `sites/<id>/site.j
 Use the frontmatter form for synced vaults; it is the only one that is markdown.
 
 Nav order and grouping (`sections` headings, `startHere`, `labels`, `order`, `hide`)
-are opt-in keys in `site.config.json`; see "How it maps" in `BUILD-SITE.md`.
+are opt-in keys in `sites/<id>/site.json`, which is in git and needs no vault edits.
+A wiki built by path can carry them in `site.config.json` instead. See "How it
+maps" in `BUILD-SITE.md`.
 
 ## Notes and review
 

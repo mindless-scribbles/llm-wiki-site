@@ -94,7 +94,7 @@ function cleanDiagramSvg(svg, slug) {
  * @param {string} [o.vizLib]     The shared _viz.js library. Defaults to the copy
  *                                shipped alongside this generator.
  * @param {string} [o.wikiId]     Name recorded in the provenance marker.
- * @param {object} [o.overrides]  Branding overrides (CLI flags / site.json).
+ * @param {object} [o.overrides]  Branding and nav-key overrides (CLI flags / site.json).
  */
 export function build(o) {
   const WIKI_ROOT = resolve(o.wikiRoot);
@@ -287,8 +287,9 @@ for (const rel of walkMd(WIKI).sort(natural)) {
 }
 const log = existsSync(join(WIKI, "log.md")) ? register("log.md", "Meta") : null;
 
-// Opt-in nav shaping from site.config.json; a wiki without these keys keeps the
-// folder nav. `hide` builds a page but leaves it out of the nav and the pager.
+// Opt-in nav shaping from sites/<id>/site.json (or site.config.json for a wiki
+// built by path); a wiki without these keys keeps the folder nav. `hide` builds
+// a page but leaves it out of the nav and the pager.
 // `startHere` (a list of targets, or true for index.md's **Start here:** links)
 // moves those pages into a "Start here" group at the top.
 const HIDE = new Set((Array.isArray(CONFIG.hide) ? CONFIG.hide : []).map(String));
@@ -309,7 +310,7 @@ const DEFAULT_SIDEBAR_SECTIONS = [
   { dir: null, label: "Pages" },
 ];
 // A wiki may fix its own order with `"sections": ["workshop", "theory", ...]` in
-// site.config.json (or the index.md `site:` block): named folders first, in that
+// sites/<id>/site.json (or site.config.json): named folders first, in that
 // order, then everything else in the default order. An entry may also be a
 // `{ "heading": "Reference" }` marker, which titles the groups after it; with
 // `"quiet": true` those groups render dimmed (the back room).

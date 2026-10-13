@@ -41,7 +41,7 @@ Enter Plan Mode for any task that touches more than 2 files. Do not start coding
 ## Code Style
 - Language: JavaScript, Node 18+ ES modules, no dependencies. `build-site.mjs` keeps its body unindented inside `build()` and its CSS/HTML as template literals (see the note at the top of `build()`).
 - Test framework: none. A change is verified by building and looking at the result.
-- Run tests with: `node --check build-site.mjs`, then `llm-wiki-site build --site <id>` on one wiki and check it in the browser at `http://127.0.0.1:4173/<id>/`. Before `build --all`, dry-build every wiki into a scratch folder (`llm-wiki-site build <wiki-path> --out <scratch>/<id>`): `build` wipes its out dir first, so a throw leaves a live site half-built.
+- Run tests with: `node --check build-site.mjs`, then `llm-wiki-site build --site <id>` on one wiki and check it in the browser at `http://127.0.0.1:4173/<id>/`. Before `build --all`, dry-build every wiki into a scratch folder (`llm-wiki-site build --site <id> --out <scratch>/<id>`; a by-path build skips `site.json`'s nav keys): `build` wipes its out dir first, so a throw leaves a live site half-built.
 - Lint with: `llm-wiki-site lint --site <id>` (STE-80 writing rules and each wiki's terminology; reports only).
 
 ## Design changes

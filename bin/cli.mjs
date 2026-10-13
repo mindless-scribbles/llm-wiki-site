@@ -20,6 +20,9 @@ const SITES = join(REPO, "sites");
 const LOCAL = join(REPO, "local.json");
 
 const BRANDING_KEYS = ["title", "brandLetters", "footer", "accent"];
+// Opt-in nav shaping. These take lists, so they live in sites/<id>/site.json
+// (in git, unlike a synced vault's site.config.json) and have no CLI flags.
+const NAV_KEYS = ["sections", "startHere", "labels", "order", "hide"];
 
 const USAGE = `llm-wiki-site — render an llm-wiki into a static site
 
@@ -156,9 +159,9 @@ function normalizeWikiPath(p) {
   return { wikiRoot: abs, wikiDir: abs };
 }
 
-function pickBranding(src) {
+function pickBranding(src, keys = BRANDING_KEYS) {
   const out = {};
-  for (const k of BRANDING_KEYS) if (src[k] !== undefined) out[k] = src[k];
+  for (const k of keys) if (src[k] !== undefined) out[k] = src[k];
   return out;
 }
 
@@ -247,7 +250,7 @@ function resolveBuild(positional, opts) {
     mediaDir,
     diagramsDir,
     wikiId: id,
-    overrides: { ...pickBranding(record), ...pickBranding(opts) },
+    overrides: { ...pickBranding(record), ...pickBranding(record, NAV_KEYS), ...pickBranding(opts) },
   };
 }
 

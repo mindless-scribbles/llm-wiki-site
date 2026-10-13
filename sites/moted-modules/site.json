@@ -1,4 +1,26 @@
 {
   "source": "wiki_projects/Moted_Modules",
-  "out": "~/sites/moted-modules"
+  "out": "~/sites/moted-modules",
+  "startHere": ["workshop/overview", "concepts/true-match"],
+  "sections": [
+    { "heading": "The course" },
+    "workshop",
+    "theory",
+    { "heading": "Reference" },
+    "concepts",
+    "solves",
+    "modules",
+    "characters",
+    { "heading": "Behind the scenes", "quiet": true },
+    "summaries",
+    "journal"
+  ],
+  "labels": { "theory": "Watch first" },
+  "order": {
+    "theory": ["six-into-four", "swing-twist", "pole-loop", "three-knots", "bend-weights"],
+    "solves": ["construction", "forward", "backward", "fk-ik-match"],
+    "modules": ["fnroot", "body", "fk-chain", "limb", "limb-twist", "spine-chain", "head"],
+    "concepts": ["dof-ledger", "roll-residual", "auto-key-on-flip"]
+  },
+  "hide": ["analytics", "dashboard"]
 }

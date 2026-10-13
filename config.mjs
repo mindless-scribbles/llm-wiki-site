@@ -9,6 +9,10 @@
 // (3) exists because Obsidian Sync only carries *.md — a wiki that lives in a
 // synced vault cannot rely on a JSON file travelling with it, so its branding
 // has to be markdown.
+//
+// The opt-in nav keys (sections, startHere, labels, order, hide) take lists, so
+// (3) can't hold them. They come from sites/<id>/site.json through `overrides`,
+// or from site.config.json for a wiki built by path.
 
 import { readFileSync, existsSync } from "node:fs";
 import { join } from "node:path";

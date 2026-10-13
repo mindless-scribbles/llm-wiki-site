@@ -10,7 +10,7 @@ Project-specific lessons learned across sessions. Read at session start. Update 
 <!-- Each rule should be concrete and actionable. Format:
      **[Short label]:** What to do (or not do), and why (date; doc pointer). -->
 
-**Dry-build before `--all`:** build every registered wiki into a scratch folder first. `build()` wipes the out dir before rendering, so a throw on one wiki leaves its live site half-built (2026-10-04).
+**Dry-build before `--all`:** build every registered wiki into a scratch folder first, with `build --site <id> --out <scratch>/<id>`. `build()` wipes the out dir before rendering, so a throw on one wiki leaves its live site half-built (2026-10-04). Build by `--site`, not by path: nav keys live in `sites/<id>/site.json`, and a by-path build never reads it, so the dry run would show the folder nav (2026-10-12).
 
 **The current page is not a link in old builds:** before the 2026-10-04 layout, `renderSidebar` emitted the current page as a plain `<li class="index-item current">` with no href. Anything that scrapes built HTML for the index must handle that case (2026-10-04).
 

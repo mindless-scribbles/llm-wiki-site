@@ -86,10 +86,12 @@ npx serve <out>       # or: python3 -m http.server -d <out>
   order, any other folder becomes its own sidebar group (named after the
   folder), and loose `*.md` at the wiki root fall under a catch-all "Pages"
   group. Structured, custom-folder, and flat wikis all build with no config.
-- **Shaping the nav (opt-in).** `site.config.json` can reorder and group the
-  sidebar. With none of these keys, the nav is the folder nav above. They take
-  lists, so they need the JSON file: the `index.md` `site:` block only holds flat
-  values.
+- **Shaping the nav (opt-in).** `sites/<id>/site.json` can reorder and group
+  the sidebar. With none of these keys, the nav is the folder nav above. They
+  take lists, so the `index.md` `site:` block can't hold them, and Obsidian Sync
+  doesn't carry `site.config.json`, so a registered wiki keeps them in this repo.
+  A wiki built by path (no `--site`) reads them from `site.config.json`; a key
+  in `site.json` wins over the same key there.
   - `"sections": ["workshop", {"heading": "Reference"}, "concepts", {"heading": "Behind the scenes", "quiet": true}, "summaries"]`
     puts the named folders first, in that order. A `{heading}` entry prints a
     tier heading above the groups after it, and `"quiet": true` dims those groups.
