@@ -1,4 +1,23 @@
 {
   "source": "wiki_projects/Animation_Blending",
-  "out": "~/sites/animation-blending"
+  "out": "~/sites/animation-blending",
+  "startHere": true,
+  "sections": [
+    { "heading": "Watch" },
+    "tutorials",
+    { "heading": "Reference" },
+    "concepts",
+    "syntheses",
+    "entities",
+    { "heading": "Behind the scenes", "quiet": true },
+    "summaries"
+  ],
+  "order": {
+    "tutorials": ["the-animate-button-gdc-2016", "borovik-fix-sliding-mocap", "borovik-smart-layer-tutorial-02",
+                  "iverson-basicoverrig-borrow-motion", "iverson-better-inbetweens-space-switching",
+                  "iverson-horse-roll-layering-overrig", "barnev-breaking-wheel-animation", "barnev-horizontal-bar-spin",
+                  "barnev-overrig-scripts-guide", "unreal-fest-2024-advanced-animation-techniques", "barnev-walking-bend-tool-guide"],
+    "concepts": ["adjustment-blending", "adjustment-blending-drivers"]
+  },
+  "hide": ["analytics", "dashboard", "journal/template"]
 }
