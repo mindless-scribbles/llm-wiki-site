@@ -52,7 +52,7 @@
      - Propose the nav keys.
      - Show Don a diagnosis artifact for each wiki.
   3. **Run it on the 22 other registered wikis** (`ls sites/`). One wiki at a time, each with Don's OK before writing its config. Flat or reference-only wikis may only need `hide` plus `order`; say so rather than inventing a path. Dry-build each into scratch first.
-  4. **Future wikis:** add the nav step to `~/.claude/commands/init-wiki.md` and to the llm-wiki template `CLAUDE.md`, so a new wiki gets a Start here line, the nav keys and a flow diagram. First ask Don to merge llm-wiki's local branch `editorial-diagrams` (`abf34be`, `ac05f29`; no upstream yet), since init-wiki copies that template.
+  4. **Future wikis:** add the nav step to `~/.claude/commands/init-wiki.md` and to the llm-wiki template `CLAUDE.md`, so a new wiki gets a Start here line, the nav keys and a flow diagram. The template's `@diagram` work (`editorial-diagrams`) is merged to llm-wiki `main` and pushed (`ac05f29`).
 - [ ] **Moted `index.md`, Don's call:** rename `## Theory` to match the nav's "Watch first"? Trim line 106 so it no longer links Analytics and Dashboard?
 - [ ] **Don reviews the nine converted Moted days.** Start at `http://127.0.0.1:4173/moted-modules/workshop/day-1.html` and work the notes with `work-notes`. Open questions:
   - Day 3's Phases 2 to 5 have no `**Why:**`. Should they get one?
