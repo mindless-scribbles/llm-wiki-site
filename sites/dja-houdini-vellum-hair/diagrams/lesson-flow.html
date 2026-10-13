@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The lesson flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 704px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Service blueprint · Diagram Design</p>
+    <h1>The lesson flow</h1>
+
+    <div class="diagram-container">
+<svg viewBox="0 0 704 392" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lesson-flow-title lesson-flow-desc">
+<title id="lesson-flow-title">The lesson flow</title>
+<desc id="lesson-flow-desc">A reader starts at the hair pipeline overview, then the hair node chain, then the Lesson 01 tutorial, and works through twenty lessons in six stages: scene and mask, guides and groom, simulate the guides, render hair and masks, the USD pipeline, and Karma look and finish. Concepts, the node chain and entities are reference. The verbatim transcripts and flashcards sit behind the scenes.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="88" y="50">START HERE</text>
+<text x="88" y="150">THE LESSONS</text>
+<text x="88" y="260">REFERENCE</text>
+<text x="88" y="324">BEHIND</text><text x="88" y="336">THE SCENES</text>
+</g>
+<g stroke="rgba(244,244,245,0.10)" stroke-width="1"><line x1="96" y1="96" x2="688" y2="96"/><line x1="96" y1="218" x2="688" y2="218"/></g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="280" y1="52" x2="303" y2="52" marker-end="url(#arrow)"/>
+<line x1="484" y1="52" x2="507" y2="52" marker-end="url(#arrow)"/>
+</g>
+<path d="M598 76 V106 H144 V115" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" fill="none" marker-end="url(#arrow-link)"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="28" width="180" height="48" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1.2"/>
+<text x="110" y="48" font-size="12" font-weight="600" fill="#f2f2f3">Hair Pipeline Overview</text>
+<text x="110" y="63" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">the big picture</text>
+<rect x="304" y="28" width="180" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="314" y="48" font-size="12" font-weight="600" fill="#f2f2f3">Hair Node Chain</text>
+<text x="314" y="63" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">your map</text>
+<rect x="508" y="28" width="180" height="48" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="518" y="48" font-size="12" font-weight="600" fill="#f2f2f3">Lesson 01</text>
+<text x="518" y="63" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">build along</text>
+</g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="188" y1="158" x2="199" y2="158" marker-end="url(#arrow)"/>
+<line x1="288" y1="158" x2="299" y2="158" marker-end="url(#arrow)"/>
+<line x1="388" y1="158" x2="399" y2="158" marker-end="url(#arrow)"/>
+<line x1="488" y1="158" x2="499" y2="158" marker-end="url(#arrow)"/>
+<line x1="588" y1="158" x2="599" y2="158" marker-end="url(#arrow)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="116" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="144" y="134" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.08em" fill="#a1a1aa">LESSONS 1-2</text>
+<text x="144" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">Scene</text>
+<text x="144" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">and mask</text>
+<rect x="200" y="116" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="244" y="134" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.08em" fill="#a1a1aa">LESSONS 3-6</text>
+<text x="244" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">Guides</text>
+<text x="244" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">and groom</text>
+<rect x="300" y="116" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="344" y="134" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.08em" fill="#a1a1aa">LESSONS 7-10</text>
+<text x="344" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">Simulate</text>
+<text x="344" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">the guides</text>
+<rect x="400" y="116" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="444" y="134" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.08em" fill="#a1a1aa">LESSONS 11-13</text>
+<text x="444" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">Render hair</text>
+<text x="444" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">and masks</text>
+<rect x="500" y="116" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="544" y="134" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.08em" fill="#a1a1aa">LESSONS 14-15</text>
+<text x="544" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">USD</text>
+<text x="544" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">pipeline</text>
+<rect x="600" y="116" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="644" y="134" text-anchor="middle" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.08em" fill="#a1a1aa">LESSONS 16-20</text>
+<text x="644" y="156" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">Karma look</text>
+<text x="644" y="171" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">and finish</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="238" width="204" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="112" y="253" font-size="12" font-weight="600" fill="#f2f2f3">Concepts</text>
+<text x="112" y="267" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">20 · the ideas</text>
+<rect x="316" y="238" width="140" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="328" y="253" font-size="12" font-weight="600" fill="#f2f2f3">Syntheses</text>
+<text x="328" y="267" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">1 · node chain</text>
+<rect x="468" y="238" width="220" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="480" y="253" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="480" y="267" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">21 · nodes and tools</text>
+</g>
+<line x1="96" y1="292" x2="688" y2="292" stroke="rgba(242,242,243,0.55)" stroke-width="2" data-role="visibility"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="308" width="380" height="36" rx="6" fill="rgba(242,242,243,0.02)" stroke="rgba(242,242,243,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="112" y="323" font-size="12" font-weight="600" fill="#a1a1aa">Transcripts</text>
+<text x="112" y="337" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">20 · verbatim</text>
+<rect x="492" y="308" width="196" height="36" rx="6" fill="rgba(242,242,243,0.02)" stroke="rgba(242,242,243,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="504" y="323" font-size="12" font-weight="600" fill="#a1a1aa">Flashcards</text>
+<text x="504" y="337" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">1 Obsidian page</text>
+</g>
+<line x1="96" y1="360" x2="688" y2="360" stroke="rgba(244,244,245,0.10)" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="372" width="16" height="12" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/><text x="120" y="381">START HERE</text>
+<line x1="200" y1="378" x2="228" y2="378" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/><text x="236" y="381">READ IN ORDER</text>
+<line x1="352" y1="378" x2="380" y2="378" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-link)"/><text x="388" y="381">THEN THE LESSONS</text>
+<line x1="520" y1="378" x2="548" y2="378" stroke="rgba(242,242,243,0.55)" stroke-width="2"/><text x="556" y="381">NOT ON THE PATH</text>
+</g>
+</svg>
+    </div>
+  </div>
+</body>
+</html>

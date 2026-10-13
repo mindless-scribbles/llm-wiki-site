@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 440" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="course-flow-title course-flow-desc" id="course-flow-root">
+<title id="course-flow-title">The course flow</title>
+<desc id="course-flow-desc">A reader starts with five concepts: CFX Scope, CFX Production Planning, Simulation Master File, then the cloth track (Input Mesh, Cloth Mesh and Solver) or the hair track (Guide-Curve Hair Pipeline). The eight weekly lessons then run in five stages: plan, cloth setup, hair setup, draping, and shot work. Concepts, entities and syntheses are reference. Flashcards sit behind the scenes.</desc>
+<defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #course-flow-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #course-flow-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #course-flow-root .diagram-container { width: 100%; overflow-x: auto; }
+      #course-flow-root .diagram-container { overflow-x: visible; }</style><marker id="course-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker><marker id="course-flow-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="middle">
+<text x="506" y="22">CLOTH TRACK</text><text x="624" y="22">HAIR TRACK</text>
+<text x="152" y="116">PLAN</text>
+<text x="270" y="116">CLOTH SETUP</text>
+<text x="388" y="116">HAIR SETUP</text>
+<text x="506" y="116">DRAPING</text>
+<text x="624" y="116">SHOT WORK</text>
+</g>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="88" y="56">START</text><text x="88" y="68">HERE</text>
+<text x="88" y="170">THE COURSE</text><text x="88" y="182">8 WEEKS</text>
+<text x="88" y="306">REFERENCE</text>
+<text x="88" y="384">BEHIND</text><text x="88" y="396">THE SCENES</text>
+</g>
+<g stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="1"><line x1="96" y1="98" x2="688" y2="98"/><line x1="96" y1="280" x2="688" y2="280"/></g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="204" y1="58" x2="219" y2="58" marker-end="url(#course-flow-arrow)"/>
+<line x1="322" y1="58" x2="337" y2="58" marker-end="url(#course-flow-arrow)"/>
+<line x1="440" y1="58" x2="455" y2="58" marker-end="url(#course-flow-arrow)"/>
+</g>
+<path d="M388 86 V94 H624 V88" stroke="#a1a1aa" stroke-width="1" fill="none" marker-end="url(#course-flow-arrow)" transform="translate(0,0)"/>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="100" y="30" width="104" height="56" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1.2"/>
+<text x="152" y="62" font-size="12" font-weight="600" fill="#f2f2f3">CFX Scope</text>
+<rect x="218" y="30" width="104" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="270" y="55" font-size="12" font-weight="600" fill="#f2f2f3">CFX Production</text>
+<text x="270" y="69" font-size="12" font-weight="600" fill="#f2f2f3">Planning</text>
+<rect x="336" y="30" width="104" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="388" y="55" font-size="12" font-weight="600" fill="#f2f2f3">Simulation</text>
+<text x="388" y="69" font-size="12" font-weight="600" fill="#f2f2f3">Master File</text>
+<rect x="454" y="30" width="104" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="506" y="48" font-size="12" font-weight="600" fill="#f2f2f3">Input Mesh,</text>
+<text x="506" y="62" font-size="12" font-weight="600" fill="#f2f2f3">Cloth Mesh</text>
+<text x="506" y="76" font-size="12" font-weight="600" fill="#f2f2f3">and Solver</text>
+<rect x="572" y="30" width="104" height="56" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="624" y="55" font-size="12" font-weight="600" fill="#f2f2f3">Guide-Curve</text>
+<text x="624" y="69" font-size="12" font-weight="600" fill="#f2f2f3">Hair Pipeline</text>
+</g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="204" y1="144" x2="219" y2="144" marker-end="url(#course-flow-arrow)"/>
+<line x1="322" y1="144" x2="337" y2="144" marker-end="url(#course-flow-arrow)"/>
+<line x1="440" y1="144" x2="455" y2="144" marker-end="url(#course-flow-arrow)"/>
+<line x1="558" y1="144" x2="573" y2="144" marker-end="url(#course-flow-arrow)"/>
+<line x1="270" y1="164" x2="270" y2="175" marker-end="url(#course-flow-arrow)"/>
+<line x1="624" y1="164" x2="624" y2="175" marker-end="url(#course-flow-arrow)"/>
+<line x1="624" y1="216" x2="624" y2="227" marker-end="url(#course-flow-arrow)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="100" y="124" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="152" y="141" font-size="12" font-weight="600" fill="#f2f2f3">Week 1</text>
+<text x="152" y="155" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Scope, planning</text>
+<rect x="218" y="124" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="270" y="141" font-size="12" font-weight="600" fill="#f2f2f3">Week 2</text>
+<text x="270" y="155" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Qualoth basics</text>
+<rect x="218" y="176" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="270" y="193" font-size="12" font-weight="600" fill="#f2f2f3">Week 3</text>
+<text x="270" y="207" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Master file</text>
+<rect x="336" y="124" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="388" y="141" font-size="12" font-weight="600" fill="#f2f2f3">Week 4</text>
+<text x="388" y="155" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Hair pipeline</text>
+<rect x="454" y="124" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="506" y="141" font-size="12" font-weight="600" fill="#f2f2f3">Week 5</text>
+<text x="506" y="155" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Layered draping</text>
+<rect x="572" y="124" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="624" y="141" font-size="12" font-weight="600" fill="#f2f2f3">Week 6</text>
+<text x="624" y="155" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Hair shot sim</text>
+<rect x="572" y="176" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="624" y="193" font-size="12" font-weight="600" fill="#f2f2f3">Week 7</text>
+<text x="624" y="207" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Cloth shot sim</text>
+<rect x="572" y="228" width="104" height="40" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="624" y="245" font-size="12" font-weight="600" fill="#f2f2f3">Week 8</text>
+<text x="624" y="259" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Q&amp;A</text>
+</g>
+<path d="M388 268 V286" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" fill="none" marker-end="url(#course-flow-arrow-link)"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="288" width="184" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="112" y="303" font-size="12" font-weight="600" fill="#f2f2f3">Concepts</text>
+<text x="112" y="317" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">23 · 18 linked from the weeks</text>
+<rect x="296" y="288" width="184" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="308" y="303" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="308" y="317" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">6 · Qualoth, FX Hair, Maya</text>
+<rect x="492" y="288" width="192" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="504" y="303" font-size="12" font-weight="600" fill="#f2f2f3">Syntheses</text>
+<text x="504" y="317" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">2 · comparisons</text>
+</g>
+<line x1="96" y1="344" x2="688" y2="344" stroke="#f2f2f3" stroke-opacity="0.55" stroke-width="2" data-role="visibility"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="360" width="184" height="36" rx="6" fill="#f2f2f3" fill-opacity="0.02" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="112" y="375" font-size="12" font-weight="600" fill="#a1a1aa">Flashcards</text>
+<text x="112" y="389" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">1 Obsidian page</text>
+</g>
+<line x1="96" y1="412" x2="688" y2="412" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="422" width="16" height="12" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/><text x="120" y="431">ENTRY</text>
+<line x1="190" y1="428" x2="218" y2="428" stroke="#a1a1aa" stroke-width="1" marker-end="url(#course-flow-arrow)"/><text x="226" y="431">READ IN ORDER</text>
+<line x1="352" y1="428" x2="380" y2="428" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#course-flow-arrow-link)"/><text x="388" y="431">WEEKS LINK TO</text>
+<line x1="500" y1="428" x2="528" y2="428" stroke="#f2f2f3" stroke-opacity="0.55" stroke-width="2"/><text x="536" y="431">NOT ON THE PATH</text>
+</g>
+</svg>

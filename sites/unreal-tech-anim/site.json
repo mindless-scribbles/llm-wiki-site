@@ -1,4 +1,19 @@
 {
   "source": "wiki_projects/Unreal Tech Anim",
-  "out": "~/sites/unreal-tech-anim"
+  "out": "~/sites/unreal-tech-anim",
+  "startHere": ["concepts/locomotion-state-machine-architecture", "concepts/thread-safe-update-animation"],
+  "sections": [
+    { "heading": "The series" },
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "entities"
+  ],
+  "order": {
+    "summaries": ["ue5-tech-anim-beginners-course-part-1", "ue5-tech-anim-distance-matching-foot-sync-part-2",
+                  "ue5-tech-anim-run-locomotion-pivots-part-3"],
+    "concepts": ["movement-start-direction", "mesh-capsule-alignment", "animation-modifiers", "turn-ambiguity-180-fix",
+                 "foot-sync-markers", "which-foot-is-forward", "distance-matching", "inertialization-vs-dead-blending",
+                 "run-locomotion-pivots", "state-aliases"]
+  }
 }

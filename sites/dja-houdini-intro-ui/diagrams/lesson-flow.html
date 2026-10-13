@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The lesson flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 704px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Service blueprint · Diagram Design</p>
+    <h1>The lesson flow</h1>
+
+    <div class="diagram-container">
+<svg viewBox="0 0 704 540" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lesson-flow-title lesson-flow-desc">
+<title id="lesson-flow-title">The lesson flow</title>
+<desc id="lesson-flow-desc">A reader starts with the hotkey cheatsheet and the Lesson 00-5 info dump warning. The eighteen lessons then run in five stages: orientation, working in the viewport, display, time and animation, and inspecting and organizing. Concepts, syntheses and entities are reference.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="86" y="80">START</text><text x="86" y="92">HERE</text>
+<text x="86" y="176">THE</text><text x="86" y="188">LESSONS</text>
+<text x="86" y="400">REFERENCE</text>
+<text x="86" y="466">BEHIND</text><text x="86" y="478">THE SCENES</text>
+</g>
+<rect x="96" y="28" width="592" height="108" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1.2"/>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="106.0" y="38" width="281.0" height="88" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="246.5" y="79" font-size="12" font-weight="600" fill="#f2f2f3">Hotkey Cheatsheet</text>
+<text x="246.5" y="117" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">synthesis</text>
+<rect x="397.0" y="38" width="281.0" height="88" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="537.5" y="79" font-size="12" font-weight="600" fill="#f2f2f3">00-5 Info Dump Warning</text>
+<text x="537.5" y="117" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">summary</text>
+</g>
+<line x1="150.4" y1="136" x2="150.4" y2="159" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="204.8" y1="178" x2="215.8" y2="178" marker-end="url(#arrow)"/>
+<line x1="325.6" y1="178" x2="336.6" y2="178" marker-end="url(#arrow)"/>
+<line x1="446.4" y1="178" x2="457.4" y2="178" marker-end="url(#arrow)"/>
+<line x1="567.2" y1="178" x2="578.2" y2="178" marker-end="url(#arrow)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="96.0" y="160" width="108.8" height="190" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="105.0" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 1</text>
+<text x="105.0" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Orientation</text>
+<line x1="105.0" y1="200" x2="195.8" y2="200" stroke="rgba(244,244,245,0.12)" stroke-width="1"/>
+<text x="105.0" y="214" font-size="10" fill="#d4d4d8">00-5 Info Dump</text>
+<text x="105.0" y="226" font-size="10" fill="#d4d4d8">Warning</text>
+<text x="105.0" y="243" font-size="10" fill="#d4d4d8">01 Geometry</text>
+<text x="105.0" y="260" font-size="10" fill="#d4d4d8">02 Viewport</text>
+<text x="105.0" y="272" font-size="10" fill="#d4d4d8">Navigation</text>
+<text x="105.0" y="289" font-size="10" fill="#d4d4d8">03 Flags</text>
+<rect x="216.8" y="160" width="108.8" height="190" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="225.8" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 2</text>
+<text x="225.8" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Work in the</text>
+<text x="225.8" y="204" font-size="12" font-weight="600" fill="#f2f2f3">viewport</text>
+<line x1="225.8" y1="214" x2="316.6" y2="214" stroke="rgba(244,244,245,0.12)" stroke-width="1"/>
+<text x="225.8" y="228" font-size="10" fill="#d4d4d8">04 Selection</text>
+<text x="225.8" y="245" font-size="10" fill="#d4d4d8">05 Transform</text>
+<text x="225.8" y="257" font-size="10" fill="#d4d4d8">Tool</text>
+<text x="225.8" y="274" font-size="10" fill="#d4d4d8">06 Creating</text>
+<text x="225.8" y="286" font-size="10" fill="#d4d4d8">Nodes and Shelf</text>
+<text x="225.8" y="298" font-size="10" fill="#d4d4d8">Tour</text>
+<rect x="337.6" y="160" width="108.8" height="190" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="346.6" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 3</text>
+<text x="346.6" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Display</text>
+<line x1="346.6" y1="200" x2="437.4" y2="200" stroke="rgba(244,244,245,0.12)" stroke-width="1"/>
+<text x="346.6" y="214" font-size="10" fill="#d4d4d8">07 Viewport</text>
+<text x="346.6" y="226" font-size="10" fill="#d4d4d8">Shading</text>
+<text x="346.6" y="243" font-size="10" fill="#d4d4d8">08 Viewport</text>
+<text x="346.6" y="255" font-size="10" fill="#d4d4d8">Lighting</text>
+<text x="346.6" y="272" font-size="10" fill="#d4d4d8">09 Visualizers</text>
+<text x="346.6" y="289" font-size="10" fill="#d4d4d8">10 Display</text>
+<text x="346.6" y="301" font-size="10" fill="#d4d4d8">Options</text>
+<rect x="458.4" y="160" width="108.8" height="190" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="467.4" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 4</text>
+<text x="467.4" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Time and</text>
+<text x="467.4" y="204" font-size="12" font-weight="600" fill="#f2f2f3">animation</text>
+<line x1="467.4" y1="214" x2="558.2" y2="214" stroke="rgba(244,244,245,0.12)" stroke-width="1"/>
+<text x="467.4" y="228" font-size="10" fill="#d4d4d8">11 Timeline</text>
+<text x="467.4" y="245" font-size="10" fill="#d4d4d8">12 Animation</text>
+<text x="467.4" y="262" font-size="10" fill="#d4d4d8">13 Flipbook</text>
+<rect x="579.2" y="160" width="108.8" height="190" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="588.2" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 5</text>
+<text x="588.2" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Inspect and</text>
+<text x="588.2" y="204" font-size="12" font-weight="600" fill="#f2f2f3">organize</text>
+<line x1="588.2" y1="214" x2="679.0" y2="214" stroke="rgba(244,244,245,0.12)" stroke-width="1"/>
+<text x="588.2" y="228" font-size="10" fill="#d4d4d8">14 Geometry</text>
+<text x="588.2" y="240" font-size="10" fill="#d4d4d8">Spreadsheet</text>
+<text x="588.2" y="257" font-size="10" fill="#d4d4d8">15 Custom</text>
+<text x="588.2" y="269" font-size="10" fill="#d4d4d8">Desktop Layout</text>
+<text x="588.2" y="286" font-size="10" fill="#d4d4d8">16 Contexts</text>
+<text x="588.2" y="303" font-size="10" fill="#d4d4d8">17 Additional</text>
+<text x="588.2" y="315" font-size="10" fill="#d4d4d8">Organization and</text>
+<text x="588.2" y="327" font-size="10" fill="#d4d4d8">Help</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="96.0" y="378" width="189.3" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="108.0" y="393" font-size="12" font-weight="600" fill="#f2f2f3">Concepts</text>
+<text x="108.0" y="407" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">15 · the ideas</text>
+<rect x="297.3" y="378" width="189.3" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="309.3" y="393" font-size="12" font-weight="600" fill="#f2f2f3">Syntheses</text>
+<text x="309.3" y="407" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">1 · hotkeys</text>
+<rect x="498.7" y="378" width="189.3" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="510.7" y="393" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="510.7" y="407" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">16 · panels and nodes</text>
+</g>
+<line x1="96" y1="434" x2="688" y2="434" stroke="rgba(242,242,243,0.55)" stroke-width="2" data-role="visibility"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="96.0" y="450" width="280.0" height="36" rx="6" fill="rgba(242,242,243,0.02)" stroke="rgba(242,242,243,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="108.0" y="465" font-size="12" font-weight="600" fill="#a1a1aa">Flashcards</text>
+<text x="108.0" y="479" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">1 Obsidian page</text>
+</g>
+<line x1="96" y1="504" x2="688" y2="504" stroke="rgba(244,244,245,0.10)" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="516" width="16" height="12" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/><text x="120" y="525">START HERE</text>
+<line x1="220" y1="522" x2="248" y2="522" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/><text x="256" y="525">TAKE IN ORDER</text>
+<line x1="372" y1="522" x2="400" y2="522" stroke="rgba(242,242,243,0.55)" stroke-width="2"/><text x="408" y="525">NOT ON THE PATH</text>
+</g>
+</svg>
+    </div>
+  </div>
+</body>
+</html>

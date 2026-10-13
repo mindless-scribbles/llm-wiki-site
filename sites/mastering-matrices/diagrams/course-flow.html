@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The series flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 704px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Service blueprint · Diagram Design</p>
+    <h1>The series flow</h1>
+
+    <div class="diagram-container">
+<svg viewBox="0 0 704 304" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="course-flow-title course-flow-desc">
+<title id="course-flow-title">The Rigging with Matrices series flow</title>
+<desc id="course-flow-desc">A reader starts with the foundational videos, the Mastering Matrices theory video and Part 01, then takes four stages in order: FK, IK, IK/FK blending and animator features. Every stage links to concepts and entities. Syntheses compare solvers and shape driving. The step-by-step presentations sit behind the scenes.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="middle">
+<text x="152" y="22">START HERE</text>
+<text x="272" y="22">STAGE 1</text>
+<text x="392" y="22">STAGE 2</text>
+<text x="512" y="22">STAGE 3</text>
+<text x="632" y="22">STAGE 4</text>
+</g>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="88" y="70">THE</text><text x="88" y="82">SERIES</text>
+<text x="88" y="166">REFERENCE</text>
+<text x="88" y="236">BEHIND</text><text x="88" y="248">THE SCENES</text>
+</g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="204" y1="74" x2="219" y2="74" marker-end="url(#arrow)"/>
+<line x1="324" y1="74" x2="339" y2="74" marker-end="url(#arrow)"/>
+<line x1="444" y1="74" x2="459" y2="74" marker-end="url(#arrow)"/>
+<line x1="564" y1="74" x2="579" y2="74" marker-end="url(#arrow)"/>
+</g>
+<g stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" fill="none">
+<path d="M194 118 V140" marker-end="url(#arrow-link)"/>
+<path d="M394 118 V140" marker-end="url(#arrow-link)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="100" y="32" width="104" height="84" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1.2"/>
+<text x="152" y="61" font-size="12" font-weight="600" fill="#f2f2f3">Foundational</text>
+<text x="152" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">matrix theory</text>
+<text x="152" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Part 01: Intro</text>
+<rect x="220" y="32" width="104" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="272" y="61" font-size="12" font-weight="600" fill="#f2f2f3">FK</text>
+<text x="272" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Part 02</text>
+<text x="272" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">guided FK rig</text>
+<rect x="340" y="32" width="104" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="392" y="61" font-size="12" font-weight="600" fill="#f2f2f3">IK</text>
+<text x="392" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Parts 03 to 07</text>
+<text x="392" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">three solvers</text>
+<rect x="460" y="32" width="104" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="512" y="54" font-size="12" font-weight="600" fill="#f2f2f3">IK/FK</text>
+<text x="512" y="68" font-size="12" font-weight="600" fill="#f2f2f3">blending</text>
+<text x="512" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Part 08</text>
+<text x="512" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">flat hierarchy</text>
+<rect x="580" y="32" width="104" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="632" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Animator</text>
+<text x="632" y="68" font-size="12" font-weight="600" fill="#f2f2f3">features</text>
+<text x="632" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">Parts 09 to 13</text>
+<text x="632" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">for animators</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="148" width="188" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="112" y="163" font-size="12" font-weight="600" fill="#f2f2f3">Concepts</text>
+<text x="112" y="177" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">27 · matrix theory to features</text>
+<rect x="300" y="148" width="188" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="312" y="163" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="312" y="177" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">8 · people and Maya nodes</text>
+<rect x="500" y="148" width="184" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="512" y="163" font-size="12" font-weight="600" fill="#f2f2f3">Syntheses</text>
+<text x="512" y="177" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">2 · solvers, shape driving</text>
+</g>
+<line x1="96" y1="206" x2="688" y2="206" stroke="rgba(242,242,243,0.55)" stroke-width="2" data-role="visibility"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="224" width="584" height="36" rx="6" fill="rgba(242,242,243,0.02)" stroke="rgba(242,242,243,0.20)" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="112" y="239" font-size="12" font-weight="600" fill="#a1a1aa">Presentations</text>
+<text x="112" y="253" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">12 · step-by-step walkthroughs of Parts 02 to 13</text>
+</g>
+<line x1="96" y1="272" x2="688" y2="272" stroke="rgba(244,244,245,0.10)" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="278" width="16" height="12" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/><text x="120" y="287">START HERE</text>
+<line x1="224" y1="284" x2="252" y2="284" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/><text x="260" y="287">WATCH IN ORDER</text>
+<line x1="388" y1="284" x2="416" y2="284" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-link)"/><text x="424" y="287">EVERY STAGE LINKS OUT</text>
+</g>
+</svg>
+    </div>
+  </div>
+</body>
+</html>

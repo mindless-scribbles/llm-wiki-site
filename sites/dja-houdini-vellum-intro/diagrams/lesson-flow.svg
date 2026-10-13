@@ -1,0 +1,110 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 494" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="lesson-flow-title lesson-flow-desc" id="lesson-flow-root">
+<title id="lesson-flow-title">The lesson flow</title>
+<desc id="lesson-flow-desc">A reader starts with the Vellum pipeline overview, the position-based dynamics theory, the node chain map and the Lesson 02 tutorial. The eight lessons then run in four stages: constraints, the first DOP solver, softbodies and solving, and the SOP solver with the post process. Concepts, syntheses and entities are reference, and the verbatim transcripts sit behind the scenes.</desc>
+<defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #lesson-flow-root { --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #lesson-flow-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #lesson-flow-root .diagram-container { width: 100%; overflow-x: auto; }
+      #lesson-flow-root .diagram-container { overflow-x: visible; }</style><marker id="lesson-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="86" y="80">START</text><text x="86" y="92">HERE</text>
+<text x="86" y="176">THE</text><text x="86" y="188">LESSONS</text>
+<text x="86" y="354">REFERENCE</text>
+<text x="86" y="420">BEHIND</text><text x="86" y="432">THE SCENES</text>
+</g>
+<rect x="96" y="28" width="592" height="108" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1.2"/>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="106.0" y="38" width="135.5" height="88" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="173.8" y="72" font-size="12" font-weight="600" fill="#f2f2f3">Vellum Pipeline</text>
+<text x="173.8" y="86" font-size="12" font-weight="600" fill="#f2f2f3">Overview</text>
+<text x="173.8" y="117" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">concept</text>
+<rect x="251.5" y="38" width="135.5" height="88" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="319.2" y="72" font-size="12" font-weight="600" fill="#f2f2f3">Position-Based</text>
+<text x="319.2" y="86" font-size="12" font-weight="600" fill="#f2f2f3">Dynamics</text>
+<text x="319.2" y="117" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">concept</text>
+<rect x="397.0" y="38" width="135.5" height="88" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="464.8" y="79" font-size="12" font-weight="600" fill="#f2f2f3">Vellum Node Chain</text>
+<text x="464.8" y="117" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">synthesis</text>
+<rect x="542.5" y="38" width="135.5" height="88" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="610.2" y="65" font-size="12" font-weight="600" fill="#f2f2f3">02 Exploring</text>
+<text x="610.2" y="79" font-size="12" font-weight="600" fill="#f2f2f3">Distance and Bend</text>
+<text x="610.2" y="93" font-size="12" font-weight="600" fill="#f2f2f3">Constraints</text>
+<text x="610.2" y="117" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">tutorial</text>
+</g>
+<line x1="162.5" y1="136" x2="162.5" y2="159" stroke="#a1a1aa" stroke-width="1" marker-end="url(#lesson-flow-arrow)"/>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="229.0" y1="178" x2="248.0" y2="178" marker-end="url(#lesson-flow-arrow)"/>
+<line x1="382.0" y1="178" x2="401.0" y2="178" marker-end="url(#lesson-flow-arrow)"/>
+<line x1="535.0" y1="178" x2="554.0" y2="178" marker-end="url(#lesson-flow-arrow)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="96.0" y="160" width="133.0" height="144" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="105.0" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 1</text>
+<text x="105.0" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Constraints</text>
+<line x1="105.0" y1="200" x2="220.0" y2="200" stroke="#f4f4f5" stroke-opacity="0.12" stroke-width="1"/>
+<text x="105.0" y="214" font-size="10" fill="#d4d4d8">01 What is Vellum</text>
+<text x="105.0" y="231" font-size="10" fill="#d4d4d8">02 Exploring Distance</text>
+<text x="105.0" y="243" font-size="10" fill="#d4d4d8">and Bend Constraints</text>
+<rect x="249.0" y="160" width="133.0" height="144" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="258.0" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 2</text>
+<text x="258.0" y="190" font-size="12" font-weight="600" fill="#f2f2f3">First DOP solver</text>
+<line x1="258.0" y1="200" x2="373.0" y2="200" stroke="#f4f4f5" stroke-opacity="0.12" stroke-width="1"/>
+<text x="258.0" y="214" font-size="10" fill="#d4d4d8">03 Creating Our First</text>
+<text x="258.0" y="226" font-size="10" fill="#d4d4d8">DOP Vellum Solver</text>
+<text x="258.0" y="243" font-size="10" fill="#d4d4d8">04 Combining</text>
+<text x="258.0" y="255" font-size="10" fill="#d4d4d8">Constraints</text>
+<rect x="402.0" y="160" width="133.0" height="144" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="411.0" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 3</text>
+<text x="411.0" y="190" font-size="12" font-weight="600" fill="#f2f2f3">Softbodies and</text>
+<text x="411.0" y="204" font-size="12" font-weight="600" fill="#f2f2f3">solving</text>
+<line x1="411.0" y1="214" x2="526.0" y2="214" stroke="#f4f4f5" stroke-opacity="0.12" stroke-width="1"/>
+<text x="411.0" y="228" font-size="10" fill="#d4d4d8">05 Tetrahedral</text>
+<text x="411.0" y="240" font-size="10" fill="#d4d4d8">Softbodies and Vellum</text>
+<text x="411.0" y="252" font-size="10" fill="#d4d4d8">Configure Setups</text>
+<text x="411.0" y="269" font-size="10" fill="#d4d4d8">06 Substeps and</text>
+<text x="411.0" y="281" font-size="10" fill="#d4d4d8">Constraint Iterations</text>
+<rect x="555.0" y="160" width="133.0" height="144" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="564.0" y="174" font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94">STAGE 4</text>
+<text x="564.0" y="190" font-size="12" font-weight="600" fill="#f2f2f3">SOP solver and</text>
+<text x="564.0" y="204" font-size="12" font-weight="600" fill="#f2f2f3">post</text>
+<line x1="564.0" y1="214" x2="679.0" y2="214" stroke="#f4f4f5" stroke-opacity="0.12" stroke-width="1"/>
+<text x="564.0" y="228" font-size="10" fill="#d4d4d8">07 The SOP Vellum</text>
+<text x="564.0" y="240" font-size="10" fill="#d4d4d8">Solver</text>
+<text x="564.0" y="257" font-size="10" fill="#d4d4d8">08 The Post Process</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="96.0" y="332" width="189.3" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="108.0" y="347" font-size="12" font-weight="600" fill="#f2f2f3">Concepts</text>
+<text x="108.0" y="361" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">20 · the ideas</text>
+<rect x="297.3" y="332" width="189.3" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="309.3" y="347" font-size="12" font-weight="600" fill="#f2f2f3">Syntheses</text>
+<text x="309.3" y="361" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">1 · the node chain</text>
+<rect x="498.7" y="332" width="189.3" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="510.7" y="347" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="510.7" y="361" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">22 · nodes and attributes</text>
+</g>
+<line x1="96" y1="388" x2="688" y2="388" stroke="#f2f2f3" stroke-opacity="0.55" stroke-width="2" data-role="visibility"/>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="96.0" y="404" width="290.0" height="36" rx="6" fill="#f2f2f3" fill-opacity="0.02" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="108.0" y="419" font-size="12" font-weight="600" fill="#a1a1aa">Transcripts</text>
+<text x="108.0" y="433" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">8 · verbatim</text>
+<rect x="398.0" y="404" width="290.0" height="36" rx="6" fill="#f2f2f3" fill-opacity="0.02" stroke="#f2f2f3" stroke-opacity="0.20" stroke-width="1" stroke-dasharray="4,3"/>
+<text x="410.0" y="419" font-size="12" font-weight="600" fill="#a1a1aa">Flashcards</text>
+<text x="410.0" y="433" font-family="'Space Mono', monospace" font-size="9" fill="#8b8b94">1 Obsidian page</text>
+</g>
+<line x1="96" y1="458" x2="688" y2="458" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="470" width="16" height="12" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/><text x="120" y="479">START HERE</text>
+<line x1="220" y1="476" x2="248" y2="476" stroke="#a1a1aa" stroke-width="1" marker-end="url(#lesson-flow-arrow)"/><text x="256" y="479">TAKE IN ORDER</text>
+<line x1="372" y1="476" x2="400" y2="476" stroke="#f2f2f3" stroke-opacity="0.55" stroke-width="2"/><text x="408" y="479">NOT ON THE PATH</text>
+</g>
+</svg>

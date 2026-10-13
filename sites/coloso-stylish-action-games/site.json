@@ -1,4 +1,24 @@
 {
   "source": "wiki_projects/Coloso Stylish Action Games",
-  "out": "~/sites/coloso-stylish-action-games"
+  "out": "~/sites/coloso-stylish-action-games",
+  "startHere": ["tutorials/Section01-AnalyzingUnrealEngineExercises/01-ClassIntroduction"],
+  "sections": [
+    { "heading": "Step-by-step tutorials" },
+    "tutorials",
+    { "heading": "Full transcripts", "quiet": true },
+    "Section01-AnalyzingUnrealEngineExercises", "Section02-LearningTheBasics-ExerciseGame",
+    "Section03-CreatingCharacterAssets", "Section04-StartingAnimationProgramming",
+    "Section05-AdvancedAnimationProgramming", "Section06-EnemyAIsCounterattack",
+    "Section07-CreatingAComboAttack", "Section08-CompletingTheGame"
+  ],
+  "labels": {
+    "Section01-AnalyzingUnrealEngineExercises": "Section 01: Analyzing Unreal Engine Exercises",
+    "Section02-LearningTheBasics-ExerciseGame": "Section 02: Learning the Basics",
+    "Section03-CreatingCharacterAssets": "Section 03: Creating Character Assets",
+    "Section04-StartingAnimationProgramming": "Section 04: Starting Animation Programming",
+    "Section05-AdvancedAnimationProgramming": "Section 05: Advanced Animation Programming",
+    "Section06-EnemyAIsCounterattack": "Section 06: Enemy AI's Counterattack",
+    "Section07-CreatingAComboAttack": "Section 07: Creating a Combo Attack",
+    "Section08-CompletingTheGame": "Section 08: Completing the Game"
+  }
 }

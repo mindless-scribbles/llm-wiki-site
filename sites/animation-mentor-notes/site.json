@@ -1,4 +1,35 @@
 {
   "source": "wiki_projects/Animation Mentor Notes",
-  "out": "~/sites/animation-mentor-notes"
+  "out": "~/sites/animation-mentor-notes",
+  "startHere": ["summaries/animation-basics-foundations-and-planning", "summaries/animation-basics-12-principles-and-timing"],
+  "sections": [
+    { "heading": "The courses" },
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "entities"
+  ],
+  "labels": { "summaries": "Course notes" },
+  "order": {
+    "summaries": ["animation-basics-foundations-and-planning", "animation-basics-12-principles-and-timing",
+                  "animation-basics-overlap-and-anticipation", "animation-basics-splines-and-walk-cycle",
+                  "animation-basics-hips-and-walk-refinement", "animation-basics-character-walks",
+                  "animation-basics-exaggeration", "animation-basics-weight-in-walks-and-course-review",
+                  "body-mechanics-week01", "body-mechanics-week02", "body-mechanics-week03", "body-mechanics-week04",
+                  "body-mechanics-week05", "body-mechanics-week06", "body-mechanics-week07", "body-mechanics-week08",
+                  "body-mechanics-week09", "body-mechanics-week10", "body-mechanics-week11", "body-mechanics-week12",
+                  "body-mechanics-staging-composition-and-cuts", "body-mechanics-arcs-overlap-anticipation-timing",
+                  "body-mechanics-workflow-clarity-and-design",
+                  "advanced-acting-character-performance-and-staging", "advanced-acting-cinematography-editing-and-workflow",
+                  "advanced-acting-polish-maya-technique-and-career-tips", "acting-polish-demo-reel-and-career-prep",
+                  "acting-polish-spacing-and-personality", "acting-polish-production-polish-and-pipeline",
+                  "acting-fundamentals-pantomime-subtext-secondary-action", "dialogue-lipsync-facial-animation-workflow",
+                  "creatan2019-quadruped-anatomy-locomotion", "creatan2019-weight-polish-flight-mechanics",
+                  "creature-anatomy-and-gait-mechanics", "quadruped-rig-workflow-and-blocking"],
+    "concepts": ["squash-and-stretch", "anticipation", "staging", "straight-ahead-and-pose-to-pose",
+                 "follow-through-and-overlapping-action", "slow-in-and-slow-out", "arcs", "secondary-action",
+                 "timing", "exaggeration", "solid-drawing", "appeal", "planning", "thumbnails",
+                 "reference-and-video-reference", "blocking", "spline-workflow", "polish",
+                 "workflow-and-scene-organization", "feedback-and-critique", "breakdowns-and-keys"]
+  }
 }

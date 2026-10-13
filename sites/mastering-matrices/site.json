@@ -1,4 +1,29 @@
 {
   "source": "wiki_projects/MasteringMatrices",
-  "out": "~/sites/mastering-matrices"
+  "out": "~/sites/mastering-matrices",
+  "startHere": ["summaries/mastering-matrices-3d-animation", "summaries/rigging-matrices-part01-intro"],
+  "sections": [
+    { "heading": "The series" },
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "entities",
+    "syntheses",
+    { "heading": "Behind the scenes", "quiet": true },
+    "presentations"
+  ],
+  "order": {
+    "summaries": ["rigging-matrices-part02-fk", "rigging-matrices-part03-ik", "rigging-matrices-part04-custom-node-ik-solver",
+                  "rigging-matrices-part05-soft-ik", "rigging-matrices-part06-custom-node-ik-optimization",
+                  "rigging-matrices-part07-bifrost-ik-solver", "rigging-matrices-part08-ikfk-blending",
+                  "rigging-matrices-part09-segment-length-scaling", "rigging-matrices-part10-space-switching",
+                  "rigging-matrices-part11-driving-shape-data", "rigging-matrices-part12-ik-elbow-locker",
+                  "rigging-matrices-part13-control-space-scaling"],
+    "concepts": ["matrix-fundamentals", "basis-vectors", "coordinate-space", "identity-matrix", "matrix-multiplication",
+                 "inverse-matrix", "row-vs-column-matrix", "transformation-hierarchy",
+                 "offset-parent-matrix-workflow", "buffer-matrix-pattern", "aim-matrix-orientation", "guided-control-rig", "module-based-rig",
+                 "fk-control-rig", "ik-setup-with-maya-solver", "custom-node-ik-solver", "law-of-cosines-ik", "pythagorean-ik-optimization",
+                 "ik-stretching", "soft-ik", "ik-fk-blending", "joint-hierarchy-flat-vs-nested",
+                 "segment-length-scaling", "space-switching", "ik-elbow-locker", "control-space-scaling", "driving-shape-data"]
+  }
 }

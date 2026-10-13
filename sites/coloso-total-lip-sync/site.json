@@ -1,4 +1,18 @@
 {
   "source": "wiki_projects/coloso-total-lip-sync",
-  "out": "~/sites/coloso-total-lip-sync"
+  "out": "~/sites/coloso-total-lip-sync",
+  "startHere": true,
+  "sections": [
+    { "heading": "The course" },
+    "summaries",
+    "tutorials",
+    { "heading": "Reference" },
+    "concepts",
+    "syntheses",
+    "entities",
+    { "heading": "Behind the scenes", "quiet": true },
+    "transcripts"
+  ],
+  "labels": { "summaries": "Lessons", "tutorials": "Step-by-step" },
+  "hide": ["analytics", "dashboard", "journal/template"]
 }

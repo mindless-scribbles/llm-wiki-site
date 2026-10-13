@@ -1,4 +1,18 @@
 {
   "source": "wiki_projects/zebra_face_breakdown",
-  "out": "~/sites/zebra-face-breakdown"
+  "out": "~/sites/zebra-face-breakdown",
+  "startHere": ["summaries/overview-module-map", "concepts/two-event-architecture"],
+  "sections": [
+    { "heading": "The rig, region by region" },
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "entities",
+    "syntheses"
+  ],
+  "order": {
+    "summaries": ["eyes-and-eyelids", "brow", "mouth-and-lips", "jaw-and-teeth", "nose-cheek-muzzle-head",
+                  "expression-and-correctives", "shared-utilities-and-construction", "agora-comparison"]
+  },
+  "hide": ["analytics", "dashboard", "flashcards", "journal/template"]
 }

@@ -1,4 +1,19 @@
 {
   "source": "wiki_projects/dja-houdini-vellum-intro",
-  "out": "~/sites/dja-houdini-vellum-intro"
+  "out": "~/sites/dja-houdini-vellum-intro",
+  "startHere": true,
+  "sections": [
+    { "heading": "The lessons" },
+    "tutorials",
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "syntheses",
+    "entities",
+    { "heading": "Behind the scenes", "quiet": true },
+    "transcripts",
+    "journal"
+  ],
+  "labels": { "tutorials": "Step by step", "summaries": "Lesson summaries" },
+  "hide": ["analytics", "dashboard", "journal/template"]
 }

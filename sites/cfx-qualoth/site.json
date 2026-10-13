@@ -1,4 +1,20 @@
 {
   "source": "wiki_projects/CFX_For_3d_Artists_Qualoth",
-  "out": "~/sites/cfx-qualoth"
+  "out": "~/sites/cfx-qualoth",
+  "startHere": true,
+  "sections": [
+    { "heading": "The course" },
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "entities",
+    "syntheses",
+    { "heading": "Behind the scenes", "quiet": true }
+  ],
+  "labels": { "summaries": "Weeks" },
+  "order": {
+    "entities": ["qualoth", "marvelous-designer", "fx-hair", "maya"],
+    "syntheses": ["rig-based-vs-cache-based-master"]
+  },
+  "hide": ["analytics", "dashboard", "journal/template"]
 }

@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>The workshop course flow</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700&family=Hanken+Grotesk:ital,wght@0,400;0,500;0,600;1,400&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --color-paper:   #1a1a1d;
+      --color-ink:     #f2f2f3;
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace;
+    }
+    body { font-family: var(--font-sans); background: var(--color-paper); color: var(--color-ink); min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; }
+    .frame { max-width: 1200px; width: 100%; }
+    .diagram-container { width: 100%; overflow-x: auto; }
+    .eyebrow { font-family: var(--font-mono); font-size: 0.66rem; letter-spacing: 0.18em; text-transform: uppercase; color: var(--color-muted); margin-bottom: 0.5rem; }
+    h1 { font-family: var(--font-serif); font-size: clamp(1.5rem, 2.4vw + 0.75rem, 2rem); font-weight: 700; letter-spacing: -0.01em; line-height: 1.15; margin-bottom: 1.5rem; }
+    svg { width: 100%; min-width: 704px; display: block; }
+    @media print { .diagram-container { overflow-x: visible; } svg { min-width: 0; } }
+  </style>
+</head>
+<body>
+  <div class="frame">
+    <p class="eyebrow">Service blueprint · Diagram Design</p>
+    <h1>The workshop course flow</h1>
+
+    <div class="diagram-container">
+<svg viewBox="0 0 704 236" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="course-flow-title course-flow-desc">
+<title id="course-flow-title">The workshop course flow</title>
+<desc id="course-flow-desc">A reader starts at the workshop introduction, then takes five parts in order: 101 fundamentals, base and proportions, mouth sliding, lips, and mouth blendshapes. Every part links out to concepts and entities. Syntheses compare the tool and stacking choices.</desc>
+<defs><marker id="arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker><marker id="arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="middle">
+<text x="144" y="22">START HERE</text>
+<text x="244" y="22">PART 1</text>
+<text x="344" y="22">PART 2</text>
+<text x="444" y="22">PART 3</text>
+<text x="544" y="22">PART 4</text>
+<text x="644" y="22">PART 5</text>
+</g>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="88" y="70">THE</text><text x="88" y="82">VIDEOS</text>
+<text x="88" y="166">REFERENCE</text>
+</g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="188" y1="74" x2="199" y2="74" marker-end="url(#arrow)"/>
+<line x1="288" y1="74" x2="299" y2="74" marker-end="url(#arrow)"/>
+<line x1="388" y1="74" x2="399" y2="74" marker-end="url(#arrow)"/>
+<line x1="488" y1="74" x2="499" y2="74" marker-end="url(#arrow)"/>
+<line x1="588" y1="74" x2="599" y2="74" marker-end="url(#arrow)"/>
+</g>
+<g stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" fill="none">
+<path d="M194 118 V140" marker-end="url(#arrow-link)"/>
+<path d="M394 118 V140" marker-end="url(#arrow-link)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="100" y="32" width="88" height="84" rx="6" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1.2"/>
+<text x="144" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Workshop</text>
+<text x="144" y="68" font-size="12" font-weight="600" fill="#f2f2f3">Introduction</text>
+<text x="144" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">video 01</text>
+<text x="144" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">the outline</text>
+<rect x="200" y="32" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="244" y="54" font-size="12" font-weight="600" fill="#f2f2f3">101</text>
+<text x="244" y="68" font-size="12" font-weight="600" fill="#f2f2f3">Fundamentals</text>
+<text x="244" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">02 to 09</text>
+<text x="244" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">8 lessons</text>
+<rect x="300" y="32" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="344" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Base and</text>
+<text x="344" y="68" font-size="12" font-weight="600" fill="#f2f2f3">proportions</text>
+<text x="344" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">stages 01, 02</text>
+<text x="344" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">10 to 16</text>
+<rect x="400" y="32" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="444" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Mouth</text>
+<text x="444" y="68" font-size="12" font-weight="600" fill="#f2f2f3">sliding</text>
+<text x="444" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">stage 03</text>
+<text x="444" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">17 to 20</text>
+<rect x="500" y="32" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="544" y="61" font-size="12" font-weight="600" fill="#f2f2f3">Lips</text>
+<text x="544" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">stage 04</text>
+<text x="544" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">21 to 24</text>
+<rect x="600" y="32" width="88" height="84" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="644" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Mouth</text>
+<text x="644" y="68" font-size="12" font-weight="600" fill="#f2f2f3">blendshapes</text>
+<text x="644" y="88" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">stage 05</text>
+<text x="644" y="100" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">25 to 30</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="148" width="188" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="112" y="163" font-size="12" font-weight="600" fill="#f2f2f3">Concepts</text>
+<text x="112" y="177" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">25 · linked from the path</text>
+<rect x="300" y="148" width="188" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="312" y="163" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="312" y="177" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">19 · tools and people</text>
+<rect x="500" y="148" width="184" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="512" y="163" font-size="12" font-weight="600" fill="#f2f2f3">Syntheses</text>
+<text x="512" y="177" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">2 · tool and stacking choices</text>
+</g>
+<line x1="96" y1="204" x2="688" y2="204" stroke="rgba(244,244,245,0.10)" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="216" width="16" height="12" rx="2" fill="rgba(255,51,0,0.10)" stroke="#ff3300" stroke-width="1"/><text x="120" y="225">START HERE</text>
+<line x1="224" y1="222" x2="252" y2="222" stroke="#a1a1aa" stroke-width="1" marker-end="url(#arrow)"/><text x="260" y="225">WATCH IN ORDER</text>
+<line x1="388" y1="222" x2="416" y2="222" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#arrow-link)"/><text x="424" y="225">EVERY PART LINKS OUT</text>
+</g>
+</svg>
+    </div>
+  </div>
+</body>
+</html>

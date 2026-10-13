@@ -1,4 +1,5 @@
 {
   "source": "wiki_projects/UnrealControlRig",
-  "out": "~/sites/unreal-control-rig"
+  "out": "~/sites/unreal-control-rig",
+  "startHere": ["control-rig-research"]
 }

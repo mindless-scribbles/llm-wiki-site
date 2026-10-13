@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg viewBox="0 0 704 386" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="series-flow-title series-flow-desc" id="series-flow-root">
+<title id="series-flow-title">The series flow</title>
+<desc id="series-flow-desc">A reader starts with two concept pages, Locomotion State Machine Architecture and Thread-Safe Update Animation, then reads the three video summaries in order: Part 1, Part 2 and Part 3. Each part introduces its own concepts. Seven entity pages sit below as reference.</desc>
+<defs>
+      <style>@import url('https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&amp;family=Geist:wght@400;500;600&amp;family=Geist+Mono:wght@400;500;600&amp;family=Noto+Serif:ital@0;1&amp;family=Noto+Sans+KR:wght@400;500;600&amp;family=Noto+Serif+KR:wght@400&amp;family=Noto+Sans+TC:wght@400;500;600&amp;family=Noto+Serif+TC:wght@400&amp;display=swap');
+      #series-flow-root { --color-paper:   #1a1a1d;   
+      --color-ink:     #f2f2f3;   
+      --color-muted:   #a1a1aa;
+      --color-accent:  #ff3300;
+      --font-sans:     'Hanken Grotesk', system-ui, sans-serif;
+      --font-serif:    'Syne', system-ui, sans-serif;
+      --font-mono:     'Space Mono', ui-monospace, monospace; }
+      #series-flow-root { font-family: var(--font-sans); color: var(--color-ink); }
+      #series-flow-root .diagram-container { width: 100%; overflow-x: auto; }
+      #series-flow-root .diagram-container { overflow-x: visible; }</style><marker id="series-flow-arrow" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#a1a1aa"/></marker><marker id="series-flow-arrow-link" markerWidth="8" markerHeight="6" refX="7" refY="3" orient="auto"><polygon points="0 0, 8 3, 0 6" fill="#b4b4bb"/></marker></defs>
+<rect width="100%" height="100%" fill="#1a1a1d"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="middle">
+<text x="162" y="22">START HERE</text>
+<text x="306" y="22">PART 1</text>
+<text x="454" y="22">PART 2</text>
+<text x="602" y="22">PART 3</text>
+</g>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.18em" fill="#8b8b94" text-anchor="end">
+<text x="88" y="76">THE SERIES</text>
+<text x="88" y="190">CONCEPTS</text><text x="88" y="202">NEW IN EACH</text><text x="88" y="214">PART</text>
+<text x="88" y="322">ENTITIES</text>
+</g>
+<g stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="1"><line x1="96" y1="138" x2="688" y2="138"/><line x1="96" y1="288" x2="688" y2="288"/></g>
+<g stroke="#a1a1aa" stroke-width="1" fill="none">
+<line x1="224" y1="58" x2="239" y2="58" marker-end="url(#series-flow-arrow)"/>
+<line x1="224" y1="110" x2="239" y2="110" marker-end="url(#series-flow-arrow)"/>
+<line x1="372" y1="80" x2="387" y2="80" marker-end="url(#series-flow-arrow)"/>
+<line x1="520" y1="80" x2="535" y2="80" marker-end="url(#series-flow-arrow)"/>
+</g>
+<g stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" fill="none">
+<line x1="306" y1="128" x2="306" y2="147" marker-end="url(#series-flow-arrow-link)"/>
+<line x1="454" y1="128" x2="454" y2="147" marker-end="url(#series-flow-arrow-link)"/>
+<line x1="602" y1="128" x2="602" y2="147" marker-end="url(#series-flow-arrow-link)"/>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle" font-size="12" font-weight="600" fill="#f2f2f3">
+<rect x="100" y="32" width="124" height="52" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1.2"/>
+<text x="162" y="50">Locomotion State</text>
+<text x="162" y="64">Machine</text>
+<text x="162" y="78">Architecture</text>
+<rect x="100" y="92" width="124" height="36" rx="6" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1.2"/>
+<text x="162" y="106">Thread-Safe</text>
+<text x="162" y="120">Update Animation</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif" text-anchor="middle">
+<rect x="240" y="32" width="132" height="96" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="306" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Beginners</text>
+<text x="306" y="68" font-size="12" font-weight="600" fill="#f2f2f3">Course</text>
+<text x="306" y="92" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">base state machine</text>
+<text x="306" y="105" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">direction detection</text>
+<text x="306" y="118" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">mesh-to-capsule</text>
+<rect x="388" y="32" width="132" height="96" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="454" y="54" font-size="12" font-weight="600" fill="#f2f2f3">Distance Matching</text>
+<text x="454" y="68" font-size="12" font-weight="600" fill="#f2f2f3">&amp; Foot Sync Markers</text>
+<text x="454" y="92" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">180° bug fix (v1)</text>
+<text x="454" y="105" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">cycle loops</text>
+<text x="454" y="118" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">inertialization</text>
+<rect x="536" y="32" width="132" height="96" rx="6" fill="#222226" stroke="#5a5a60" stroke-width="1"/>
+<text x="602" y="54" font-size="12" font-weight="600" fill="#f2f2f3">AAA Run Locomotion</text>
+<text x="602" y="68" font-size="12" font-weight="600" fill="#f2f2f3">Pivots</text>
+<text x="602" y="92" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">180° bug fix (v2)</text>
+<text x="602" y="105" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">pivot detection</text>
+<text x="602" y="118" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">state aliases</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif" font-size="10" fill="#f2f2f3">
+<rect x="240" y="148" width="132" height="90" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="250" y="168">Movement Start</text>
+<text x="250" y="180">Direction</text>
+<text x="250" y="198">Mesh-to-Capsule Root</text>
+<text x="250" y="210">Yaw Offset &amp; Alignment</text>
+<text x="250" y="228">Animation Modifiers</text>
+<rect x="388" y="148" width="132" height="126" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="398" y="168">180-Degree Turn</text>
+<text x="398" y="180">Ambiguity Fix</text>
+<text x="398" y="198">Foot Sync Markers</text>
+<text x="398" y="216">Which Foot Is Forward</text>
+<text x="398" y="234">Distance Matching</text>
+<text x="398" y="252">Inertialization vs.</text>
+<text x="398" y="264">Dead Blending</text>
+<rect x="536" y="148" width="132" height="48" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="546" y="168">Run Locomotion Pivots</text>
+<text x="546" y="186">State Aliases</text>
+</g>
+<g font-family="'Hanken Grotesk', sans-serif">
+<rect x="100" y="300" width="588" height="36" rx="6" fill="#141416" stroke="#a1a1aa" stroke-width="0.8"/>
+<text x="112" y="315" font-size="12" font-weight="600" fill="#f2f2f3">Entities</text>
+<text x="112" y="329" font-family="'Space Mono', monospace" font-size="9" fill="#a1a1aa">7 · Animation Blueprint, Character Movement Component, Sequence Player Node, 4 more</text>
+</g>
+<line x1="96" y1="352" x2="688" y2="352" stroke="#f4f4f5" stroke-opacity="0.10" stroke-width="1"/>
+<g font-family="'Space Mono', monospace" font-size="8" letter-spacing="0.06em" fill="#a1a1aa">
+<rect x="96" y="364" width="16" height="12" rx="2" fill="#ff3300" fill-opacity="0.10" stroke="#ff3300" stroke-width="1"/><text x="120" y="373">START HERE</text>
+<line x1="200" y1="370" x2="228" y2="370" stroke="#a1a1aa" stroke-width="1" marker-end="url(#series-flow-arrow)"/><text x="236" y="373">READ IN ORDER</text>
+<rect x="340" y="364" width="16" height="12" rx="2" fill="#222226" stroke="#5a5a60" stroke-width="1"/><text x="364" y="373">VIDEO SUMMARY</text>
+<line x1="472" y1="370" x2="500" y2="370" stroke="#b4b4bb" stroke-width="1" stroke-dasharray="5,4" marker-end="url(#series-flow-arrow-link)"/><text x="508" y="373">LINKS TO CONCEPTS</text>
+</g>
+</svg>

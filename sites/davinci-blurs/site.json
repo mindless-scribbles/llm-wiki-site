@@ -1,4 +1,19 @@
 {
   "source": "wiki_projects/DaVinciBlurs",
-  "out": "~/sites/davinci-blurs"
+  "out": "~/sites/davinci-blurs",
+  "startHere": ["concepts/no-pipeline-workflow"],
+  "sections": [
+    { "heading": "Walkthroughs" },
+    "tutorials",
+    "syntheses",
+    { "heading": "Reference" },
+    "concepts",
+    "entities",
+    { "heading": "Behind the scenes", "quiet": true },
+    "summaries"
+  ],
+  "order": {
+    "syntheses": ["choosing-a-mask-tool", "realtime-103si-techniques"]
+  },
+  "hide": ["analytics", "dashboard", "journal/template"]
 }

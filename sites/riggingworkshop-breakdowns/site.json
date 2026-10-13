@@ -1,4 +1,5 @@
 {
   "source": "wiki_projects/RiggingWorkshop_Breakdowns",
-  "out": "~/sites/riggingworkshop-breakdowns"
+  "out": "~/sites/riggingworkshop-breakdowns",
+  "startHere": ["events-construction-forward-backward", "cr-robot-day2", "cr-robot-day3"]
 }

@@ -1,4 +1,17 @@
 {
   "source": "wiki_projects/dja-houdini-intro-ui",
-  "out": "~/sites/dja-houdini-intro-ui"
+  "out": "~/sites/dja-houdini-intro-ui",
+  "startHere": true,
+  "sections": [
+    { "heading": "The lessons" },
+    "summaries",
+    { "heading": "Reference" },
+    "concepts",
+    "syntheses",
+    "entities",
+    { "heading": "Behind the scenes", "quiet": true },
+    "journal"
+  ],
+  "labels": { "summaries": "Lessons" },
+  "hide": ["analytics", "dashboard", "journal/template"]
 }
