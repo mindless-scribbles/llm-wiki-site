@@ -25,3 +25,5 @@ Project-specific lessons learned across sessions. Read at session start. Update 
 **Freeze step numbers when converting lessons:** Moted pages cite each other's steps by number ("Day 8 step 6", "Day 5 step 15", "Repeat 4 to 7"). A conversion that merges or drops a numbered step breaks those citations without warning. Before and after, diff the `^ *N. ` lines of each page (2026-10-12).
 
 **A Why must not answer its phase's Ask:** the site hides a Decision behind a reveal, but a `**Why:**` sits above it in plain view. When the workers wrote Why lines from the Decisions, 18 of them gave the hidden answer away. Write the Why from what breaks, and leave out the answer (2026-10-12).
+
+**Prove an opt-in builder change by diff:** before editing, build two or three wikis (`build --site <id> --out <scratch>/before/<id>`), rebuild after into `after/`, then `diff -r`. Pages must come out byte-identical; only `assets/wiki.css` and `.llm-wiki-site.json` (build time) may differ. Keep new behaviour out of the inline page script (use CSS such as `:has()`), or every page changes (2026-10-12; `17d98bd`).
