@@ -86,6 +86,25 @@ npx serve <out>       # or: python3 -m http.server -d <out>
   order, any other folder becomes its own sidebar group (named after the
   folder), and loose `*.md` at the wiki root fall under a catch-all "Pages"
   group. Structured, custom-folder, and flat wikis all build with no config.
+- **Shaping the nav (opt-in).** `site.config.json` can reorder and group the
+  sidebar. With none of these keys, the nav is the folder nav above. They take
+  lists, so they need the JSON file: the `index.md` `site:` block only holds flat
+  values.
+  - `"sections": ["workshop", {"heading": "Reference"}, "concepts", {"heading": "Behind the scenes", "quiet": true}, "summaries"]`
+    puts the named folders first, in that order. A `{heading}` entry prints a
+    tier heading above the groups after it, and `"quiet": true` dims those groups.
+    Folders that aren't listed follow in the default order.
+  - `"startHere": ["workshop/overview", "concepts/true-match"]` moves those pages
+    into a "Start here" group at the top. With `true`, it takes the links from
+    `index.md`'s `**Start here:**` line instead.
+  - `"labels": {"theory": "Watch first"}` renames a folder's group.
+  - `"order": {"solves": ["construction", "forward"]}` lists those pages
+    (by basename) first in their group. The rest follow in natural order.
+  - `"hide": ["analytics", "dashboard"]` still builds those pages but leaves them
+    out of the nav and the Previous/Next pager.
+
+  Previous/Next and the `[NNN]` breadcrumb numbers follow the nav order.
+  Moted Modules uses all of these.
 - `wiki/log.md` is included, as is every other `*.md` — including the
   Obsidian-plugin pages (`dashboard.md`, `analytics.md`, `flashcards.md`), which
   land in the catch-all "Pages" group

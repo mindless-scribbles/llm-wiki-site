@@ -271,6 +271,9 @@ function walkMd(absDir) {
   return out;
 }
 const extraDirs = new Set();
+// A wiki may rename a folder's group with `"labels": { "theory": "Watch first" }`.
+const LABELS = CONFIG.labels && typeof CONFIG.labels === "object" ? CONFIG.labels : {};
+const dirLabel = (dir) => String(LABELS[dir] ?? (CANON.has(dir) ? CANON.get(dir) : humanize(dir)));
 // Natural order, so day-10 follows day-9 rather than day-1.
 const natural = (a, b) => a.localeCompare(b, "en", { numeric: true });
 for (const rel of walkMd(WIKI).sort(natural)) {
@@ -279,27 +282,49 @@ for (const rel of walkMd(WIKI).sort(natural)) {
   const seg = slash === -1 ? null : rel.slice(0, slash);
   let label;
   if (!seg) label = "Pages";
-  else if (CANON.has(seg)) label = CANON.get(seg);
-  else { label = humanize(seg); extraDirs.add(seg); }
+  else { label = dirLabel(seg); if (!CANON.has(seg)) extraDirs.add(seg); }
   register(rel, label);
 }
 const log = existsSync(join(WIKI, "log.md")) ? register("log.md", "Meta") : null;
 
+// Opt-in nav shaping from site.config.json; a wiki without these keys keeps the
+// folder nav. `hide` builds a page but leaves it out of the nav and the pager.
+// `startHere` (a list of targets, or true for index.md's **Start here:** links)
+// moves those pages into a "Start here" group at the top.
+const HIDE = new Set((Array.isArray(CONFIG.hide) ? CONFIG.hide : []).map(String));
+for (const p of pages) if (p !== home && HIDE.has(p.target)) p.section = "Hidden";
+const START = CONFIG.startHere === true
+  ? startHereLinks(home.body.split(/\n\s*\n/).find((b) => /\*\*Start here:?\*\*/i.test(b)) || "")
+  : Array.isArray(CONFIG.startHere) ? CONFIG.startHere.map(String) : [];
+for (const t of START) {
+  const p = byTarget.get(t);
+  if (p && p !== home && p !== log && p.section !== "Hidden") p.section = "Start here";
+}
+
 // Sidebar groups: canonical sections in order, then any custom folders
 // (alphabetical), then the flat "Pages" catch-all. Empty groups are skipped.
 const DEFAULT_SIDEBAR_SECTIONS = [
-  ...SECTIONS,
-  ...[...extraDirs].sort().map((d) => ({ dir: d, label: humanize(d) })),
+  ...SECTIONS.map((s) => ({ dir: s.dir, label: dirLabel(s.dir) })),
+  ...[...extraDirs].sort().map((d) => ({ dir: d, label: dirLabel(d) })),
   { dir: null, label: "Pages" },
 ];
 // A wiki may fix its own order with `"sections": ["workshop", "theory", ...]` in
 // site.config.json (or the index.md `site:` block): named folders first, in that
-// order, then everything else in the default order.
-const ORDERED = Array.isArray(CONFIG.sections) ? CONFIG.sections.map(String) : [];
-const SIDEBAR_SECTIONS = [
-  ...ORDERED.map((d) => DEFAULT_SIDEBAR_SECTIONS.find((s) => s.dir === d)).filter(Boolean),
+// order, then everything else in the default order. An entry may also be a
+// `{ "heading": "Reference" }` marker, which titles the groups after it; with
+// `"quiet": true` those groups render dimmed (the back room).
+const SECTION_CFG = Array.isArray(CONFIG.sections) ? CONFIG.sections : [];
+const ORDERED = SECTION_CFG.filter((e) => !e || typeof e !== "object").map(String);
+const NAV_ITEMS = [
+  ...(START.some((t) => byTarget.get(t)?.section === "Start here") ? [{ dir: null, label: "Start here", start: true }] : []),
+  ...SECTION_CFG.flatMap((e) => {
+    if (e && typeof e === "object") return e.heading ? [{ heading: String(e.heading), quiet: !!e.quiet }] : [];
+    const s = DEFAULT_SIDEBAR_SECTIONS.find((d) => d.dir === String(e));
+    return s ? [s] : [];
+  }),
   ...DEFAULT_SIDEBAR_SECTIONS.filter((s) => !ORDERED.includes(s.dir)),
 ];
+const SIDEBAR_SECTIONS = NAV_ITEMS.filter((s) => !s.heading);
 
 // ---------------------------------------------------------------------------
 // 2. Markdown -> HTML  (small, purpose-built converter)
@@ -804,12 +829,32 @@ const FONTS =
 
 // Pages in master-index order (the sidebar's groups, top to bottom), and where a
 // page sits in it: its group and its number within the group.
+// A group's pages: those named in its `"order": { "<dir>": [slugs] }` list first, in
+// that order, then the rest in natural file order. Start here keeps its config order.
+const ORDER = CONFIG.order && typeof CONFIG.order === "object" ? CONFIG.order : {};
+const sectionCache = new Map();
+function sectionPages(label) {
+  if (sectionCache.has(label)) return sectionCache.get(label);
+  const sec = SIDEBAR_SECTIONS.find((s) => s.label === label);
+  const list = pages.filter((p) => p.section === label);
+  const want = sec?.start ? START : Array.isArray(ORDER[sec?.dir]) ? ORDER[sec.dir].map(String) : [];
+  if (want.length) {
+    const rank = (p) => {
+      const i = want.indexOf(sec.start ? p.target : basename(p.target));
+      return i === -1 ? want.length : i;
+    };
+    list.sort((a, b) => rank(a) - rank(b));
+  }
+  sectionCache.set(label, list);
+  return list;
+}
+
 let indexOrder = null;
 function indexFlat() {
-  return (indexOrder ??= SIDEBAR_SECTIONS.flatMap((s) => pages.filter((p) => p.section === s.label)));
+  return (indexOrder ??= SIDEBAR_SECTIONS.flatMap((s) => sectionPages(s.label)));
 }
 function indexPos(page) {
-  const secPages = pages.filter((p) => p.section === page.section);
+  const secPages = sectionPages(page.section);
   const n = secPages.indexOf(page);
   if (n === -1 || !SIDEBAR_SECTIONS.some((s) => s.label === page.section)) return null;
   return { label: page.section, num: String(n + 1).padStart(3, "0") };
@@ -819,12 +864,15 @@ function indexPos(page) {
 // page. The current page's group starts open; the page script restores any other
 // group the reader opened, and filters the list from the header search box.
 function renderSidebar(page) {
-  let groups = "";
-  for (const s of SIDEBAR_SECTIONS) {
-    const secPages = pages.filter((p) => p.section === s.label);
+  let groups = "", tier = null, quiet = false;
+  for (const s of NAV_ITEMS) {
+    if (s.heading) { tier = s; quiet = s.quiet; continue; }
+    const secPages = sectionPages(s.label);
     if (!secPages.length) continue;
-    const open = secPages.includes(page);
-    groups += `<details class="idx-group" data-group="${escapeHtml(s.label)}"${open ? " open" : ""}>` +
+    // A heading prints only once a group under it has pages.
+    if (tier) { groups += `<p class="idx-tier${tier.quiet ? " quiet" : ""}">${escapeHtml(tier.heading)}</p>`; tier = null; }
+    const open = s.start || secPages.includes(page);
+    groups += `<details class="idx-group${quiet ? " quiet" : ""}" data-group="${escapeHtml(s.label)}"${open ? " open" : ""}>` +
       `<summary class="idx-group-label"><span class="chev" aria-hidden="true"></span><span class="idx-group-name">${s.label}</span><span class="idx-count">${secPages.length}</span></summary><ol class="index-list">`;
     secPages.forEach((p, n) => {
       const num = String(n + 1).padStart(3, "0");
@@ -1198,6 +1246,16 @@ function renderCards(rows, header, page) {
   return `<div class="home-cards${anyMedia ? " has-media" : ""}">${cards.map((c) => c.html(anyMedia ? c.media : null)).join("")}</div>`;
 }
 
+// The wiki pages a "**Start here:**" paragraph links to, in order, once each.
+function startHereLinks(text) {
+  const out = [];
+  for (const m of text.matchAll(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]+)?\]\]/g)) {
+    const tgt = m[1].trim().replace(/^wiki\//, "");
+    if (byTarget.has(tgt) && !out.includes(tgt)) out.push(tgt);
+  }
+  return out;
+}
+
 function renderHome(page) {
   const lines = page.body.replace(/\r\n/g, "\n").split("\n");
   const base = page.lineBase;
@@ -1209,10 +1267,7 @@ function renderHome(page) {
   for (const b of lessonBlocks({ ...secs[0], lines: secs[0].lines.map((l) => (/^#\s/.test(l) ? "" : l)) })) {
     const plain = b.text.replace(/^\s*>\s?/gm, "");
     if (/\*\*Start here:?\*\*/i.test(plain) && !path.length) {
-      for (const m of plain.matchAll(/\[\[([^\]|#]+)(?:#[^\]|]*)?(?:\|[^\]]+)?\]\]/g)) {
-        const tgt = m[1].trim().replace(/^wiki\//, "");
-        if (byTarget.has(tgt) && !path.includes(tgt)) path.push(tgt);
-      }
+      path = startHereLinks(plain);
     } else if (!lede && b.kind === "md" && !/^\s*[|>]/.test(b.lines[0])) {
       lede = `<p class="home-lede"${at(b.start)}>${inline(b.text.replace(/\n/g, " "), page)}</p>`;
     } else introMd += mdToHtml(b.text, page, base + b.start);
@@ -1645,6 +1700,11 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .idx-group[open]>.idx-group-label{color:var(--color-text)}
 .idx-group[open]>.idx-group-label .chev{transform:rotate(45deg) translate(-2px,-2px)}
 .idx-group-name{flex:1}
+/* Opt-in nav tiers (site.config.json "sections" headings); hidden while filtering */
+.idx-tier{margin:0;padding:24px 8px 8px;font-family:var(--font-mono);font-weight:700;font-size:10px;line-height:16px;letter-spacing:.2em;text-transform:uppercase;color:var(--color-text)}
+.idx-tier.quiet{color:var(--color-nav)}
+.idx-groups:has(.idx-group[hidden]) .idx-tier{display:none}
+.idx-group.quiet:not([open])>.idx-group-label,.idx-group.quiet .index-link:not([aria-current]){color:var(--color-nav)}
 .idx-count{font-weight:400;color:var(--color-muted)}
 .index-list{list-style:none;margin:0;padding:0 0 12px}
 .index-link{display:flex;gap:10px;align-items:baseline;padding:7px 8px;border-radius:var(--radius-sm);text-decoration:none;
@@ -1658,6 +1718,7 @@ html.sidebar-collapsed .entry-shell.has-toc{grid-template-columns:minmax(0,1fr) 
 .idx-scrim{display:none}
 @media(hover:hover){
   .field-logs .brand:hover,.idx-group-label:hover{color:var(--color-text)}
+  .idx-group.quiet:not([open])>.idx-group-label:hover,.idx-group.quiet .index-link:not([aria-current]):hover{color:var(--color-text)}
   .index-link:not([aria-current]):hover{color:var(--color-text);background:var(--color-surface)}
 }
 

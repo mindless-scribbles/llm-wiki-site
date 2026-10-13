@@ -58,6 +58,9 @@ Branding resolves highest-precedence-first from CLI flags → `sites/<id>/site.j
 → `<wiki-root>/site.config.json` → a `site:` block in `wiki/index.md` frontmatter.
 Use the frontmatter form for synced vaults; it is the only one that is markdown.
 
+Nav order and grouping (`sections` headings, `startHere`, `labels`, `order`, `hide`)
+are opt-in keys in `site.config.json`; see "How it maps" in `BUILD-SITE.md`.
+
 ## Notes and review
 
 `serve` runs one local hub for every registered wiki, with a notes overlay on every
