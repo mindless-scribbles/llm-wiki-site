@@ -14,6 +14,7 @@ import { join, dirname, relative, basename, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { execFileSync } from "node:child_process";
 import { resolveConfig } from "./config.mjs";
+import { SECTIONS, parseFrontmatter, humanize, natural, walkMd, startHereBlock } from "./wiki-model.mjs";
 // Mermaid is the legacy diagram path: new diagrams are @diagram SVGs (add-diagram
 // skill). Fences still render so an unconverted page never breaks.
 import { findMermaidFences, renderMermaid, findDiagramFont } from "./mermaid.mjs";
@@ -194,41 +195,6 @@ export function build(o) {
 // 1. Discover source pages
 // ---------------------------------------------------------------------------
 
-// Sections in sidebar order. `dir` is relative to wiki/. index.md + log.md are
-// handled separately (they live at the wiki root).
-const SECTIONS = [
-  { dir: "summaries", label: "Summaries" },
-  { dir: "concepts", label: "Concepts" },
-  { dir: "entities", label: "Entities" },
-  { dir: "syntheses", label: "Syntheses" },
-  { dir: "presentations", label: "Presentations" },
-];
-
-// Parse YAML-ish frontmatter (only the flat keys we use).
-function parseFrontmatter(raw) {
-  const m = raw.match(/^---\n([\s\S]*?)\n---\n?/);
-  if (!m) return { data: {}, body: raw };
-  const body = raw.slice(m[0].length);
-  const data = {};
-  for (const line of m[1].split("\n")) {
-    const kv = line.match(/^([A-Za-z_]+):\s*(.*)$/);
-    if (!kv) continue;
-    let [, key, val] = kv;
-    val = val.trim();
-    if (val.startsWith("[") && val.endsWith("]")) {
-      val = val
-        .slice(1, -1)
-        .split(",")
-        .map((s) => s.trim().replace(/^["']|["']$/g, ""))
-        .filter(Boolean);
-    } else {
-      val = val.replace(/^["']|["']$/g, "");
-    }
-    data[key] = val;
-  }
-  return { data, body };
-}
-
 // Build the page registry: wikilink target ("concepts/basis-vectors") -> page.
 const pages = [];
 const byTarget = new Map();
@@ -247,10 +213,6 @@ function register(srcRel, sectionLabel) {
   return page;
 }
 
-function humanize(slug) {
-  return slug.replace(/[-_]/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
-}
-
 // Register home first (order matters for the registry, not for nav).
 const home = register("index.md", "Home");
 
@@ -261,21 +223,10 @@ const home = register("index.md", "Home");
 // This makes the generator work for structured, custom-folder, and flat wikis
 // alike, with no per-project configuration.
 const CANON = new Map(SECTIONS.map((s) => [s.dir, s.label]));
-function walkMd(absDir) {
-  const out = [];
-  for (const e of readdirSync(absDir, { withFileTypes: true })) {
-    const abs = join(absDir, e.name);
-    if (e.isDirectory()) out.push(...walkMd(abs));
-    else if (e.name.endsWith(".md")) out.push(relative(WIKI, abs).split("\\").join("/"));
-  }
-  return out;
-}
 const extraDirs = new Set();
 // A wiki may rename a folder's group with `"labels": { "theory": "Watch first" }`.
 const LABELS = CONFIG.labels && typeof CONFIG.labels === "object" ? CONFIG.labels : {};
 const dirLabel = (dir) => String(LABELS[dir] ?? (CANON.has(dir) ? CANON.get(dir) : humanize(dir)));
-// Natural order, so day-10 follows day-9 rather than day-1.
-const natural = (a, b) => a.localeCompare(b, "en", { numeric: true });
 for (const rel of walkMd(WIKI).sort(natural)) {
   if (rel === "index.md" || rel === "log.md") continue;
   const slash = rel.indexOf("/");
@@ -295,7 +246,7 @@ const log = existsSync(join(WIKI, "log.md")) ? register("log.md", "Meta") : null
 const HIDE = new Set((Array.isArray(CONFIG.hide) ? CONFIG.hide : []).map(String));
 for (const p of pages) if (p !== home && HIDE.has(p.target)) p.section = "Hidden";
 const START = CONFIG.startHere === true
-  ? startHereLinks(home.body.split(/\n\s*\n/).find((b) => /\*\*Start here:?\*\*/i.test(b)) || "")
+  ? startHereLinks(startHereBlock(home.body))
   : Array.isArray(CONFIG.startHere) ? CONFIG.startHere.map(String) : [];
 for (const t of START) {
   const p = byTarget.get(t);

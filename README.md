@@ -251,16 +251,37 @@ respects word boundaries. Rows whose cells start with `[` (template placeholders
 | `Bones` | skeleton chain | matches the node name |
 ```
 
+## Nav census
+
+`llm-wiki-site nav --site <id>` (or `<wiki-path>`) reports what a nav diagnosis
+starts from. It reads the markdown and never writes. It prints:
+
+- The groups and pages the default folder nav shows.
+- The reader's path, as far as the files reveal it: `index.md`'s
+  `**Start here:**` links, the entry pages (overview, syllabus) and the numbered
+  sequence pages (`day-N`, `lesson-N`, `01-…`).
+- Which path pages link to each page.
+- Four flags:
+  - `order`: a small group the sequence reaches in a different order from A to Z.
+  - `plugin`: a dataview or chartsview page, which the site prints as raw text.
+  - `backroom`: a group no path page links to.
+  - `entry`: an overview that sorts after the days it introduces.
+
+`--json` prints the same data for the `nav-flow` skill, which decides the real
+path, draws the flow diagram and proposes the `site.json` nav keys.
+
 ## Layout
 
 | Path | What |
 | --- | --- |
-| `bin/cli.mjs` | CLI: `build` (`--site`, `--all`), `serve`, `notes`, `lint`, `register`, `list`, `vault` |
+| `bin/cli.mjs` | CLI: `build` (`--site`, `--all`), `serve`, `notes`, `lint`, `nav`, `register`, `list`, `vault` |
 | `serve.mjs` | hub server, review notes storage and the `notes` summaries |
 | `review/overlay.{js,css}` | the review overlay, injected only by `serve` |
 | `sites/<id>/review/` | review notes (`notes/*.json`) and pasted images (`img/`) |
 | `build-site.mjs` | the generator — `build({ wikiRoot, outDir, … })` |
 | `config.mjs` | branding resolution across the three sources |
+| `wiki-model.mjs` | pages and nav groups from the markdown, shared by the builder and `nav` |
+| `nav.mjs` | the nav census (`nav`) |
 | `mermaid.mjs` | optional `mmdc` batch rendering and cache for mermaid fences |
 | `widgets/_viz.js` | shared canvas library for concept visualizations |
 | `sites/<id>/site.json` | where a wiki lives and where it builds to |

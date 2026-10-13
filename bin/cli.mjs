@@ -12,6 +12,7 @@ import { homedir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { build } from "../build-site.mjs";
 import { lintWiki, KINDS } from "../lint.mjs";
+import { navCensus, NAV_KEYS, FLAG_KINDS } from "../nav.mjs";
 import { serve, formatContentNotes, formatDesignNotes, setNoteStatus, openCounts } from "../serve.mjs";
 
 const REPO = dirname(dirname(fileURLToPath(import.meta.url)));
@@ -20,9 +21,9 @@ const SITES = join(REPO, "sites");
 const LOCAL = join(REPO, "local.json");
 
 const BRANDING_KEYS = ["title", "brandLetters", "footer", "accent"];
-// Opt-in nav shaping. These take lists, so they live in sites/<id>/site.json
-// (in git, unlike a synced vault's site.config.json) and have no CLI flags.
-const NAV_KEYS = ["sections", "startHere", "labels", "order", "hide"];
+// Opt-in nav shaping (NAV_KEYS, from nav.mjs) takes lists, so it lives in
+// sites/<id>/site.json (in git, unlike a synced vault's site.config.json) and
+// has no CLI flags.
 
 const USAGE = `llm-wiki-site — render an llm-wiki into a static site
 
@@ -32,6 +33,8 @@ const USAGE = `llm-wiki-site — render an llm-wiki into a static site
   llm-wiki-site lint <wiki-path> [--detail] [--pages <substring>] [--strict]
   llm-wiki-site lint --site <wiki-id>       same, resolved from sites/<id>/site.json
   llm-wiki-site lint --all                  lint every registered wiki
+  llm-wiki-site nav --site <wiki-id> [--json]
+                                            nav census: groups, the reader's path, flags
   llm-wiki-site serve [--port 4173] [--host 127.0.0.1] [--no-review]
                                             hub for every registered wiki at /, each at /<id>/
   llm-wiki-site serve --site <id>           same hub; builds that wiki first, prints its URL
@@ -58,6 +61,7 @@ Options
   --detail          lint: print every issue as L<line> <kind> (<n>): <text>
   --pages <text>    lint: only pages whose path contains <text>
   --strict          lint: exit 1 if any issue is found (default: report only, exit 0)
+  --json            nav: print the census as JSON (for the nav-flow skill)
   --title, --brandLetters, --footer, --accent
                     branding overrides, highest precedence of all
 
@@ -77,7 +81,7 @@ function parseArgs(argv) {
     const a = argv[i];
     if (a === "-h" || a === "--help") { opts.help = true; continue; }
     if (a === "--all") { opts.all = true; continue; }
-    if (a === "--detail" || a === "--strict" || a === "--review" || a === "--no-build" || a === "--no-review" || a === "--design") { opts[a.slice(2)] = true; continue; }
+    if (a === "--detail" || a === "--strict" || a === "--review" || a === "--no-build" || a === "--no-review" || a === "--design" || a === "--json") { opts[a.slice(2)] = true; continue; }
     if (a === "-m") {
       if (argv[i + 1] === undefined) fail("-m needs a value");
       opts.m = argv[++i];
@@ -360,6 +364,42 @@ function cmdLint(positional, opts) {
   return KINDS.reduce((n, k) => n + r.totals[k], 0);
 }
 
+function cmdNav(positional, opts) {
+  let sourcePath = positional[0];
+  let record = {};
+  if (opts.site) {
+    record = readSite(opts.site);
+    sourcePath ??= resolveSource(record.source, opts.site);
+  }
+  if (!sourcePath) fail("need a <wiki-path> or --site <wiki-id>");
+  const { wikiDir } = normalizeWikiPath(sourcePath);
+  const r = navCensus({ wikiDir, navKeys: pickBranding(record, NAV_KEYS) });
+  if (opts.json) return console.log(JSON.stringify(r, null, 2));
+
+  const short = (t) => t.split("/").pop();
+  console.log(`${r.pageCount} pages · ${r.groups.length} groups · nav keys: ${Object.keys(r.navKeys).join(", ") || "none"}`);
+  console.log(`start here: ${r.startHere.join(", ") || "(no **Start here:** line)"}`);
+  console.log(`entry pages: ${r.entries.join(", ") || "none"}`);
+  // Sequence pages by folder: a wiki may number the same lessons in several folders.
+  const seqDirs = new Map();
+  for (const t of r.sequence) {
+    const d = t.includes("/") ? t.slice(0, t.lastIndexOf("/")) : "(root)";
+    seqDirs.set(d, [...(seqDirs.get(d) || []), t]);
+  }
+  console.log(`sequence: ${r.sequence.length ? [...seqDirs].map(([d, ts]) => `${d}/ ${short(ts[0])} … ${short(ts.at(-1))} (${ts.length})`).join("; ") : "none"}`);
+  for (const g of r.groups) {
+    console.log(`\n${g.label} (${g.count})${g.linkedFromPath ? `, ${g.linkedFromPath} linked from the path` : ""}`);
+    for (const [i, p] of g.pages.entries()) {
+      const by = [...new Set(p.reachedBy.map(short))];
+      const mark = p.onPath ? "path" : by.length ? `<- ${by.slice(0, 4).join(", ")}${by.length > 4 ? ", …" : ""}` : "";
+      console.log(`  ${String(i + 1).padStart(3, "0")} ${p.title.slice(0, 48).padEnd(48)} ${p.plugin ? `[${p.plugin}] ` : ""}${mark}`);
+    }
+  }
+  console.log("\nflags");
+  if (!r.flags.length) console.log("  none");
+  for (const k of FLAG_KINDS) for (const f of r.flags.filter((x) => x.kind === k)) console.log(`  ${k.padEnd(9)} ${f.text}`);
+}
+
 function cmdLintAll(opts) {
   const sites = listSites();
   if (!sites.length) fail("no registered wikis");
@@ -389,6 +429,7 @@ try {
     const issues = opts.all ? cmdLintAll(opts) : cmdLint(positional, opts);
     if (opts.strict && issues) process.exit(1);
   }
+  else if (cmd === "nav") cmdNav(positional, opts);
   else if (cmd === "serve") await cmdServe(opts);
   else if (cmd === "notes") cmdNotes(positional, opts);
   else if (cmd === "vault") cmdVault(positional);

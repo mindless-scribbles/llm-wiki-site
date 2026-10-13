@@ -17,7 +17,7 @@ Type: Service blueprint layout (stage columns, layer rows, a line of visibility)
 - Concepts: The True FK/IK Match is the second "Start here" step (index.md line 19), drawn under the Overview with a THEN arrow. The bar carries "count, carry, key" (overview, "The three questions").
 - Solves: in run order: construction, forward, backward, FK/IK match.
 - Prove on: Guardian 257 bones, Zombie 80 bones; "Day 7 brings in the second" (overview, "What you already need to know").
-- Behind the scenes, under the line of visibility: summaries/ (4), journal/ (1), Flashcards. No day links to any of them. Analytics and Dashboard are hidden from the nav (`hide` in site.config.json), so they are not drawn.
+- Behind the scenes, under the line of visibility: summaries/ (4), journal/ (1), Flashcards. No day links to any of them. Analytics and Dashboard are hidden from the nav (`hide` in `sites/moted-modules/site.json`), so they are not drawn.
 
 ## Focal
 Workshop Overview: the entry point. It heads the nav's "Start here" group.
@@ -28,4 +28,4 @@ Workshop Overview: the entry point. It heads the nav's "Start here" group.
 - Exceeds the 9-node budget (26 boxes) on purpose: it is a census of every nav group, zoned by row.
 
 ## Redraw when
-The nav's groups or order change in Moted's site.config.json: the rows mirror its tiers (The course, Reference, Behind the scenes).
+The nav's groups or order change in `sites/moted-modules/site.json`: the rows mirror its tiers (The course, Reference, Behind the scenes).
