@@ -27,3 +27,9 @@ Project-specific lessons learned across sessions. Read at session start. Update 
 **A Why must not answer its phase's Ask:** the site hides a Decision behind a reveal, but a `**Why:**` sits above it in plain view. When the workers wrote Why lines from the Decisions, 18 of them gave the hidden answer away. Write the Why from what breaks, and leave out the answer (2026-10-12).
 
 **Prove an opt-in builder change by diff:** before editing, build two or three wikis (`build --site <id> --out <scratch>/before/<id>`), rebuild after into `after/`, then `diff -r`. Pages must come out byte-identical; only `assets/wiki.css` and `.llm-wiki-site.json` (build time) may differ. Keep new behaviour out of the inline page script (use CSS such as `:has()`), or every page changes (2026-10-12; `17d98bd`).
+
+**Check a worker's claims against the live site:** in the nav rollout, one worker said Flashcards landed "undimmed" (it was dimmed), and another said `verify-geometry` "printed nothing" (it passes with a summary line). Before reporting a worker's result, re-run its check or curl the page (2026-10-12).
+
+**Decide every recurring call in the batch brief:** the brief named `analytics` and `dashboard` but not the flashcards stub. Workers split: two hid it, the rest left it. For a fan-out, list each repeated decision (what to hide, the tier names, where to mount) in the shared brief, and give sibling wikis one written convention (2026-10-12).
+
+**Start here feeds the nav and the home page differently:** `startHere: true` finds a `**Start here:**` line anywhere in `index.md`, but the home page's Start here button only reads the intro, before the first `##`. A Start here line under a later heading shapes the nav but gives no button (2026-10-12; animation-blending).

@@ -6,63 +6,71 @@
 
 ## Last Session
 
-- **Date:** 2026-10-12 (fourth session)
-- **Summary:** Don could never read Moted's intended flow from its left nav, so we did a "nav diagnosis". The diagnosis page is the artifact https://claude.ai/artifact/PPhuUofKfXWryCWVZiQYwf, which has the flow diagram, the nav as it was beside a reader-order sketch, and the five problems. Then:
-  - The `workshop-flow` diagram went on Moted's `workshop/overview`.
-  - The builder gained opt-in nav shaping, and Moted's nav now reads Start here → The course → Reference → Behind the scenes (`17d98bd`).
-  - `diagram-plugins` was fast-forwarded into `main`, and both are pushed.
-- **Don's direction for next:** run the same nav diagnosis on every past wiki, and make it part of every future `/init-wiki`.
+- **Date:** 2026-10-12 (fifth session)
+- **Summary:** The nav diagnosis we did by hand for Moted now covers every registered wiki.
+  - The nav keys moved from the vault to `sites/<id>/site.json` (`825e72c`).
+  - The builder gained a nav census, `llm-wiki-site nav` (`402c9ae`).
+  - The diagnosis became the `nav-flow` skill (skills repo `f1ca585`, `d637e54`). `add-diagram` is now committed in the skills repo too (`68bbcfa`).
+  - We ran it on Agora (`7505475`) and animation-blending (`5770068`), each with a diagnosis page.
+  - Don then approved a batch run with no diagnosis pages. Seven worker agents applied it to the remaining 19 wikis (`f95b1b4`). Everything is pushed.
+- **Result:**
+  - 11 wikis passed the path test and have a `<path>-flow` diagram mounted on their entry page: animation-blending, cfx-qualoth, both coloso wikis, the six dja-houdini wikis, mastering-matrices, mgear and unreal-tech-anim. Moted already had one.
+  - 6 are shaped as references, with nav settings and no diagram: Agora, animation-mentor-notes, davinci-blurs, puppeteer-lounge, riggingworkshop-breakdowns, unreal-control-rig and zebra-face-breakdown.
+  - motion-stitchtool (1 page) is unchanged.
+  - Every wiki's `log.md` names its backup folder: `~/.cache/llm-wiki-site/backups/<id>-2026-10-12-nav/`.
 
 ## Files Modified
 
-- `build-site.mjs`:
-  - Opt-in nav keys read from `site.config.json`: `sections` heading markers `{heading, quiet}`, `startHere` (a list, or `true` for index.md's Start here links), `labels`, `order`, `hide`.
-  - `sectionPages()` orders each group, and `startHereLinks()` is shared with `renderHome`.
-  - Tier CSS. Filtering hides the tiers through CSS `:has()`, so the page script is unchanged.
-- `README.md`, `BUILD-SITE.md` ("How it maps"): the nav keys.
-- `sites/moted-modules/diagrams/workshop-flow.{md,html,svg}`.
-- Outside this repo:
-  - Moted vault: `site.config.json` (the nav keys), `wiki/workshop/overview.md` (`@diagram[workshop-flow]`), `wiki/log.md` (two entries). Backups: `~/.cache/llm-wiki-site/backups/moted-2026-10-12-nav/`.
+- **Builder:**
+  - `bin/cli.mjs`: `NAV_KEYS` pass from `site.json` into the build; new `nav` command and `--json` flag.
+  - `nav.mjs`: the census.
+  - `wiki-model.mjs`: `SECTIONS`, `parseFrontmatter`, `humanize`, `natural`, `walkMd` and `startHereBlock`, now shared by the builder and the census.
+  - `build-site.mjs` imports them. Proven byte-identical by diff.
+  - `config.mjs`: comments.
+  - `README.md`: the "Nav census" section and the nav-key paragraph. `BUILD-SITE.md`: "Shaping the nav". `CLAUDE.md`: dry-build with `--site`, and the census line.
+  - `sites/*/site.json`: nav keys for 21 wikis. `sites/*/diagrams/<path>-flow.{md,html,svg}` for the 11 path wikis.
+- **Skills repo:**
+  - `nav-flow/SKILL.md` and `nav-flow/assets/diagnosis-template.html`.
+  - `add-diagram/` (newly tracked).
+  - `add-lesson` and `work-notes`: diagram wording.
+- **Vault (per wiki):**
+  - `log.md` entries.
+  - One `@diagram` line on each path wiki's entry page: `index.md`, or the guide, intro or part-01 page.
+  - Moted's `site.config.json` lost its nav keys.
 
 ## Key Decisions
 
-- **Nav shaping is opt-in per wiki.** A wiki without the keys builds byte-identical HTML. This was checked with before/after scratch builds of coloso, animation-blending and Moted on its old config; only `assets/wiki.css` differed.
-- **`hide` keeps the page built** (links still work) but takes it out of the nav and Previous/Next. Hidden pages get the off-nav label "Hidden"; `log.md` keeps "Meta".
-- **Previous/Next and `[NNN]` follow the nav order**, so a shaped nav also makes the pager walk the course.
-- **Moted's Start here is an explicit list** (Overview, True Match). The `true` form would also pull in Six Into Four, which belongs above Day 4.
-- Earlier today, still in force:
-  - New diagrams are `@diagram` SVGs drawn with the `add-diagram` skill, never Mermaid.
-  - Lessons share every page's shell.
-  - Converting a lesson keeps its step numbers and budgets frozen.
+- **Nav keys live in `sites/<id>/site.json`** (Don). Obsidian Sync doesn't carry `site.config.json`. A build by path still reads `site.config.json`.
+- **A path wiki gets its flow diagram drawn and mounted** (Don). A wiki that fails the path test (fewer than two of: numbered pages, an ordering overview, a Start here line, path pages linking out) gets nav settings only, never an invented path.
+- **Batch runs skip the diagnosis page** (Don: "no need for artifacts for each"). The skill keeps the page for a single wiki Don wants to review first.
+- **Agora is reference until it becomes a course.** Turning it into one is `add-lesson` work, and it needs a source for how the rig assembles its modules.
+- **The dja convention:** The lessons (Step by step, then Lesson summaries) → Reference → Behind the scenes (transcripts). Each has a `lesson-flow` diagram on `index.md`.
 
 ## Next Steps
 
-- [ ] **Nav diagnosis rollout (Don asked for this 2026-10-12).** Moted is the worked example: the artifact above, `sites/moted-modules/diagrams/workshop-flow.md`, and Moted's `site.config.json`.
-  1. **Decide where the nav keys live for synced vaults.** They take lists, so they can't go in the `index.md` `site:` block, and Obsidian Sync doesn't carry `site.config.json`. Options:
-     - Let `sites/<id>/site.json` (in this repo, in git) carry them. Today `pickBranding` in `bin/cli.mjs` passes only the branding keys.
-     - Teach `readSiteFrontmatter` (`config.mjs`) to read nested lists.
+- [ ] **Don's call: flashcards stubs.** Ten wikis still have the untouched 43-line `flashcards.md` template (4 example cards). Only Moted (31 cards) and cfx-qualoth (19) have real ones. zebra-face-breakdown hides its stub; the rest show it behind the scenes. Should the stubs be hidden everywhere?
+- [ ] **Start here lines in `index.md` (content, per wiki).** The home page's Start here button reads only the index intro. animation-blending's line sits under Statistics (move it). Agora, animation-mentor-notes, coloso-stylish, davinci, mgear, mastering-matrices, puppeteer, riggingworkshop, unreal-control-rig, unreal-tech-anim and zebra have no line, so their `startHere` is a list. Adding the line gives each home page its button and lets `startHere` become `true`.
+- [ ] **Builder: sub-headings inside a group.** Several wikis want them:
+  - Agora's module families
+  - animation-blending's three watch routes
+  - coloso-stylish's 8 sections inside Tutorials (112 pages)
+  - puppeteer's concept clusters
 
-     Ask Don which one.
-  2. **Package the diagnosis as a skill** (e.g. `nav-flow`, or a mode of `add-diagram`) so each wiki runs the same steps:
-     - Extract the built sidebar.
-     - Find the entry point (the `**Start here:**` line, an overview page) and the path.
-     - Map the link graph from path pages to each group.
-     - Flag A-to-Z groups that have a real order, plugin pages (Dataview/Charts View print raw text), and back-room groups.
-     - Draw a `<slug>-flow` diagram (the service-blueprint layout, 704 wide).
-     - Propose the nav keys.
-     - Show Don a diagnosis artifact for each wiki.
-  3. **Run it on the 22 other registered wikis** (`ls sites/`). One wiki at a time, each with Don's OK before writing its config. Flat or reference-only wikis may only need `hide` plus `order`; say so rather than inventing a path. Dry-build each into scratch first.
-  4. **Future wikis:** add the nav step to `~/.claude/commands/init-wiki.md` and to the llm-wiki template `CLAUDE.md`, so a new wiki gets a Start here line, the nav keys and a flow diagram. The template's `@diagram` work (`editorial-diagrams`) is merged to llm-wiki `main` and pushed (`ac05f29`).
-- [ ] **Moted `index.md`, Don's call:** rename `## Theory` to match the nav's "Watch first"? Trim line 106 so it no longer links Analytics and Dashboard?
-- [ ] **Don reviews the nine converted Moted days.** Start at `http://127.0.0.1:4173/moted-modules/workshop/day-1.html` and work the notes with `work-notes`. Open questions:
-  - Day 3's Phases 2 to 5 have no `**Why:**`. Should they get one?
-  - These budgets look tight: Day 2 Phase 4, Day 4 Phase 2, Day 6 Phase 6, Day 7 Phase 4.
-  - Nobody has checked the capture briefs against the rig.
-  - Three phases carry two captures (Day 1 Phase 2, Day 6 Phases 3 and 4). Keep both, or cut one?
-- [ ] Lint flags five older long paragraphs on the animation-blending OverRig source code map. Fix them when that page is next touched.
+  Also: `order` can't reach the root "Pages" group (`dir` is null), which blocks riggingworkshop-breakdowns and unreal-control-rig. A design change, so it needs Don's OK.
+- [ ] **Census fixes:** treat `partNN` anywhere in a slug as a sequence (mastering-matrices' `rigging-matrices-part02-fk` was missed). After keys are applied, report the shaped nav, not the folder nav.
+- [ ] **STATUS rollout step 4:** add the nav step to `~/.claude/commands/init-wiki.md` and the llm-wiki template `CLAUDE.md`. A new wiki should get a Start here line in its intro, nav keys and a flow diagram.
+- [ ] **Index content gaps seen by the workers:**
+  - Stale counts and callouts in the animation-blending, davinci-blurs, cfx-qualoth and mgear indexes.
+  - animation-mentor-notes' index lists only 55 of its 122 concepts.
+  - Agora's `syntheses/` folder is empty, and its index suggests five comparisons.
+- [ ] Carried over:
+  - Moted `index.md`: rename `## Theory`, and trim line 106 (Don's call).
+  - Don's review of the nine converted Moted days (open questions in the Moted log, 2026-10-12).
+  - The animation-blending OverRig map lint (five long paragraphs).
 
 ## Active Context
 
 - Review server: `http://127.0.0.1:4173/` (one hub, `/<wiki-id>/` per wiki). If it's down: `nohup llm-wiki-site serve > ~/.cache/llm-wiki-site/serve.log 2>&1 &`.
-- Vault root: `/mnt/c/Users/Owner/Documents/Obsidian Vault`. The vault is not git, so log wiki edits in each wiki's `log.md`, and back up vault files before editing them (`~/.cache/llm-wiki-site/backups/`).
+- Vault root: `/mnt/c/Users/Owner/Documents/Obsidian Vault`. It is not git: log wiki edits in each wiki's `log.md`, and back up vault files first (`~/.cache/llm-wiki-site/backups/`).
+- Diagnosis pages: Moted https://claude.ai/artifact/PPhuUofKfXWryCWVZiQYwf, Agora https://claude.ai/artifact/3TQWPUzWBnNowTF1XXydgH, animation-blending https://claude.ai/artifact/Eue8zqcpMZz64fvo5XuVEU.
 - Headless checks work here: `google-chrome --headless=new --screenshot` / `--dump-dom`. For DOM probes, put a probe page in the served out dir, run it, then delete it.
