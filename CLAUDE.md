@@ -43,6 +43,7 @@ Enter Plan Mode for any task that touches more than 2 files. Do not start coding
 - Test framework: none. A change is verified by building and looking at the result.
 - Run tests with: `node --check build-site.mjs`, then `llm-wiki-site build --site <id>` on one wiki and check it in the browser at `http://127.0.0.1:4173/<id>/`. Before `build --all`, dry-build every wiki into a scratch folder (`llm-wiki-site build --site <id> --out <scratch>/<id>`; a by-path build skips `site.json`'s nav keys): `build` wipes its out dir first, so a throw leaves a live site half-built.
 - Lint with: `llm-wiki-site lint --site <id>` (STE-80 writing rules and each wiki's terminology; reports only).
+- Nav census: `llm-wiki-site nav --site <id>` (groups, the reader's path, nav flags; reports only). The `nav-flow` skill builds on it.
 
 ## Design changes
 
