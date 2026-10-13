@@ -14,8 +14,8 @@
   - We ran it on Agora (`7505475`) and animation-blending (`5770068`), each with a diagnosis page.
   - Don then approved a batch run with no diagnosis pages. Seven worker agents applied it to the remaining 19 wikis (`f95b1b4`). Everything is pushed.
 - **Result:**
-  - 11 wikis passed the path test and have a `<path>-flow` diagram mounted on their entry page: animation-blending, cfx-qualoth, both coloso wikis, the six dja-houdini wikis, mastering-matrices, mgear and unreal-tech-anim. Moted already had one.
-  - 6 are shaped as references, with nav settings and no diagram: Agora, animation-mentor-notes, davinci-blurs, puppeteer-lounge, riggingworkshop-breakdowns, unreal-control-rig and zebra-face-breakdown.
+  - 13 wikis passed the path test and have a `<path>-flow` diagram mounted on their entry page: animation-blending, cfx-qualoth, both coloso wikis, the six dja-houdini wikis, mastering-matrices, mgear and unreal-tech-anim. Moted already had one.
+  - 7 are shaped as references, with nav settings and no diagram: Agora, animation-mentor-notes, davinci-blurs, puppeteer-lounge, riggingworkshop-breakdowns, unreal-control-rig and zebra-face-breakdown.
   - motion-stitchtool (1 page) is unchanged.
   - Every wiki's `log.md` names its backup folder: `~/.cache/llm-wiki-site/backups/<id>-2026-10-12-nav/`.
 
@@ -28,7 +28,7 @@
   - `build-site.mjs` imports them. Proven byte-identical by diff.
   - `config.mjs`: comments.
   - `README.md`: the "Nav census" section and the nav-key paragraph. `BUILD-SITE.md`: "Shaping the nav". `CLAUDE.md`: dry-build with `--site`, and the census line.
-  - `sites/*/site.json`: nav keys for 21 wikis. `sites/*/diagrams/<path>-flow.{md,html,svg}` for the 11 path wikis.
+  - `sites/*/site.json`: nav keys for 21 wikis. `sites/*/diagrams/<path>-flow.{md,html,svg}` for the 13 path wikis.
 - **Skills repo:**
   - `nav-flow/SKILL.md` and `nav-flow/assets/diagnosis-template.html`.
   - `add-diagram/` (newly tracked).
